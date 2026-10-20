@@ -346,43 +346,6 @@ fn a_copy_intent_over_the_clipboard_cap_is_refused_and_blank_text_is_nothing() {
     assert!(host.update(Event::Intent(Intent::Copy { text: "  \n ".into() })).is_empty());
 }
 
-/// A drag selects inside the pane it started in: the frame marks the inside
-/// of each pane (border, title and scrollbar column left out), and nothing
-/// of the top bar or the status line.
-#[test]
-fn a_frame_marks_each_panes_inside_as_selectable_and_nothing_of_the_chrome() {
-    let (host, _) = fixture();
-    let _ = crate::shell::to_text(&host, 100, 24);
-    let areas = host.frontend.selectable();
-    assert_eq!(areas.len(), 2, "the nav and the middle pane: {areas:?}");
-    for a in &areas {
-        assert!(a.rect.x >= 1 && a.rect.y >= 2, "inside the border and under the top bar: {a:?}");
-        assert!(a.rect.bottom() <= 22, "above the bottom border and the status line: {a:?}");
-        assert!(!a.text, "lists are rows to choose from, not text");
-    }
-    assert!(areas[0].rect.right() < areas[1].rect.x, "the panes' borders lie between them");
-    // A new frame starts afresh.
-    let _ = crate::shell::to_text(&host, 100, 24);
-    assert_eq!(host.frontend.selectable().len(), 2);
-}
-
-#[test]
-fn an_open_menu_is_the_only_place_a_drag_selects() {
-    let (mut host, _) = fixture();
-    host.on_key(Chord::new(Key::Char('x')));
-    assert!(host.menu.is_some());
-    let _ = crate::shell::to_text(&host, 100, 24);
-    let areas = host.frontend.selectable();
-    assert_eq!(areas.len(), 1, "{areas:?}");
-    let menu = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(rect, hit)| matches!(hit, Hit::MenuBox).then_some(*rect))
-        .unwrap();
-    assert!(areas[0].rect.x > menu.x && areas[0].rect.right() < menu.right(), "inside the menu's border");
-}
-
 #[test]
 fn the_status_line_names_the_terminals_own_selection_key_while_a_drag_selects() {
     let (mut host, _) = fixture();

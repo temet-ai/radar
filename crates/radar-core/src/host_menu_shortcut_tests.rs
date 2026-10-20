@@ -96,7 +96,7 @@ fn recovery_menu_row_is_visible_and_enter_keeps_its_modifier() {
     let (mut host, state) = fixture();
     press(&mut host, "x");
     for (w, h) in [(80, 24), (160, 40)] {
-        let screen = crate::shell::to_text(&host, w, h);
+        let screen = crate::headless::text_of(&host, w, h);
         assert!(
             screen.contains("ctrl-r") && screen.contains("kept text"),
             "{screen}"
@@ -138,35 +138,21 @@ fn combined_modifiers_do_not_borrow_bindings_and_shifted_letters_still_work() {
 }
 
 #[test]
-fn dismissing_reopening_and_clicking_recovery_dispatches_only_once() {
+fn dismissing_reopening_and_activating_recovery_dispatches_only_once() {
     let (mut host, state) = fixture();
     press(&mut host, "x");
     press(&mut host, "esc");
     assert!(state.lock().unwrap().keys.is_empty());
     press(&mut host, "x");
-    let _ = crate::shell::to_text(&host, 80, 24);
-    let at = host
-        .hits
-        .borrow()
-        .iter()
-        .find(|(_, hit)| matches!(hit, Hit::MenuItem(0)))
-        .map(|(rect, _)| (rect.x, rect.y))
-        .unwrap();
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: at.0,
-        row: at.1,
-        at_ms: 100,
-    });
+    let activate = |host: &mut Host| {
+        host.update(Event::Intent(crate::view::Intent::Activate {
+            target: crate::view::chrome::targets::menu_item(0),
+        }));
+    };
+    activate(&mut host);
     assert!(host.menu.is_none());
-    // The stale popup's rectangle is not a second activation after redraw.
-    let _ = crate::shell::to_text(&host, 80, 24);
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: at.0,
-        row: at.1,
-        at_ms: 150,
-    });
+    // The closed popup's row is not a second activation.
+    activate(&mut host);
     assert_eq!(
         state.lock().unwrap().keys,
         vec![parse_chord("ctrl-r").unwrap()]
@@ -205,22 +191,10 @@ fn control_shortcuts_do_not_alias_confirmation_choices_or_escape_the_editor() {
 #[test]
 fn repeated_page_tab_clicks_never_synthesize_enter() {
     let (mut host, state) = fixture();
-    host.hits.borrow_mut().push((
-        ratatui::layout::Rect::new(3, 3, 10, 1),
-        Hit::Plugin {
-            plugin: 0,
-            scope: "items",
-            pane: Pane::Middle,
-            id: "tab:1".into(),
-        },
-    ));
-    for at_ms in [100, 150, 200] {
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 4,
-            row: 3,
-            at_ms,
-        });
+    for _ in 0..3 {
+        host.update(Event::Intent(crate::view::Intent::Activate {
+            target: crate::view::Target::new("tab:1"),
+        }));
     }
     assert!(state.lock().unwrap().keys.is_empty());
 }

@@ -418,3 +418,22 @@ fn a_background_review_restores_its_queue_and_saves_a_usable_local_note() {
     assert_eq!(files.len(), 1);
     assert!(files[0].contains("src/watch.rs:12") && files[0].contains("posted: false"));
 }
+
+#[test]
+fn a_review_saved_by_an_earlier_run_draws_its_chip_on_the_merge_request_row() {
+    let dir = scratch("chip-from-disk");
+    let note = "---\ntype: review\nstatus: local\nposted: false\ntitle: \"Review of Fix the watch rota\"\n\
+resource: \"gitlab/https://gitlab.example/merge-request/ankh-morpork/watch!12\"\nreviewed_sha: \"abc1234567890\"\n\
+provider: \"copilot\"\nrecipe: \"review-mr\"\nrecipe_version: 1\ntemplate_version: 1\nreviewed_at: 1\n---\n\n# Review\n";
+    std::fs::write(dir.join("review-ankh-morpork-watch-12-abc12345.md"), note).unwrap();
+    let p = SessionsPlugin::on_this_thread().with_review_dir(dir);
+    let row = radar_core::Subject::new("merge-request", "ankh-morpork/watch!12", "watch !12").with("head_sha", "abc1234567890");
+    let Some(radar_core::Contribution::Chips(chips)) = p.contribute(radar_core::Point::Chips, &row) else {
+        panic!("no chip on a reviewed merge request row")
+    };
+    assert_eq!(chips.len(), 1);
+    assert_eq!(chips[0].text, "reviewed abc1234");
+    let moved = row.clone().with("head_sha", "fff0000");
+    let Some(radar_core::Contribution::Chips(chips)) = p.contribute(radar_core::Point::Chips, &moved) else { panic!() };
+    assert_eq!(chips[0].text, "review stale (abc1234)");
+}

@@ -488,7 +488,7 @@ fn settings_immediately_clear_stacked_held_extras_and_enter_before_redraw_is_ine
         let p = tests::jira_mut(&mut host);
         open(p, SITE, KEY);
         tests::complete_detail(p, SITE, KEY, Ok(tests::detail()));
-        let _ = radar_core::shell::to_text(&host, 160, 40);
+        let _ = crate::tests::shown(&host, 160, 40);
         let p = tests::jira_mut(&mut host);
         assert!(
             !p.pages[0].extra.borrow().is_empty(),

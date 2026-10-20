@@ -1,0 +1,23 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · projects ──
+  :site: acme  acme.atlassian.net  {s:acme}
+>   + watch a project   its key, or a link to it or a ticket  {s:acme/add}
+    colour          ██ blue  {s:acme/colour}
+    :folder: ABC     Acme ABC  acceptance criteria: customfield_10050  {s:acme/ABC}
+    :folder: DEF     Acme DEF  acceptance criteria: not set  {s:acme/DEF}
+  :site: beta  beta.atlassian.net  {s:beta}
+    + watch a project   its key, or a link to it or a ticket  {s:beta/add}
+    colour          ██ green  {s:beta/colour}
+    :folder: XYZ     Acme XYZ  acceptance criteria: not set  {s:beta/XYZ}
+── detail · watch a project ──
+Watch another project on acme.
+
+PASTE OR TYPE ANY OF
+  ABC
+  a ticket's key or link: ABC-12
+  a board or project link
+── status · SETTINGS ──
+b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

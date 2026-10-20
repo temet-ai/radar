@@ -1,0 +1,53 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: got
+---
+── nav · views ──
+> :you: My tickets  {view:0}
+  :board: This sprint  {view:1}
+  :issue: Recently updated  {view:2}
+── middle · My tickets * ──
+ASSIGNED TO :team: everyone  {assignees}
+  :site: acme  acme.atlassian.net  {s:acme}
+    :in_progress: ◐ In Progress  {s:acme/g:acme:In Progress}
+      :epic: ABC-1 :priority_medium: Dashboard for the stats  :you: you  Epic  :in_progress: ◐ In Progress  2w  {s:acme/g:acme:In Progress/t:acme:ABC-1}
+>       :story: ABC-12 :priority_medium: Add a stats endpoint for the dashboard  :you: you  Story  :in_progress: ◐ In Progress  1h  {s:acme/g:acme:In Progress/t:acme:ABC-1/t:acme:ABC-12}
+        :subtask: ABC-13 :priority_medium: Count requests per route  :person: Bob E.  Sub-task  :in_progress: ◐ In Progress  1h  {s:acme/g:acme:In Progress/t:acme:ABC-1/t:acme:ABC-13}
+    :in_progress: ◐ In Review  {s:acme/g:acme:In Review}
+      :story: DEF-3 :priority_medium: Rename the export job  :you: you  Story  :in_progress: ◐ In Review  1h  {s:acme/g:acme:In Review/t:acme:DEF-3}
+    :todo: ○ To Do  {s:acme/g:acme:To Do}
+      :bug: ABC-20 :priority_medium: Stats page shows yesterday twice  unassigned  Bug  :todo: ○ To Do  9w  {s:acme/g:acme:To Do/t:acme:ABC-20}
+  :site: beta  beta.atlassian.net  {s:beta}
+    :todo: ○ To Do  {s:beta/g:beta:To Do}
+      :story: XYZ-7 :priority_medium: Move the nightly build  :person: Alice E.  Story  :todo: ○ To Do  1h  {s:beta/g:beta:To Do/t:beta:XYZ-7}
+· assigned to you · not done
+── detail · ABC-12 ──
+<detail>
+:site: acme / ABC / ABC-12
+:story: Add a stats endpoint for the dashboard
+:person: Bob Example
+1h ago
+status: :in_progress: ◐ In Progress
+type: Story
+priority: :priority_medium: Medium
+assignee: :you: you
+parent: ABC-1: Dashboard for the stats
+labels: :label: #backend
+§ DESCRIPTION
+  What ABC-12 is about.
+§ ACCEPTANCE CRITERIA
+  • GET /stats answers within 200 ms
+  • counts are per day
+§ ACTIONS
+  comment  (c)
+  status  (t)
+  assign to me (ABC-12 is already yours)  (i)
+  open  (o)
+  copy link  (y)
+  copy key  (Y)
+  page  (⏎)
+  extra actions  (x)
+[comment] [status] [assign to me] [open] [copy link] [copy key] [page] [extra actions]
+── status · JIRA ──
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+6 tickets · 4 doing

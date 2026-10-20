@@ -1,0 +1,15 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · views ──
+> + new view   starts from your tickets; add conditions after  {row:0}
+  My tickets        assigned to you, not done  {row:1}
+  This sprint       in an open sprint, in your watched projects  {row:2}
+  Recently updated  in your watched projects, updated in the last 14 days  {row:3}
+── detail · new view ──
+Make another view for the Jira nav pane.
+
+Give it a name; it starts with your open tickets. Then add conditions from its menu: who it is assigned to, status, sprint, project, type, label, when it changed, or words. JQL by hand is there too.
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -1,0 +1,43 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · look ──
+  # STATUSES  {row:0}
+> to do  a ticket not started  secondary text  {row:1}
+  doing  a ticket being worked on  info · bold  {row:2}
+  done  a finished ticket  success  {row:3}
+  # TYPES  {row:4}
+  bug  a bug  error  {row:5}
+  story  a story  success  {row:6}
+  task  a task  links and keys  {row:7}
+  epic  an epic  third accent · bold  {row:8}
+  subtask  a sub-task  secondary text  {row:9}
+  other  any other type  secondary text  {row:10}
+  # AGES  {row:11}
+  fresh  changed in the last 2 days  main text  {row:12}
+  aging  changed in the last 2 weeks  warning  {row:13}
+  stale  not changed for 2 weeks or more  muted text  {row:14}
+  # TICKETS  {row:15}
+  key  a ticket's key  links and keys  {row:16}
+  label  a ticket's labels  links and keys  {row:17}
+  you  "you", the reader, in place of their own name  accent  {row:18}
+  failed  a site or project that could not be reached  error  {row:19}
+  acme  a site's name; its colour is the site's own  site's own · bold  {row:20}
+  # TICKETS TREE  {row:21}
+  band  the shade behind every other ticket and its children  overlays  {row:22}
+  heading  the shade behind a site's heading  overlays  {row:23}
+  lines  the tree lines joining statuses and tickets  muted text  {row:24}
+── detail · to do ──
+How a ticket not started is drawn.
+
+  sample  to do
+
+colour    ██ secondary text
+          the theme's secondary text colour, used for repo names and secondary values
+emphasis  none
+
+What each colour looks like is set in colours, under general.
+config: [jira.style] "to do"
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

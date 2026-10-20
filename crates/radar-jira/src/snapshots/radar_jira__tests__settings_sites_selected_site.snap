@@ -1,0 +1,59 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · connection ──
+  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?  {row:0}
+  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, JIRA_OTHER_API_TOKEN). Use it?  {row:1}
+  + add a site   paste its link, e.g. https://acme.atlassian.net  {row:2}
+  ▌ acme  acme.atlassian.net · 2 projects  {row:3}
+> ├─ site            https://acme.atlassian.net  {row:4}
+  ├─ account         alice@example.com  {row:5}
+  ├─ token           env:RADAR_JIRA_TEST_TOKEN  {row:6}
+  ├─ signed in as    Alice Example  {row:7}
+  ├─ check           not checked yet  {row:8}
+  └─ projects        ABC, DEF  {row:9}
+  ▌ beta  beta.atlassian.net · 1 project  {row:10}
+  ├─ site            https://beta.atlassian.net  {row:11}
+  ├─ account         alice@example.com  {row:12}
+  ├─ token           env:RADAR_JIRA_TEST_TOKEN  {row:13}
+  ├─ signed in as    —  {row:14}
+  ├─ check           not checked yet  {row:15}
+  └─ projects        XYZ  {row:16}
+  refresh         every 2m  {row:17}
+  on start        ask first  {row:18}
+── detail · site ──
+CHECKED
+not checked yet
+
+NOW
+https://acme.atlassian.net
+
+The Jira Cloud site radar reads tickets from.
+
+ACCEPTS
+https://acme.atlassian.net, any link on the site, or env:NAME
+
+config: [[jira.site]] url
+
+§ :site: SITE
+  The address you use for Jira, like ankh-morpork.atlassian.net.
+  Paste any Jira link; radar keeps the site part.
+§ :person: EMAIL
+  The email you sign in to Atlassian with, on your profile:
+  id.atlassian.com / profile
+§ :connection: API TOKEN  about a minute
+  1 Open Atlassian's API token page:
+  id.atlassian.com / api tokens   open · copy
+  2 Create API token, label it radar, pick an expiry, then Create.
+  3 Copy it now: Atlassian shows it once. Paste it into token, or:
+  $ export JIRA_TOKEN=…
+  then the token is env:JIRA_TOKEN
+§ :warning: IF IT IS REFUSED
+  401: the email and token don't match, or the token expired.
+  Company login (SSO)? An API token still works; ask your admin if API tokens are switched off.
+§ :link: MORE
+  Atlassian: manage API tokens
+  radar guide: connect Jira
+── status · SETTINGS ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

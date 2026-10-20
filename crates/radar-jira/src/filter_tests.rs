@@ -283,7 +283,7 @@ mod integration {
         assert_export_selected(p);
 
         // The only full-frame checkpoint: keep the existing visible wording.
-        let shown = scenario.inspect(|host| radar_core::shell::to_text(host, 160, 40));
+        let shown = scenario.inspect(|host| crate::tests::shown(host, 160, 40));
         assert!(shown.contains("tickets mentioning \"export\""), "{shown}");
         assert!(scenario.desktop_effects().is_empty());
         assert!(provider.ledger().is_empty());

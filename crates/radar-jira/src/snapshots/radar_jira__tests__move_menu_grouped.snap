@@ -1,0 +1,50 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · Jira / acme / ABC / ABC-12 ──
+:story: Add a stats endpoint for the dashboard  :in_progress: ◐ In Progress · Story · :you: you
+parent ABC-1 Dashboard for the stats · Acme ABC · :updated: updated 1h ago
+<:info: Overview>  :thread: Comments  :link: Links  :change: Code
+── middle · overview * ──
+DESCRIPTION
+## Why
+The dashboard needs a count of requests per day.
+```
+GET /stats?days=7
+```
+
+ACCEPTANCE CRITERIA
+• GET /stats answers within 200 ms
+• counts are per day
+── detail · details ──
+status        :in_progress: ◐ In Progress
+type          Story
+priority      :priority_medium: Medium
+assignee      :you: you
+reporter      :person: Bob Example
+sprint        :calendar: Sprint 41
+parent        ABC-1 Dashboard for the stats
+children      1 (Links tab)
+labels        :label: #backend
+components    —
+fix versions  —
+created       :calendar: 2w ago
+updated       :updated: 1h ago
+── menu · move ABC-12 to… ──
+  # now ◐ In Progress
+  # usual next
+> ◐ In Review  (1)
+  ◐ In Test  (2)
+  ◐ Blocked  (3)
+  # ○ to do · 1
+  ○ Backlog  (4)
+  # ◐ in progress · 2
+  ◐ Ready for release  (5)
+  ◐ Waiting for design  (6)
+  # ● done · 2
+  ● Done  (7)
+  ● Won't do  (8)
+── status · JIRA ──
+↑↓ move  ⏎ choose  esc close
+6 tickets · 4 doing

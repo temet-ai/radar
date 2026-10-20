@@ -331,7 +331,7 @@ fn late_types_moves_and_who_leave_comment_and_its_review_exactly_owned() {
             assert!(!r.host.quit);
             assert!(r.host.plugins[0].capturing());
             assert!(r.editor().2.contains("q SECRET_PASTE"));
-            let visible = radar_core::shell::to_text(&r.host, 160, 40);
+            let visible = crate::tests::shown(&r.host, 160, 40);
             assert!(visible.contains("SECRET_BODY") && visible.contains("comment on ABC-12"));
             r.assert_private();
         }
@@ -478,7 +478,7 @@ fn escape_cancels_pending_read_and_does_not_lock_out_a_new_action_after_a_menu()
 }
 
 #[test]
-fn later_host_menu_paste_or_mouse_input_supersedes_the_read_without_hidden_capture() {
+fn later_host_menu_paste_or_pointer_input_supersedes_the_read_without_hidden_capture() {
     for later in 0..3 {
         let mut r = Run::new(true);
         let pending = r.launch(Kind::Types);
@@ -488,12 +488,9 @@ fn later_host_menu_paste_or_mouse_input_supersedes_the_read_without_hidden_captu
             }
             1 => r.paste("SECRET_IGNORED_PASTE"),
             _ => {
-                r.event(Event::Mouse {
-                    kind: radar_core::host::MouseKind::Press,
-                    column: 2,
-                    row: 2,
-                    at_ms: 100,
-                });
+                r.event(Event::Intent(radar_core::view::Intent::Select {
+                    target: radar_core::view::Target::new("pane:middle"),
+                }));
             }
         }
         let menu = r.menu();

@@ -195,7 +195,7 @@ mod media_fixtures {
     use radar_core::host::Event;
 
     fn press(host: &mut radar_core::Host, code: KeyCode) {
-        let _ = radar_core::shell::to_text(host, 160, 40);
+        let _ = crate::tests::shown(&*host, 160, 40);
         host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
     }
 
@@ -205,8 +205,9 @@ mod media_fixtures {
         preload_media_page(&mut p);
         let mut host = radar_core::Host::new(vec![Box::new(p)], NOW).unwrap();
         for downs in 0..30 {
-            let shown = radar_core::shell::to_text(&host, 160, 40);
-            if shown.lines().nth(1).is_some_and(|l| l.contains("╭ 3 ABC-13 ")) {
+            let shown = crate::tests::shown(&host, 160, 40);
+            let middle = shown.split("── middle").nth(1).unwrap_or_default();
+            if middle.lines().find(|l| l.starts_with("> ")).is_some_and(|l| l.contains(":ABC-13}")) {
                 press(&mut host, KeyCode::Enter);
                 return (host, downs);
             }
@@ -218,7 +219,7 @@ mod media_fixtures {
     #[test]
     fn media_page_views() {
         let (host, downs) = opened();
-        let shown = radar_core::shell::to_text(&host, 160, 40);
+        let shown = crate::tests::shown(&host, 160, 40);
         assert!(shown.contains("dashboard.png"), "{shown}");
         assert!(shown.contains("requests.csv"), "{shown}");
         eprintln!("ABC-13 is {downs} Down presses from the start; then Enter");

@@ -1,0 +1,19 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · Jira / acme / ABC / ABC-12 ──
+:story: Add a stats endpoint for the dashboard  :in_progress: ◐ In Progress · Story · :you: you
+parent ABC-1 Dashboard for the stats · Acme ABC · :updated: updated 1h ago
+:info: Overview  <:thread: Comments>  :link: Links  :change: Code
+── middle · comments · newest first · 2 of 3 * ──
+:comment: Bob Example · 46m ago
+│  Looks right; one question on the time zone.
+
+:comment: Alice Example · 23h ago
+│  First cut is up.
+
+1 older: they load as you scroll down
+── status · JIRA ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+6 tickets · 4 doing

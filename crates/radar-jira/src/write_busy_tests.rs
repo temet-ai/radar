@@ -449,7 +449,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
         }
     }
     assert!(host.plugins[0].capturing());
-    let visible = radar_core::shell::to_text(&host, 160, 40);
+    let visible = crate::tests::shown(&host, 160, 40);
     assert!(
         visible.contains("SECRET_SECOND") && visible.contains("end"),
         "{visible}"

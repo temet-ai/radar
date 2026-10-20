@@ -223,6 +223,7 @@ const CASES: Record<string, Case> = {
   "ModeChip.text": bar((b, on) => (b.mode.text = pick(on, "read-only", "ZZMODE"))),
   "ModeChip.ink": bar((b, on) => (b.mode.ink = pick(on, "warn", "good"))),
   "ModeChip.strong": bar((b, on) => (b.mode.strong = on)),
+  "ModeChip.icon": bar((b, on) => (b.mode.icon = on ? "mode_edit" : null)),
   // SourceTab
   "SourceTab.label": sources((s, on) => (s.label = pick(on, "GitLab", "ZZSRC"))),
   "SourceTab.active": sources((s, on) => (s.active = on)),
@@ -343,7 +344,7 @@ const CASES: Record<string, Case> = {
   "HistoryView.selected": history((h, on) => (h.selected = on ? 1 : 0)),
   "HistoryView.list_scroll": history((h, on) => {
     h.rows = Array.from({ length: 60 }, (_, i) => ({ observed: `t${i}`, action: `act.${i}`, subject: "s", outcome: "ok", outcome_ink: "muted", target: `chrome:history:row:${i}` }));
-    // Ratatui's cursor is `selected.unwrap_or(0)`: with none selected the table snaps back to row 0.
+    // the reference's cursor is `selected.unwrap_or(0)`: with none selected the table snaps back to row 0.
     h.selected = 25;
     h.list_scroll = on ? 20 : 0;
   }),
@@ -352,7 +353,7 @@ const CASES: Record<string, Case> = {
   "HistoryView.detail_title": history((h, on) => (h.detail_title = pick(on, "detail", "ZZDETAIL"))),
   "HistoryView.detail": history((h, on) => (h.detail = on ? h.detail : [])),
   "HistoryView.detail_scroll": history((h, on) => {
-    // Ratatui clamps the scroll to the overflow: the detail must be taller than its pane for a scroll to show.
+    // the reference clamps the scroll to the overflow: the detail must be taller than its pane for a scroll to show.
     h.detail = Array.from({ length: 60 }, (_, i) => text(`DETAIL LINE ${i}`));
     h.detail_scroll = on ? 20 : 0;
   }),
@@ -384,7 +385,7 @@ const INVISIBLE: Record<string, string> = {
   "ChromeView.width": "the room the host made the view for; the renderer draws in its own terminal's room",
   "ChromeView.height": "the room the host made the view for; the renderer draws in its own terminal's room",
   "ChromeView.screen_keys": "the capitals the host takes, which the input controller leaves to it (input tests); never drawn",
-  "MenuView.change": "Ratatui draws no change mark: a write question's title has no '(add)' (cc18832b); drawing one would break parity",
+  "MenuView.change": "the reference draws no change mark: a write question's title has no '(add)' (cc18832b); drawing one would break parity",
   "BarTab.target": "pointer target",
   "ModeChip.target": "pointer target",
   "SourceTab.target": "pointer target",
@@ -416,7 +417,7 @@ const INVISIBLE: Record<string, string> = {
   "HistoryView.width": "the room the host made the view for",
   "HistoryView.height": "the room the host made the view for",
   "HistoryRow.target": "pointer target",
-  "HistoryView.pending": "Ratatui paints `state` only when there are no rows or an error (history.rs render_events); pending alone draws nothing more",
+  "HistoryView.pending": "the reference paints `state` only when there are no rows or an error (history.rs render_events); pending alone draws nothing more",
   "HistoryView.detail_keys_line": "the keys are words of that detail line; they add pointer areas, not cells (test/chrome/history.test.ts)",
   "HistoryView.detail_keys": "the keys are words of that detail line; they add pointer areas, not cells (test/chrome/history.test.ts)",
 };

@@ -378,18 +378,18 @@ mod tests {
         i.key(k(Key::Left));
         assert_eq!(i.cursor(), 3);
         i.key(k(Key::Delete));
-        assert_eq!(i.value(), "vime");
+        assert_eq!(i.value(), "vims");
         i.key(k(Key::Right));
         i.key(k(Key::Right));
         i.key(k(Key::Right));
         assert_eq!(i.cursor(), 4, "right stops at the end");
         i.key(k(Key::Delete));
-        assert_eq!(i.value(), "vime", "delete at the end does nothing");
+        assert_eq!(i.value(), "vims", "delete at the end does nothing");
         i.key(k(Key::Home));
         i.key(k(Key::Left));
         assert_eq!(i.cursor(), 0, "left stops at the start");
         i.key(k(Key::Backspace));
-        assert_eq!(i.value(), "vime", "backspace at the start does nothing");
+        assert_eq!(i.value(), "vims", "backspace at the start does nothing");
         i.key(k(Key::End));
         assert_eq!(i.cursor(), 4);
     }

@@ -1,7 +1,11 @@
 # radar user guide
 
 This guide shows how to set radar up and work in it. What radar is for, and how to install
-it, are in the [README](../../README.md).
+it, are in the [README](../../README.md). For supported platforms, checksums, updates
+and rollback, use [Install and upgrade radar](install.md).
+
+This guide follows the source revision you are reading. Match its tag to
+`radar --version` when using a published release; `main` can be ahead of the packages.
 
 New to radar? Start with [Get started with radar](quickstart.md), a short walkthrough
 using a local Git checkout. Use [Find a page](pages.md) for the complete screen and
@@ -92,9 +96,8 @@ at the top. Nothing is sent to a service until you connect it.
 status line then says where you stopped. The rest of setup's keys are in
 [Keys](keys.md#setup).
 
-A part you have not set up says so on its screen; `s` there walks its setup step, and `⏎`
-opens its section in Settings. Run setup again whenever you like, or open one step on its
-own:
+A part you have not set up is hidden from the screen tabs. Configure it in Settings
+or run its setup step. Run setup again whenever you like, or open one step on its own:
 
 ```sh
 radar setup            # from the start
@@ -198,10 +201,11 @@ whole, and a triple-click a line. [Keys](keys.md#mouse) has the rest.
 ### Links and pictures
 
 Links in descriptions, tickets and messages are terminal hyperlinks: Ctrl-click (Cmd-click on
-a Mac) opens one, in terminals that support them. Pictures in Slack threads, merge request
-descriptions and tickets are drawn in the terminal where it supports kitty, sixel or iTerm2
-graphics; elsewhere a line names the picture and its link. Both can be set under Settings,
-General, colours.
+a Mac) opens one, in terminals that support them. Pictures in Slack threads, merge request descriptions and tickets currently appear
+as a line naming the picture and its link. Open the link to view the image. The
+Kitty-graphics splash is separate from these service-content images. Hyperlink and
+image preferences are under Settings, General, colours; enabling images does not
+add service-content rendering that the current renderer has not implemented.
 
 Opening links and copying work on macOS, Linux (Wayland and X11), Windows under WSL2, inside
 tmux and over SSH. Where radar cannot reach a browser itself (over SSH, say), it puts the
@@ -375,6 +379,8 @@ radar jira list [--view NAME] [--site NAME] [--filter TEXT] [--json]
 radar jira show WATCH-12 [--site NAME] [--json]
 radar slack list [--view CHANNEL] [--filter TEXT] [--json]
 radar slack catchup [CHANNEL] [--json]
+radar slack cache-recovery               # exports quarantined cache JSON locally
+radar parts                             # lists the parts compiled into this binary
 radar config path | show
 radar setup [STEP]                       # opens radar on setup, from the start or one step
 radar icons list | export PACK | path
@@ -388,3 +394,6 @@ radar work id | apply | handoff | items | events | tag | change | resolve
 subcommand except `id` takes `--stdin` and reads one JSON object on standard input. `id`
 prints a new UUID; `apply` records local work annotations; `handoff`, `items`, `events`,
 `tag`, `change` and `resolve` look up what was recorded. `radar work --help` describes them.
+
+For Slack cache recovery semantics and privacy precautions, see
+[Slack cache and recovery](../slack-cache.md).

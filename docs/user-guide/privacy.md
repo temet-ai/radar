@@ -10,16 +10,15 @@ Back to the [user guide](README.md).
 | To | What | When |
 |---|---|---|
 | Each service you connect (GitLab, GitHub, Jira, Slack), at the address you configured | API requests with that service's token: reads, and the writes you confirm | while radar syncs, and when you act |
-| Picture URLs in descriptions, tickets and threads | Image downloads; credentials are attached only for the service's recognized origins/file hosts | when radar loads a visible picture |
 | The npm registry (`registry.npmjs.org`) | Anthropic's Claude Agent SDK at radar's pinned version, checked against its pinned checksum | first use when that SDK is not already installed or cached |
 | The selected agent provider | Prompts, supplied work context, tool results and the provider's own requests | when you use an agent or an enabled automatic review starts one |
 | Git remotes and programs you launch | Fetches/pushes, opened URLs, or requests made by an editor, terminal command, worktree hook or agent tool | when the corresponding operation runs |
 
-The service connection determines where its API credentials are sent. Pictures may be
-hosted elsewhere: GitLab and Jira attach credentials only on the configured origin;
-Slack also recognizes its own file hosts. External images are fetched without those
-service credentials. Opening a link delegates to your browser or the terminal's link
-handler. Processes started by radar can make their own network requests.
+The service connection determines where its API credentials are sent. The current
+renderer shows images in service descriptions, tickets and threads as labels and
+links, rather than downloading and drawing inline previews. Opening a link delegates
+to your browser or the terminal's link handler. Processes started by radar can make
+their own network requests. The Kitty splash picture is generated locally.
 
 Confirmed service writes follow radar's [mode](README.md#the-mode). That mode is not
 a network or filesystem sandbox for local Git operations, terminal programs or agents.
@@ -67,7 +66,7 @@ coverage and snapshot limits.
 | Service caches and persisted part state, including local read marks, automatic-review intake/queue state, session pointers and pending Work recovery data | `~/.local/state/radar/cache.sqlite3` |
 | Action history **and Work tasks, authored labels, source bindings and relations** | `~/.local/state/radar/journal/actions.sqlite3` |
 | Diagnostic log and its previous rotation | `~/.local/state/radar/radar.log`, `radar.log.1` |
-| pictures, at most 200 MB | `~/.cache/radar/images` (macOS: `~/Library/Caches/radar/images`) |
+| Image cache retained from earlier versions (200 MB limit when populated) | `~/.cache/radar/images` (macOS: `~/Library/Caches/radar/images`) |
 | the renderer, unpacked from the binary | `~/.cache/radar/runtime` (macOS: `~/Library/Caches/radar/runtime`) |
 | the Claude Agent SDK, per version | `~/.cache/radar/claude-agent-sdk/<version>` (macOS: `~/Library/Caches/radar/claude-agent-sdk/<version>`) |
 | Local review Markdown | Repository review folder → global review folder → workspace note routing → `~/.local/state/radar/reviews` |
@@ -86,7 +85,9 @@ The config file holds a token if you typed one in. Otherwise it holds where the 
 is: `env:GITLAB_TOKEN`, or `glab` for the GitLab CLI's login.
 
 Service caches contain descriptions, comments and message text returned by their
-services. They also hold local state that a fresh remote sync cannot reconstruct:
+services. Slack's account partitions may also store a noncryptographic token
+fingerprint to select a cached preview before fresh authentication. This does not
+authenticate the account; see [Slack cache and recovery](../slack-cache.md). They also hold local state that a fresh remote sync cannot reconstruct:
 Slack read marks and review checkpoints, queued automatic reviews and their source
 context, session IDs/cursors, review records, and pending Work changes. The session
 metadata records working folder, title, provider, model and resume cursor; radar does

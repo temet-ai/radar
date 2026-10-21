@@ -1,16 +1,22 @@
 # Slack cache and recovery
 
-Slack's JSON cache is versioned and partitioned by the authenticated workspace ID
-and user ID. A cached identity is never a login. Each new TUI session (including a
-configured token-reference change) authenticates before selecting its account's
-messages, names, groups, read marks, opened threads and followed review asks.
+Slack's cache is versioned and partitioned by the authenticated workspace ID
+and user ID. A cached identity is never a login. Each new interactive session
+(including a configured token-reference change) authenticates before activating
+an account's messages, names, groups, read marks, opened threads and review asks.
 `radar slack list` and `radar slack catchup` also authenticate on every invocation.
+
+Before authentication finishes, radar can display a **cached preview** of the one
+account last authenticated with the same token fingerprint. That preview is not
+an authenticated session: it cannot authorize writes or move account state. A
+successful authentication activates the matching account's partition; a different
+account replaces the preview with that account's data. Fresh authentication is
+still required even when cached content is visible.
 
 Changing accounts parks the previous account's data. Returning to the same
 workspace **and user** restores that partition after successful authentication.
 A different user in the same workspace starts with a separate partition. Failed
-or incomplete authentication does not fall back to cached identity or marks.
-There may therefore be no cached content on the first frame, or while offline.
+or incomplete authentication does not turn a cached identity into a login.
 
 ## Older caches
 
@@ -33,8 +39,14 @@ prints a JSON array (`[]` when nothing is quarantined), without changing or
 adopting the cache. The export may contain private messages and kept work; store
 it privately. There is no automatic import, replay, or mark-adoption command.
 Fresh provider reads build a new verified partition without deleting the old
-JSON. Existing cache content is preserved as supplied; radar does not add credential
-values, token references or credential hashes as ownership keys.
+JSON. Existing quarantined content is preserved as supplied.
+
+Verified partitions may store a noncryptographic FNV-1a fingerprint of the token
+last used to authenticate that account. It is a display lookup hint for the
+cached preview, not an authentication credential or a security guarantee.
+Workspace and user IDs remain the ownership keys. Radar does not store the raw
+token in this fingerprint field; a token entered directly in Settings is still
+stored separately in the configuration file.
 
 ## In-progress writing
 

@@ -17,6 +17,15 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Documentation checker tests
+        run: python3 scripts/check-docs-test.py
+      - name: Local documentation links and anchors
+        run: python3 scripts/check-docs
+
   secrets:
     runs-on: ubuntu-22.04
     steps:

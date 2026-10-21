@@ -22,7 +22,7 @@ and the status line shows the main ones. How keys are chosen is in
 | `b` | bulk actions on everything shown |
 | `z` | pause or resume refreshing |
 | `q` | quit (asks first when a setting is not saved) |
-| `ctrl-c` | quit from anywhere, even while typing |
+| `ctrl-c` | quit, including while typing; with a mouse text selection showing, copy it instead |
 
 Global navigation shortcuts apply while navigating; editors, menus and a focused agent
 dock keep their own keys. The [page directory](pages.md) links each detailed guide.
@@ -72,15 +72,42 @@ In the parts' lists and pages:
 
 ## Text and questions
 
+These controls apply to comment/reply composers and their confirmation questions.
+Single-line fields have the separate editing controls below.
+
 | Key | Does |
 |---|---|
-| `⏎` | new line |
+| `⏎` | new line in a multiline composer; review/advance in a one-line composer |
 | `ctrl-s` | review and send |
 | `esc` | stop writing (asks first when you have typed something) |
 | `y` | on a question: do it |
 | `e` | on a question about text: go back to editing |
 | `n` | on a question: drop it |
 | `ctrl-r` | in GitLab, Jira and Slack: the text you declined to send, to copy back or drop |
+
+### Single-line fields
+
+Settings values, searches and other one-line inputs use these editing controls:
+
+| Key | Does |
+|---|---|
+| `⏎` / `esc` | submit the value / cancel editing |
+| `←` `→` | move the caret |
+| `Home` / `ctrl-a`, `End` / `ctrl-e` | start / end of the field |
+| `ctrl-←` `ctrl-→` or `alt-←` `alt-→` | move by word |
+| `alt-b` `alt-f` | previous / next word |
+| `shift` with arrows, `Home` or `End` | extend a selection; typing replaces it |
+| `Backspace` / `Delete` | delete before / after the caret, or the selection |
+| `ctrl-u` / `ctrl-k` | delete to the start / end |
+| `ctrl-w` or `alt-Backspace` | delete the previous word |
+| `alt-d` | delete the next word |
+| `ctrl-z` | undo the last edit |
+| `ctrl-shift-z` or `ctrl-r` | redo |
+
+Pasting into a one-line field turns line breaks into spaces. Multiline comment and
+reply composers preserve pasted lines. While editing a field, `ctrl-r` means redo;
+leave the editor first to use a part's retained-text recovery shortcut. Terminal
+support determines which modified key combinations reach radar.
 
 ## Setup
 
@@ -92,7 +119,6 @@ In the parts' lists and pages:
 | `esc` | skip this step |
 | `←` | back a step |
 | `f` | finish later: keeps your answers and leaves setup |
-| `s` | on the screen of a part not set up: walk its setup step |
 
 ## GitLab
 

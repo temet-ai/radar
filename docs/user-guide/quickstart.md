@@ -13,7 +13,8 @@ brew install temet-ai/radar/radar
 ```
 
 The full name matters because Homebrew has another app named `radar`. You can
-also use [mise or a release archive](../../README.md#install).
+also use [mise or a release archive](install.md). Check supported platforms and
+verify the installed command with `radar --version` before continuing.
 
 ## Start and set up local code
 

@@ -1510,7 +1510,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "radar"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "insta",
@@ -1535,7 +1535,7 @@ dependencies = [
 
 [[package]]
 name = "radar-core"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1563,7 +1563,7 @@ dependencies = [
 
 [[package]]
 name = "radar-git"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "clap",
@@ -1578,7 +1578,7 @@ dependencies = [
 
 [[package]]
 name = "radar-github"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "clap",
@@ -1594,7 +1594,7 @@ dependencies = [
 
 [[package]]
 name = "radar-gitlab"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "clap",
@@ -1610,7 +1610,7 @@ dependencies = [
 
 [[package]]
 name = "radar-jira"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1626,7 +1626,7 @@ dependencies = [
 
 [[package]]
 name = "radar-sessions"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "radar-core",
@@ -1638,7 +1638,7 @@ dependencies = [
 
 [[package]]
 name = "radar-sessions-claude"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "radar-sessions",
@@ -1650,7 +1650,7 @@ dependencies = [
 
 [[package]]
 name = "radar-sessions-codex"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "radar-sessions",
@@ -1661,7 +1661,7 @@ dependencies = [
 
 [[package]]
 name = "radar-sessions-copilot"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1675,7 +1675,7 @@ dependencies = [
 
 [[package]]
 name = "radar-sessions-pty"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1689,7 +1689,7 @@ dependencies = [
 
 [[package]]
 name = "radar-slack"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "clap",
@@ -1704,7 +1704,7 @@ dependencies = [
 
 [[package]]
 name = "radar-workbench"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "insta",
@@ -1717,7 +1717,7 @@ dependencies = [
 
 [[package]]
 name = "radar-workspace"
-version = "0.1.0-alpha.13"
+version = "0.1.0-alpha.14"
 dependencies = [
  "anyhow",
  "dirs 6.0.0",

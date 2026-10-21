@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*-alpha.*'
+  # Builds and packages every target without publishing (publish needs a tag).
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -42,6 +44,12 @@ jobs:
           - runner: macos-15
             target: aarch64-apple-darwin
             os: unix
+          # Intel Macs, built on Apple Silicon: an x64 node under Rosetta makes
+          # the Intel runtime. The macos-15-intel runner took 20 to 30 minutes.
+          - runner: macos-15
+            target: x86_64-apple-darwin
+            os: unix
+            node-arch: x64
           # No Windows build until the host's Unix sockets and PTY code have a
           # Windows side (WSL2 meanwhile).
     runs-on: ${{ matrix.runner }}
@@ -51,10 +59,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: rui314/setup-mold@v1
         if: runner.os == 'Linux'
+      - name: Install Rosetta
+        if: matrix.node-arch == 'x64' && runner.os == 'macOS'
+        run: softwareupdate --install-rosetta --agree-to-license
+      - name: Add the Rust target
+        run: rustup target add ${{ matrix.target }}
       - uses: actions/setup-node@v4
         if: matrix.os == 'unix'
         with:
           node-version: '26'
+          architecture: ${{ matrix.node-arch }}
       # The Ink renderer and the Claude Code sidecar as one Node single
       # executable for this target, embedded in radar (build.rs): the archive's
       # one file is all a user installs, with no node.
@@ -69,15 +83,17 @@ jobs:
           test -x "$runtime"
           echo "RADAR_RUNTIME_EMBED=$runtime" >> "$GITHUB_ENV"
       - name: Build
-        run: cargo build --release --locked
+        run: cargo build --release --locked --target ${{ matrix.target }}
       - name: Package Unix binary
         if: matrix.os == 'unix'
         shell: bash
         run: |
           set -euo pipefail
           version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "radar") | .version')"
-          target/release/radar --version | grep -F "$version"
-          target/release/radar config path >/dev/null
+          release=target/${{ matrix.target }}/release
+          file "$release/radar"
+          "$release/radar" --version | grep -F "$version"
+          "$release/radar" config path >/dev/null
           # The runtime came out of the binary and runs with no node on PATH.
           # (find fails on a folder that does not exist, so only the platform's own is searched.)
           cache=${XDG_CACHE_HOME:-$HOME/.cache}
@@ -87,7 +103,7 @@ jobs:
           printf '{"id":1,"op":"hello"}\n' | env PATH=/usr/bin:/bin "$runtime" claude-agent | grep -F '"type":"ready"'
           mkdir -p dist
           # The binary, its licence and the notices of what it carries (scripts/notices).
-          tar -czf "dist/radar-v${version}-${{ matrix.target }}.tar.gz" -C target/release radar -C "$GITHUB_WORKSPACE" LICENSE THIRD-PARTY-NOTICES.md
+          tar -czf "dist/radar-v${version}-${{ matrix.target }}.tar.gz" -C "$release" radar -C "$GITHUB_WORKSPACE" LICENSE THIRD-PARTY-NOTICES.md
       - uses: actions/upload-artifact@v4
         with:
           name: radar-${{ matrix.target }}
@@ -113,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           cd dist
-          test "$(find . -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 3
+          test "$(find . -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 4
           sha256sum ./*.tar.gz > checksums.txt
           version="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" ./*.tar.gz checksums.txt \

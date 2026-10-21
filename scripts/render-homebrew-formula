@@ -8,6 +8,7 @@ from pathlib import Path
 
 TARGETS = {
     "mac_arm": "aarch64-apple-darwin",
+    "mac_intel": "x86_64-apple-darwin",
     "linux_arm": "aarch64-unknown-linux-gnu",
     "linux_intel": "x86_64-unknown-linux-gnu",
 }
@@ -50,9 +51,11 @@ def main() -> None:
   version "{args.version}"
 
   on_macos do
-    depends_on arch: :arm64
     on_arm do
 {block(TARGETS["mac_arm"], "      ")}
+    end
+    on_intel do
+{block(TARGETS["mac_intel"], "      ")}
     end
   end
 

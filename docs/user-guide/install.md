@@ -14,11 +14,13 @@ Current release archives cover:
 | Your machine | Archive target |
 |---|---|
 | macOS, Apple Silicon | `aarch64-apple-darwin` |
+| macOS, Intel | `x86_64-apple-darwin` |
 | Linux, x86_64 (x64) | `x86_64-unknown-linux-gnu` |
 | Linux, aarch64 (ARM64) | `aarch64-unknown-linux-gnu` |
 
-Linux builds require glibc 2.35 or later. Alpine/musl, older glibc distributions
-and Intel Macs are outside the current release matrix. Windows has no native
+Linux builds require glibc 2.35 or later. Alpine/musl and older glibc distributions
+are outside the current release matrix. Intel Mac archives are available again
+from alpha.15; check the assets when choosing an earlier release. Windows has no native
 build; use a supported Linux distribution in WSL2. Run `uname -s` and `uname -m`
 inside the environment where radar will run to check its OS and architecture.
 
@@ -70,7 +72,7 @@ mise exec -- radar --version
 `prerelease = true` includes alpha releases. `minimum_release_age = "0s"` opts
 into newly published releases immediately. Remove that option if you prefer
 mise's usual waiting period. To keep a project reproducible, replace `latest`
-with a published version such as `0.1.0-alpha.13`.
+with a published version such as `0.1.0-alpha.15`.
 
 Run `mise upgrade github:temet-ai/radar` to update a `latest` entry. For a pinned
 entry, change the version intentionally and run `mise install` again. If `radar`
@@ -85,7 +87,7 @@ is not found directly, check mise's shell activation or use `mise exec -- radar`
    Linux x64 release; replace its version and target when choosing another:
 
    ```sh
-   archive=radar-v0.1.0-alpha.13-x86_64-unknown-linux-gnu.tar.gz
+   archive=radar-v0.1.0-alpha.15-x86_64-unknown-linux-gnu.tar.gz
    ```
 
 3. Select its checksum entry. The manifest may prefix filenames with `./`:

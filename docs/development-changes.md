@@ -8,8 +8,11 @@ fixture updates and test repairs. See the
 [complete comparison](https://github.com/temet-ai/radar/compare/v0.1.0-alpha.13...b58a98f01cd478a66af756d2dae83038992b7518)
 for every commit and file change.
 
-These are **source changes**, not a promise that alpha.14 packages are available.
-As checked on 2026-10-21, alpha.13 was the newest published release with archives.
+This summary covers that **specific source range**, rather than every later
+release. Alpha.14 and alpha.15 were published on 2026-10-21. Alpha.15 restores
+Intel Mac archives and fixes Homebrew formula loading on Intel Macs; see its
+[release](https://github.com/temet-ai/radar/releases/tag/v0.1.0-alpha.15) and
+[additional changes](https://github.com/temet-ai/radar/compare/v0.1.0-alpha.14...v0.1.0-alpha.15).
 Check the [releases page](https://github.com/temet-ai/radar/releases) before
 installing, and match the documentation tag to `radar --version`.
 

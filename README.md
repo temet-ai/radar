@@ -36,7 +36,7 @@ options let mise take prereleases, and on the day they come out):
 
 Or download the archive for your platform from the
 [releases page](https://github.com/temet-ai/radar/releases), check it against
-`checksums.txt`, and put `radar` on your `PATH`. Builds exist for macOS (Apple Silicon) and Linux (x64 and arm64, glibc 2.35 or later). There is no Windows build yet; on
+`checksums.txt`, and put `radar` on your `PATH`. Builds exist for macOS (Apple Silicon and Intel) and Linux (x64 and arm64, glibc 2.35 or later). There is no Windows build yet; on
 Windows, run the Linux build in WSL2.
 
 For platform selection, checksum verification, PATH setup, upgrades and rollback, see

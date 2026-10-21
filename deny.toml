@@ -32,8 +32,6 @@ yanked = "deny"
 # vulnerability; each is reached only through the crate named.
 ignore = [
     { id = "RUSTSEC-2025-0141", reason = "bincode, through syntect's bundled syntax sets" },
-    { id = "RUSTSEC-2026-0206", reason = "rustybuzz, through resvg (radar shot's PNG text)" },
-    { id = "RUSTSEC-2026-0192", reason = "ttf-parser, through resvg's font database" },
     # The SDK's build script uses zip 7 to read a named binary by index into bytes;
     # radar disables bundled-cli and supports no Windows build. Neither the build
     # script nor the enabled runtime calls ZipArchive::extract or

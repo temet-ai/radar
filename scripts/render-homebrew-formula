@@ -49,11 +49,12 @@ def main() -> None:
   license "MIT"
   version "{args.version}"
 
+  # The Mac url sits outside on_arm: Homebrew needs a url to load the formula
+  # at all, so on an Intel Mac it would fail with "requires at least a URL"
+  # before depends_on can say that radar needs Apple Silicon.
   on_macos do
     depends_on arch: :arm64
-    on_arm do
-{block(TARGETS["mac_arm"], "      ")}
-    end
+{block(TARGETS["mac_arm"], "    ")}
   end
 
   on_linux do

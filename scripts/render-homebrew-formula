@@ -8,6 +8,7 @@ from pathlib import Path
 
 TARGETS = {
     "mac_arm": "aarch64-apple-darwin",
+    "mac_intel": "x86_64-apple-darwin",
     "linux_arm": "aarch64-unknown-linux-gnu",
     "linux_intel": "x86_64-unknown-linux-gnu",
 }
@@ -49,12 +50,13 @@ def main() -> None:
   license "MIT"
   version "{args.version}"
 
-  # The Mac url sits outside on_arm: Homebrew needs a url to load the formula
-  # at all, so on an Intel Mac it would fail with "requires at least a URL"
-  # before depends_on can say that radar needs Apple Silicon.
   on_macos do
-    depends_on arch: :arm64
-{block(TARGETS["mac_arm"], "    ")}
+    on_arm do
+{block(TARGETS["mac_arm"], "      ")}
+    end
+    on_intel do
+{block(TARGETS["mac_intel"], "      ")}
+    end
   end
 
   on_linux do

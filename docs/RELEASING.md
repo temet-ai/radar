@@ -9,6 +9,8 @@ The workflow rejects a tag that disagrees with Cargo, builds all default parts,
 checks `radar --version` and `radar config path`, and publishes a GitHub prerelease
 with SHA-256 checksums. Never move a released tag or replace its assets; publish
 the next alpha instead. `radar --version` includes the Cargo version and commit.
+`gh workflow run release-alpha.yml --ref main` runs the same build and packaging for
+every target without publishing: use it after changing the matrix or the runtime build.
 
 The first matrix covers macOS Apple Silicon and Intel (built on Apple Silicon, with
 an x64 node under Rosetta for the runtime), Linux arm64 and x64
@@ -41,7 +43,11 @@ that cask even with this tap tapped and trusted (checked 2026-10-15). The full n
 also trusts the formula, which Homebrew now asks of third-party taps.
 
 The formula selects the native binary, pins its SHA-256, and installs it into
-Homebrew's `bin`, with LICENSE and THIRD-PARTY-NOTICES.md in its prefix. It does not write user configuration or state. Test it on a
+Homebrew's `bin`, with LICENSE and THIRD-PARTY-NOTICES.md in its prefix. It does not write user configuration or state. Every
+platform needs its own `url` inside its `on_macos`/`on_linux` and `on_arm`/`on_intel`
+block: on a platform with none, Homebrew refuses to load the formula ("formula
+requires at least a URL"). `brew readall --os=all --arch=all temet-ai/radar` loads
+it as every platform would, so it catches that without an Intel Mac. Test it on a
 macOS runner and Linuxbrew before sharing the installation command. An alpha
 in a third-party tap avoids the stable-release and open-source requirements of
 `homebrew/core`.
@@ -102,7 +108,7 @@ still theirs to install, only for the agent they want.
 2. Create and push an annotated tag `v<version>` on that commit.
 3. Wait for the four build jobs and the prerelease publication to succeed.
 4. With the `HOMEBREW_TAP_TOKEN` secret set on `temet-ai/radar` (a token that can write to `temet-ai/homebrew-radar`), the publish job also commits the rendered formula to the tap. Without it the job warns: download `checksums.txt` from the release, run `scripts/render-homebrew-formula <version> temet-ai/radar checksums.txt > Formula/radar.rb` in a clone of the tap, commit and push.
-5. `brew upgrade temet-ai/radar/radar` on Linux and the Mac, and run radar with no `node` on `PATH`: Ink draws it, and Settings → Agents lists the CLIs.
+5. `brew update && brew readall --os=all --arch=all temet-ai/radar` on the Mac. Then `brew upgrade temet-ai/radar/radar` on Linux and the Mac, and run radar with no `node` on `PATH`: Ink draws it, and Settings → Agents lists the CLIs. The Intel Mac build is checked only by the release job, which starts it under Rosetta.
 
 The release workflow needs only the repository's `contents: write` permission
 to publish there; `HOMEBREW_TAP_TOKEN` is the one other credential.

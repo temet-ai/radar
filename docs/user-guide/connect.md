@@ -123,6 +123,9 @@ you use:
 | add reactions | `reactions:write` |
 | pictures in threads | `files:read` |
 
+The current renderer shows image labels and links rather than inline previews;
+`files:read` is the file-access capability, not a promise of inline image rendering.
+
 After a check, radar says which of these scopes the token lacks. Direct messages and group
 messages that mention you come through `search:read`; radar asks for no `im:` or `mpim:`
 scope.

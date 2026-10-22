@@ -22,6 +22,7 @@ scripts/scenarios --list
 scripts/scenarios slack-success
 scripts/scenarios slack-refusal
 scripts/scenarios slack-uncertain
+scripts/scenarios slack-lost-response
 scripts/scenarios github-denied-detail
 scripts/scenarios gitlab-refresh
 scripts/scenarios jira-partial-refresh
@@ -47,6 +48,7 @@ SIGTERM exits with status 143 rather than returning to the menu.
 | `slack-success` | Refresh and select a real feed row, compose and confirm a reply, observe the held provider response, release success, refresh the thread and verify a persisted `Succeeded` outcome. |
 | `slack-refusal` | The same refresh/selection/composition flow in read-only mode; confirmation refuses every write, retains a recoverable draft and persists `Blocked`. |
 | `slack-uncertain` | Release a held synthetic HTTP 429 after confirmation; retain the draft, report the uncertain outcome, prove no silent write retry and persist `Unknown`. |
+| `slack-lost-response` | Lose the response to a provider-accepted post, retain its unknown outcome and restore a fresh host without resending it. |
 | `github-denied-detail` | Release a held pull-request refresh, activate a row, release HTTP 403 detail denial, return to the preserved list, prove no silent retry and persist read success/failure plus item count. |
 | `gitlab-refresh` | Release a held full refresh, verify the merge request in the real view and persist successful refresh, merge request and project counts. |
 | `jira-partial-refresh` | Release a held response with one valid ticket and one missing its key, show only the valid ticket and persist `Partial` with retained/omitted counts. |

@@ -2,6 +2,9 @@
 
 Back to the [user guide](README.md).
 
+For command-not-found errors, wrong binaries, archive verification, platform requirements
+and upgrades, start with [installation problems](install.md#installation-problems).
+
 ## The log
 
 radar writes what it did and why to `~/.local/state/radar/radar.log` (under
@@ -22,7 +25,7 @@ links radar could not open, and crashes with where they happened.
 | You see | Try |
 |---|---|
 | "could not sync: ... is not set" | the variable named by `env:NAME` is not exported in the shell that started radar. Export it and restart |
-| a part says "not set up" | press `s` on its screen to walk its setup step, or `⏎` to open its section in Settings |
+| a service screen is missing | configure it in Settings or run its setup step, for example `radar setup github`; unconfigured parts are hidden |
 | a write says "radar is read only" | change the [mode](README.md#the-mode) |
 | right-click does nothing | your terminal does not pass right-clicks through (`radar terminal` says what radar detected); use `x` |
 | radar exits with `radar: the renderer did not start: <why>` | the Ink renderer is missing or crashed; the reason follows the colon. Run `scripts/install` to rebuild it (a release install: reinstall the release) |
@@ -41,6 +44,9 @@ Do not delete the cache as a routine refresh fix. It also holds local read marks
 queues and context, session resume pointers and pending recovery data. The journal holds
 Work tasks and relationships. Quit radar and preserve the relevant files before any
 storage repair; [What radar stores and sends](privacy.md#files) explains what is recoverable.
+
+For old or quarantined Slack cache data, read [Slack cache and recovery](../slack-cache.md)
+before running `radar slack cache-recovery`. Treat any recovery output as private.
 
 ## Report a problem
 

@@ -121,7 +121,9 @@ be started again because its process ended with radar.
 Settings → Agents groups the provider status, new-session defaults, recipes/review folders
 and notifications on one page. Defaults include the provider/model, working and permitted
 folders, shared skill folders, whether the provider loads its own project configuration,
-standing permission rules and local-only operation. The settings heading says whether you
+standing permission rules and local-only operation. **Local only** controls remote
+or delegated execution (notably Copilot's remote/delegation commands); it does not
+make a provider offline or prevent its model/API requests. The settings heading says whether you
 are changing the global defaults or the selected workspace's defaults.
 
 The **ask** recipe supplies an item's opening task; **review-mr** supplies the local-review

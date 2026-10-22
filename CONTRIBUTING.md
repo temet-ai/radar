@@ -13,23 +13,78 @@ licensed under the MIT licence too. There is no contributor licence agreement to
 
 ## Building and testing
 
-You need Rust 1.90 or later and Node. The Ink renderer's bundle targets Node 22 and the
-Claude Agent sidecar needs Node 20 or later. Node 25.5 or later is needed only for
-`scripts/build-runtime` (`node --build-sea`), which `scripts/install` runs to embed the
-runtime. From the repository root:
+### Prerequisites
 
-```bash
-cargo build                                   # the radar binary, at target/debug/radar
-cargo nextest run -p radar-<crate>            # the tests of the crate you changed
-cargo clippy --workspace --all-features --all-targets -- -D warnings
-scripts/check-mixes                           # each part alone, none, and all together
-cd ink && npm ci && npm run typecheck && npm test
-cd sidecars/claude-agent && npm ci && npm test
+- Git and a Rust toolchain. The workspace declares Rust 1.90 as its minimum;
+  CI uses the current stable toolchain.
+- Node and npm. Node 26 matches CI and can build the embedded runtime. Running
+  the renderer bundle needs Node 22 or later; `scripts/build-runtime` needs
+  Node 25.5 or later for `node --build-sea`.
+- Your platform's C/C++ build tools and linker. On macOS, install the Xcode
+  Command Line Tools. On Linux x86_64, install `mold`: `.cargo/config.toml`
+  selects it with `-fuse-ld=mold`.
+- Optional: `cargo-nextest` for the test runner used in CI. `cargo test` works
+  for focused local tests when nextest is unavailable.
+
+### Build and run from a checkout
+
+```sh
+git clone https://github.com/temet-ai/radar.git
+cd radar
+(cd ink && npm ci && npm run bundle)
+cargo build --locked
+RADAR_SANDBOX= cargo run --locked
 ```
 
-cargo sets `RADAR_SANDBOX` for tests, so during a test radar opens no browser, copies
-nothing, shows no notification and starts no real agent CLI.
-To see links open from a build you run by hand, use `RADAR_SANDBOX= cargo run`.
+A plain `cargo build` builds the Rust host; it does not bundle the renderer.
+The commands above leave the renderer at `ink/dist/radar-ink.js`, which the
+host finds in this checkout, and require Node on PATH at runtime. There is no
+fallback renderer. To build a standalone release with an embedded runtime and
+install it to `~/.local/bin/radar`, use `scripts/install`. It replaces that
+local binary; use `RADAR_INSTALL_ROOT` to choose another install prefix.
+
+For development of the Claude provider, also run
+`(cd sidecars/claude-agent && npm ci --omit=optional --no-audit --no-fund)`.
+The provider CLI and its own sign-in are separate; see the [agent guide](docs/user-guide/agents.md).
+
+### Check a change
+
+Run commands from the repository root. Replace `radar-core` with the crate you
+changed; use the renderer and sidecar commands for changes in those folders:
+
+```sh
+cargo nextest run -p radar-core --locked
+# Without nextest: cargo test -p radar-core --locked
+cargo clippy --workspace --all-features --all-targets --locked --keep-going -- -D warnings
+scripts/check-mixes
+(cd ink && npm ci && npm run typecheck && npm test)
+(cd sidecars/claude-agent && npm ci --omit=optional --no-audit --no-fund && npm test)
+python3 scripts/check-docs
+```
+
+Keep local checks focused on the changed crates. `scripts/check` runs the batch
+checks to the end and summarizes failures; CI checks the workspace.
+[Testing tiers](docs/test-tiers.md) explains the coverage, and
+[AGENTS.md](AGENTS.md#build-and-test) lists visual and Storybook checks.
+
+Cargo sets `RADAR_SANDBOX` for tests, so radar opens no browser, copies nothing,
+shows no notification and starts no real agent CLI. Clear it only for a live
+run, as above. Cargo also sets the time zone to UTC for reproducible recordings.
+
+### Documentation changes
+
+Keep the [documentation index](docs/README.md) and the relevant user guide in
+step with behavior. Describe the user's task first, show commands they can run,
+and state prerequisites and expected results. Check names, keys, defaults and
+permission boundaries against the implementation. Distinguish development on
+`main` from a published release; do not promise an archive merely because its
+tag exists. Installation instructions belong in the
+[installation guide](docs/user-guide/install.md), with a short path from the README.
+
+Run `python3 scripts/check-docs` for local links, images and heading anchors, then
+review changed Markdown on GitHub. The checker is offline; it does not prove
+external links are reachable or that installation works on every platform.
+When a behavior or screen changes, update its guide and screenshot together.
 
 ## How radar is put together
 

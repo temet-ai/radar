@@ -124,3 +124,19 @@ in both directions. Integrated agent sessions receive the same connected context
 radar's MCP tools as an external agent client. Continue with [Agents](agents.md) for the dock,
 then [Connected context and local reviews](mcp-and-reviews.md) for automatic intake and saved
 reviews. The complete key list is in [Slack keys](keys.md#slack).
+
+## Account changes and cache recovery
+
+Slack data and local read marks are partitioned by workspace and user. A cached
+preview may appear before sign-in finishes when the current token fingerprint
+matches a previously authenticated account. It is marked cached; it does not
+establish a fresh login or authorize writes. Changing accounts requires fresh
+authentication and activates that account's separate data.
+
+Older unverified or unsupported cache data is preserved without being adopted.
+`radar slack cache-recovery` prints the quarantined JSON values without contacting
+Slack or importing them. Its output can contain private messages and work context;
+keep it private. An empty array means there is nothing quarantined. See
+[Slack cache and recovery](../slack-cache.md) for a local export example, account
+switching and retained draft behavior. Do not delete the cache to fix a failed
+sign-in: it also holds local read marks, review state and other unrecoverable data.

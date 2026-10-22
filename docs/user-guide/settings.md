@@ -80,6 +80,10 @@ you choose a different palette in **appearance**.
 | `icons` | `auto`, `nerd`, `unicode`, `emoji`, `off`, or a custom pack |
 | `colors` | `auto`, `truecolor`, `256`, `16`, `none` |
 
+The `images` preference remains in the configuration, but the current renderer
+shows service images as labels and links; it does not enable inline picture
+previews. The Kitty splash picture is separate and controlled by `splash`.
+
 ### Icons
 
 **Icons** lists the individual glyphs. Select one and press `⏎` to override it;

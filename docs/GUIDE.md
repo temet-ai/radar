@@ -37,7 +37,7 @@ crates/radar-workspace     local workspaces and their clones
 crates/radar-workbench     Work: local work items
 crates/radar-sessions*     agent sessions and the dock; one crate per provider
 src/lib.rs                 the parts compiled in, each behind its cargo feature (`radar::parts()`)
-src/main.rs                runner::main(parts, radar::DEFAULT_RENDERER); also `radar mcp`, the
+src/main.rs                runner::main(parts); also `radar mcp`, the
                            relay an agent CLI starts as radar's MCP server
 ```
 
@@ -63,9 +63,9 @@ name no terminal library: colours, styles and keys are radar's own types
 
 Nothing does I/O inside a handler.
 
-- The host's `Host::update(Event) -> Vec<HostEffect>` is pure. `Event` is `Key`, `Tick`,
+- The host's `Host::update(Event) -> Vec<HostEffect>` is pure. `Event` is `Tick`,
   `Wake`, `Msg` (a spawned task's result), `Saved`, `Notice`, `ErrorNotice`, `ToClipboard`, `Paste`,
-  `Mouse`, `Intent` (from Ink), `History` and `Tracked` (the action journal),
+  `Intent` (from Ink), `History` and `Tracked` (the action journal),
   `TerminalRoute` and `Scanned` (setup's look for keys).
 - A plugin's handlers (`intent`, `on_msg`, `on_bus`, `on_menu`, `tick`, `paste`)
   change the plugin's own state and return `Effect`s: `Spawn(Task)`, `Open(url)`,
@@ -467,7 +467,7 @@ table of their own, `[icons]`, edited in `General › icons`.
 - A plugin **uses** a slot through `Theme`: `theme.s(Slot::TextMuted)` for core slots,
   `theme.style("jira.blue")` for a domain slot, `theme.spec("jira.blue bold")` for a style
   spec (slot name then `bold|italic|underline|dim|reversed|strike`), and
-  `widgets::tone(theme, Tone::Warn)` for the feeling of a count.
+  `Tone::Warn` on a view element for the feeling of a count.
 - A plugin **lets the user choose** which slot a word uses through its own config table:
   `[gitlab.style] review = "status.warning bold"` (`config::default_styles`,
   `Settings::style_for`), edited in its `look` section; the host's `colours` section edits
@@ -505,7 +505,7 @@ table of their own, `[icons]`, edited in `General › icons`.
   warning icon), what it will do or send are the lines under it, then a blank line and
   its choices as raised buttons in a row against the right, each the key and what choosing
   it does (`y post it   e keep writing   n drop it`). A button is three lines tall: a
-  light edge, the face, a dark edge (a bevel, `widgets::buttons`); the highlighted one is
+  light edge, the face, a dark edge (a bevel drawn by Ink); the highlighted one is
   filled with the accent, the others with the selection's grey, and without colour the
   edges alone draw it. `y` is highlighted first. The key answers; `←`/`→` (`h`/`l`, `tab`, `j`/`k`
   too) move along the buttons, `⏎` chooses the highlighted one, `esc` closes, a click
@@ -539,18 +539,19 @@ table of their own, `[icons]`, edited in `General › icons`.
   viewport only takes what Ink measured, for the paging keys. `Intent::Invoke`
   with a choice's value answers it, `Intent::Activate`/`Select` on a row's target chooses
   or highlights it.
-- **Text input**: always `radar_core::input::TextInput`. `TextInput::new(value)`,
-  `key(KeyEvent) -> Edit::{Submit(text), Cancel, Typing}`, `paste(&str)`,
-  `value()`, and `render(theme, row_rect, buf, cx.cursor)`, which draws one row scrolled to
-  keep the cursor visible and sets the terminal cursor. Keys: ← → home end, word jumps,
-  backspace/delete, `ctrl-u` clear to start, `ctrl-k` to end, `ctrl-w` word, `ctrl-a`/
-  `ctrl-e`, `ctrl-z` undo, `ctrl-r` redo. Return `true` from `capturing()` while one is
-  open and implement `paste`.
-- **widgets** (`crates/radar-core/src/widgets.rs`): `panel` (rounded, titled, accent border
-  when focused), `heading`, `chip`, `row`/`row_style` (selected rows; an unfocused pane
-  keeps a visible cursor, underlined in mono), `kv`, `empty`, `paragraph`, `padded`,
-  `scroll_offset`, `step`, `vertical`, `tone`. These are the small pieces; whole elements
-  (a banded tree, a table, a page frame, a card) are the kit's (1.15).
+- **Text input**: always `radar_core::input::TextInput`. `TextInput::new(value)`
+  preserves a restored value verbatim; `key(Chord)` (or `chord(Chord)`) returns
+  `Edit::{Submit(text), Cancel, Typing}`. `paste(&str)` inserts the whole paste,
+  replacing new line characters with spaces for this one-line field. `value()`,
+  `cursor()` and `selection()` expose state; Ink draws the field from view data,
+  with no Rust render call. Keys: ← → home end, word jumps, shift-movement
+  selection, backspace/delete, `ctrl-u` clear to start, `ctrl-k` to end,
+  `ctrl-w` word, `ctrl-a`/`ctrl-e`, `ctrl-z` undo, `ctrl-r` or `ctrl-shift-z`
+  redo. Return `true` from `capturing()` while one is open and implement `paste`.
+  Multiline service comments use `ui::composer::Composer` instead.
+- **Shared elements**: construct `view` nodes, text, chips, sections and rows; Ink's
+  components own frames, styles and layout. There is no Rust `widgets` painter.
+  Find each element's view type and component in `docs/components.md` (1.15).
 - **System** (`crates/radar-core/src/system.rs`): never start a browser or clipboard program
   yourself. Return `Effect::Open(url)` or `Effect::Copy(text)`. The runner calls
   `Env::detect` (ssh, macOS, Windows, WSL, Wayland, X11, tmux, `$BROWSER`), tries
@@ -869,7 +870,7 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
   written out, once each. Choosing one is `Effect::Show`: a ticket's, merge request's or
   thread's page opens here (`esc` comes back), a plain link opens the radar way (2.34).
 - **The line under the title.** A repo or merge request page draws the first line
-  another part puts there (`Point::Line`, `ui::chips::words`): with the git part,
+  another part puts there (`Point::Line`, chips in view data): with the git part,
   `checkout  <folder> · <type> · on <branch>` (`✓ on <branch>` when it is the merge
   request's), or why there is none and where to set the folders.
 - **Panes.** While a page is open `panes()` is `[Middle]`, or `[Nav, Middle]` on the
@@ -1044,7 +1045,7 @@ itself.
 | `Section` | `Section { title, lines }` | a titled block | the merge request page's overview (after the description) and detail pane |
 | `Tab` | `Tab { title, rows }` | a tab after the page's own, with its keys; `⏎` on a row shows its `subject` | the merge request page, the repo page |
 | `Actions` | `Actions(vec![Action::new(key, what, id).icon(..)])` | rows in the subject's `x` menu under the part's `name()`; an owner may also list them where it draws the subject (`cx.parts.actions(subject, own_keys)` gives the keys the menu keeps), a click returning `Effect::Press(key)` | merge requests and repos (tree, preview, pages; the tree's preview lists them); jobs (the job page) |
-| `Line` | `Line(vec![Chip::new(words, tone).icon(..)])` | one line under the subject's title, as running words (`ui::chips::words`), the first part's only | the repo and merge request pages |
+| `Line` | `Line(vec![Chip::new(words, tone).icon(..)])` | one line under the subject's title, as running words (chips in view data), the first part's only | the repo and merge request pages |
 | `Mark` | `Mark { icon, words }` | the row's icon in place of the kind's, and the words in place of the owner's detail (a repo cloned here, on its branch) | repo rows |
 
 A badge on the top bar is still `badge()`, by the part's own tab, and hidden while it is
@@ -1229,21 +1230,22 @@ When to use which:
 
 - **Tree or table?** A tree when rows group under others and folding helps (a group, its
   sources, their items); a table when the rows are one kind (a page's list of items, a
-  history of runs). Both take the same `Columns`, so a column means the same thing in each.
+  history of runs). Both describe columns with `ColumnSpec`, so a column means the same thing in each.
 - **Columns** get a `keep` rank: the lowest goes first as the width shrinks, and the order
-  never changes. Another part's columns go in with `with_extra`, before the last, only while
+  never changes. Another part's columns use `ColumnSpec::extra`, before the last, only while
   the names keep their room; never push out your own.
-- **Card, scrolled body or table?** Text goes in a `card`; a body that stacks widgets (a
-  gauge over text over a table) goes through `scrolled_with`; a list with a cursor is a
-  `Table` or a `RowList`, which keep the cursor in view themselves. Keep one `Scroll` per
-  scrolling panel on the plugin (it holds `Cell`s, so drawing through `&self` can clamp it),
-  reset it with `top()` when the selection changes, and hand it keys with `key()` (2.4).
+- **Document, rich body or table?** Describe plain text with `Node::Document`,
+  stacked content with `Node::Rich`, and selectable rows with `Node::Table` or
+  `Node::List`. Ink owns wrapping and keeps selected rows visible. Keep a `Scroll`
+  for a pane whose keys change its scroll, expose it through `Plugin::scroll`, and
+  send its position in `PaneView.scroll`. Ink reports the actual viewport/content
+  rows over IPC; reset the scroll with `top()` when selection changes.
 - **Clicks**: a part gives each clickable thing a `Target` in its view data (tab labels,
   rows); Ink records the area of each target it draws (2.5). Whatever has a target is lit
   under the pointer and must act when clicked: `radar_core::check` checks it in the part's
   tests (3.2).
 - **Look words**: a tree's lines, band and heading shade come from the part's look words
-  through `TreeLook::from_specs`; a stage's style from the part's word for that state;
+  through the strings in `view::TreeLook`; a stage's style from the part's word for that state;
   everything else uses core slots or a `Tone`.
 - **Tree lines**: a row at depth `d` starts `"{d-1 spaces}├─ "`, so each glyph sits under
   its parent's name; top-level names have no left-edge stripe. Legacy stripe metadata
@@ -1286,15 +1288,14 @@ counts display cells (1.18, the width rule). Slack's rows show a message's emoji
 (`view::first_line_spans`); a custom emoji with no glyph stays `:name:` in the `emoji`
 look.
 
-**Laying out.** `rich::layout(&doc, &look, width) -> Laid { lines, links, media }`: lines
-at most `width` cells, the links in order once per url (for a links list or `o`), and
-where images sit. `Look::new(theme)` is the kit's look; set its fields from your look
+**Laying out.** `rich::layout(&doc, &look, width) -> Laid { lines, links }`: lines
+at most `width` cells and the links in order once per url (for a links list or `o`). `Look::new(theme)` is the kit's look; set its fields from your look
 words (`text`, `heading`, `quote`, `bar`, `code`, `link`, `mention`, `me`, `emoji`,
 `muted`, `marker`, `rule`; Slack sets `me`, `mention`, `link`, `emoji`, `code`, `quote`).
 `look.urls = true` shows a link's address after its words (Jira does when the terminal
 cannot open the words). `rich::plain(&doc, width)` is the same words with no style, for a
-command line or a test. Lines put after others (a header, a reply's indent) move their
-images with `Placed::moved(lines_before, cells_in)`.
+command line or a test. Rich document blocks reach Ink as view data; the Rust text layout is also used
+for copying and nonvisual output.
 
 **Links.** Every link in rich text is a terminal hyperlink when the terminal takes them
 (`[theme] hyperlinks = auto|on|off`; auto: Ghostty, kitty, WezTerm, iTerm2, VTE, Windows
@@ -1304,25 +1305,16 @@ wraps each run of cells in OSC 8. Only `http(s)` and `mailto` urls without contr
 characters are handed to the terminal. `o`, `y` and the Links
 tabs still open links the radar way (`Effect::Open`).
 
-**Images.** Where the terminal answers for kitty's, sixel or iTerm2's graphics
-(`[theme] images = auto|on|off`, asked once at start, not inside tmux unless `on`), rich
-text keeps rows for each `Media` with `image` and a `src` (its size fitted to the width,
-at most 20 rows; one row until its size is known) and `Laid::media` says where; elsewhere
-(and in every snapshot) the image is the line `▣ image <name> <url>`. Draw the lines with
-`ui::image::card(...)` or `ui::image::scrolled(...)` instead of `card`/`scroll::scrolled`,
-passing the placed media and your `Fetch`. The kit asks only for images in view, three at
-a time, keeps 32 in memory and the bytes on disk under the cache folder (200 MB, the
-oldest let go); a failed one falls back to its line. A part supplies only the fetch, and
-keeps its credentials in it:
+**Images.** Service rich-text media currently draws a placeholder line such as
+`▣ image <name> <url>` in Ink (`ink/src/media/MediaBlock.tsx`); the Rust
+`ui::image::on()` returns false. Do not promise inline service pictures based on
+terminal capability or the `images` setting. The separate Kitty splash picture
+and media-surface component do not enable pictures in every service document.
 
-```rust
-let token = self.cfg.resolved_token().ok();
-let fetch = radar_core::ui::image::fetch(move |src: String| {
-    let token = token.clone();
-    async move { client::picture(&src, token.as_deref()).await } // your client's fetch: bytes, or an error
-});
-radar_core::ui::image::card(t, area, buf, "thread", true, &self.scroll, lines, &media, &fetch);
-```
+`ui::image` re-exports `Fetch`, `fetch`, `Bytes` and `DISK_CAP` from `fetch`;
+there are no `card` or `scrolled` image painters. Parts supply authenticated image
+fetches through `Plugin::pictures`, while the host owns the fetch/cache
+facility. Keep authentication within that fetch boundary.
 
 Send a token only to your own service's hosts (Slack's `client::slack_host`, Jira's
 `client::on_site`, GitLab's `pictures::on_server`), never log it, and refuse a sign-in page as not
@@ -1333,10 +1325,10 @@ without it).
 
 ### 1.17 Motion: `radar_core::motion`
 
-Short effects that show what changed, run by the host and the runner over a frame
-already drawn (`crates/radar-core/src/motion.rs`, built on `tachyonfx`). **Parts never
-depend on `tachyonfx`** and never animate anything themselves; they say what changed and
-where it is, and the host decides what moves.
+Short effects that show what changed are drawn by Ink.
+`crates/radar-core/src/motion.rs` defines levels, cues and changed-row metadata;
+`ink/src/motion/engine.ts` and `motion.ts` run and schedule the effects. Parts
+never animate anything themselves; they describe what changed.
 
 How it works: the host compares what is on screen before and after each event and
 queues a `Cue` (`Host::take_cues`) and sends it to Ink with the view data; Ink turns each
@@ -1346,14 +1338,14 @@ only while one runs. Idle, radar draws on events alone.
 | Effect | Cue (who) | Where | Time | `subtle` | `full` |
 |---|---|---|---|---|---|
 | Body fades in | another screen: a tab's key, `,`, a show across parts (host) | the body | 100 ms | yes | |
-| Screen assembles | the same cue at `full` (`motion::assemble`): panels found by their corners, left to right 30 ms apart; each frame draws down row by row, each row inside reads in from the left 40 ms after its frame row; anything outside a panel is there at once | the body | 450 ms | | yes |
+| Screen assembles | the same cue at `full` (`ink/src/motion/assemble.ts`): panels found by their corners, left to right 30 ms apart; each frame draws down row by row, each row inside reads in from the left 40 ms after its frame row; anything outside a panel is there at once | the body | 450 ms | | yes |
 | Body sweeps in from the left | an item's page opened: the screen's `depth` grew (host) | the body | 300 ms | | yes |
 | Popup sweeps open | a menu or confirm appeared (host); closing it is instant | the popup | 180 ms | yes | yes |
 | Row glows (accent background that fades) | a sync changed the row (part: `Effect::Changed`) | the row | 450 ms | yes | yes |
 | New row sweeps in | a sync added the row (part) | the row | 320 ms | glows | yes |
 | Message sweeps in | a marked message appeared (status line) | the message | 250 ms | | yes |
 | Message fades out | the marked message left (status line) | where it was | 200 ms | | yes |
-| Loading outlines, repeating | a panel waits for its first data (part: `motion::loading`): its blank rows show the shape rows will have (icon slot, name, state, age, `motion::outline`), and a light wave runs down them | the panel | 1.4 s a pass | | yes |
+| Loading outlines, repeating | a panel waits for its first data (a loading state in view data): its blank rows show the shape rows will have (icon slot, name, state, age, `ink/src/motion/outline.ts`), and a light wave runs down them | the panel | 1.4 s a pass | | yes |
 
 Host notices are composited after motion, outside retained frames. A notice reads
 in from the right edge over its first 120 ms and goes back into it over its last
@@ -1376,16 +1368,15 @@ from its age, so nothing is kept after it expires.
    renderer marks the rows it draws; a part marks nothing
    itself. A row not drawn in the frame after the cue is let go; a row that moves (the
    sync re-sorted the list) glows where it is now.
-3. Where a panel waits for its first data (`Loading from …`, a page's `loading…`), call
-   `motion::loading(inner)` while it waits. Stop when the data is there (do not mark a
+3. Where a panel waits for its first data (`Loading from …`, a page's `loading…`), send a loading state in the view data while it waits; Ink marks its region. Stop when the data is there (do not mark a
    panel that is refreshing what it already shows).
 
 **Rules.**
 
 - Input wins: a key, click or paste drops what runs before the host sees it, and the
-  key acts at once (`Engine::input`); cues from that key start after. Loading outlines go on.
-- Every effect is time-based and short; `FRAME`, the durations and the slow-terminal
-  rule are constants in `motion.rs`. Colours come from the theme: the body and popup fade
+  key acts at once (`Engine.input` in Ink); cues from that key start after. Loading outlines go on.
+- Every effect is time-based and short; `FRAME_MS` and the slow-terminal rule live in Ink's motion engine;
+  Rust also supplies the shared timing metadata in `MotionView`. Colours come from the theme: the body and popup fade
   from `bg.base`, the message from `bg.overlay`, the glow is `accent.primary` over the
   row's own background, outlines sit 12% from `bg.surface` toward `text.primary` and
   the wave lifts them to 45%.
@@ -1394,9 +1385,9 @@ from its age, so nothing is kept after it expires.
 - `off` applies nothing at all. Motion is also off, whatever the setting, over SSH,
   below full colour (the effects blend colours) and, for the rest of the session, after
   three frames in a row take over 60 ms to draw while effects run (`motion::held_back`,
-  `Engine::drew_in`); the colours section's detail says so.
+  `Engine.drewIn` in Ink); the colours section's detail says so.
 - The setting: `[theme] motion = "full" | "subtle" | "off"`, `subtle` by default, chosen
-  in Settings › General › colours (`motion` row).
+  in Settings › General › appearance.
 - **The startup splash** (`radar_core::splash`) is a radar sweep that follows the level. At
   `full`, a 64 × 24 braille scope opens. One turn of the beam (200–1400 ms) locks a contact on
   each part at its bearing, and the readout counts them. The mark paints in, then the parts'
@@ -1411,13 +1402,10 @@ from its age, so nothing is kept after it expires.
   paste ends it and acts on the screen under it. radar-core works out every cell
   (`splash::frame`); the bridge sends it as `Snapshot.splash` and Ink paints it. `[theme] splash = "auto" | "off"` (Settings › General ›
   colours, `splash` row).
-- Rust tests never run effects: the view-data text form carries no motion, so a
-  snapshot cannot change because of it. Test the facility with the injected clock
-  (`motion::ManualClock`, `crates/radar-core/src/motion/tests.rs`), the cues through
-  `Host::take_cues` (`what_changed_on_screen_is_cued_for_motion`), and a part's change
-  and marks with `motion::take()` after the part's view call (e.g.
-  `a_sync_says_which_merge_requests_changed_and_the_tree_marks_their_rows`). How an
-  effect looks is Ink's to test (`ink/test`, `ink/stories`).
+- Rust tests never run effects: the view-data text form carries no motion.
+  Test the host's cues through `Host::take_cues` and each part's
+  `Effect::Changed` output and `TreeRow::glow` metadata. Test effect timing and
+  rendering in `ink/test` and `ink/stories` with the injected Ink clock.
 - See an effect live with `ink-live` (3.4): capture a few frames
   within the effect with `capture-pane -e` to see the colours move and settle.
 
@@ -1475,41 +1463,23 @@ does not fit; `r` gives it back to the pack).
 
 **How a part picks an icon.**
 
-- `icon::lead(theme, Icon::Repo)` before a name: the glyph and a space, styled; an empty
-  span when icons are off. `icon::span` is the glyph alone.
-- `icon::text` / `icon::with(theme, Icon::Bug, "words")` for words that are a `String`
-  (a tab label, a menu row, a chip, a heading).
-- `icon::or(theme, Icon::RunFailed, "✗", style)` where the screen already showed a symbol:
-  the icon when icons are on, else the old symbol, so `off` looks as it did.
-  `Mark::span(theme, style)` is the same for a run's mark.
-- Words a part hands the host as strings carry their icon by name, and the host draws it
-  from the pack in use, in the icon's own colour, when it draws them: `Menu::icon` (before
-  the title, after the host's own: a confirm's warning, the keys menu's), `MenuItem::icon`
-  (before a heading's, an item's or a note's label), `Binding::icon` (a keys menu heading
-  first in the list gives the menu's title its icon; `Binding::heading("!263").icon(Icon::Change)`),
-  `Chip::icon` (drawn by `ui::chips::chip_spans` on the chip's shade; `chip` alone puts it
-  in the chip's colour), `Cell::icon` (a contributed column's value; the owner draws
-  `Cell::spans` into its tree cell) and `Effect::NotifyWith(icon, words)` for a status-line message
-  (`Host::message` is a `Message { icon, text }` that reads as its words). With icons off
-  none of them takes room. Where the words showed a symbol before icons (`✗ could not …`),
-  `let (icon, mark) = icon::plain_or(Icon::Error, "✗")` gives the icon to name with icons
-  on, else the symbol to write: `Effect::notify(icon, format!("{mark}could not …"))`,
-  `MenuItem::heading(format!("{mark}{status}")).icon(icon)` (the builders take an
-  `Option<Icon>` too). `icon::plain` is only for words that truly have no style (a
-  menu item's hint, a line copied out).
-- A tree cell is a span or several: `Node::cell(h, vec![icon::lead(t, i), words])` keeps the
-  icon's colour beside the cell's words.
-- `Column::icon(Icon::Person)` puts an icon before a column heading (the heading still
-  names the column for its cells).
-- `Plugin::icon(screen)` puts one on the screen's tab; `Plugin::section_icon(section)` on
-  each settings section in the nav. The host's own chrome has its icons already: the
-  Settings tab, its sections, the status line's keys, menu titles (a confirm carries the
-  warning), the empty, set-up and failed states.
+- Prefer named icons in view data: `Menu::icon`, `MenuItem::icon`,
+  `Binding::icon`, `Chip::icon`, `Cell::icon`, `ColumnSpec::icon`, and the
+  icon fields of tree/list rows. Ink resolves the name through the current pack
+  and draws its colour; do not embed a styled glyph with a deleted Rust painter.
+- `icon::text(theme, Icon::Repo)` and `icon::with(theme, Icon::Bug, "words")`
+  are plain-text helpers for output that really needs a string. They carry no
+  independent icon style. `Mark::icon()` names the icon for a run's state;
+  `Mark::symbol()` supplies a plain-text fallback.
+- `Effect::NotifyWith(icon, words)` gives a status notice its icon. Use
+  `Plugin::icon(screen)` and `Plugin::section_icon(section)` for navigation.
+  The host's chrome supplies its own icons. With icons off, decorative named
+  icons take no room; semantic text must still explain the state.
 - One icon says one thing: a row can carry several (its kind, its priority, its state)
   when each means something; never two side by side that say the same.
 
 **The width rule.** Every fit, cut and pad in the kit counts display cells
-(`ui::width`, `ui::take`, `ui::pad`, `ui::fit`, `ui::clip`; `Span::width`), never
+(`ui::width`, `ui::take`, `ui::pad`, `ui::fit`; `Span::width`), never
 characters: an emoji or a CJK character is two cells, a combining mark none, a wide
 character is never cut in half. Do the same in a part's own drawing code: no
 `.chars().count()` and no `format!("{:<N}")` for anything drawn in columns. Text
@@ -1755,7 +1725,7 @@ touching the others.
 
 **2.18 Nothing visual is hard-coded.** No `Color::`, hex or style literals in plugin code
 except slot defaults in `slots()`; words are styled by config spec; tones go through
-`widgets::tone`. Check: `rg "Color::|Rgb\(|#[0-9a-f]{6}" crates/<plugin>/src` finds only
+a view element's `Tone`. Check: `rg "Color::|Rgb\(|#[0-9a-f]{6}" crates/<plugin>/src` finds only
 the slot table. *Why:* colour and style are the user's to configure.
 
 **2.19 Succession, not reuse.** Do not port code, config keys or file formats from the
@@ -1926,7 +1896,7 @@ wording of its own. Live checks run with `RADAR_MODE=read-only`.
 - The nav pane's footer is titled "shows", in lowercase words, and a cut footer ends with "…".
 - The middle pane's title is the nav row's name. The strip under it states the filter or
   scope, never the title again (not in capitals either). Strips such as "opened by" and
-  "assigned to" are drawn with `widgets::heading`.
+  "assigned to" are described by the pane's strip text and drawn by Ink.
 - The detail pane is titled by the item (GitLab "repo !iid", Jira the ticket key, Slack
   "author's message", no id); its relative time is in the body. Nav and detail widths
   come from one fit in the kit (`ui::detail_width`: 30%, 38..60).
@@ -2181,8 +2151,8 @@ a row does once taken (the part's targeted tests).
 
 ### 3.3 Other tests every plugin needs
 
-- Typing into every input through `host.update(Event::Key(..))`, including paste and a
-  rejected value.
+- Typing into every input through `host.update(Event::Intent(Intent::Key { chord }))`, with
+  `Event::Paste(text)` for a paste, including a rejected value.
 - Each validation rule, both outcomes.
 - Mouse: the intents a click sends (`Intent::Select` on a row's target selects it,
   `Select` on `pane:<id>` only focuses, `Activate` acts, `Context` opens the row's `x`
@@ -2356,9 +2326,9 @@ touch the area.
   scrolls anything (`Host::status_hints`).
 - Bulk menus share one id, `bulk`, across screens and sections; `GitlabPlugin::on_menu`
   tells them apart by value strings, so values must never overlap.
-- Images cannot be seen through tmux (radar does not ask there unless `images = "on"`, and a
-  live check's own tmux server has no terminal to answer): check them in Ghostty or kitty
-  directly, or through herdr. Their protocol output is covered by `ui::image`'s tests.
+- Service rich-text images currently remain placeholder lines (1.16), including in
+  terminals with graphics support. Setting `images = "on"` does not enable these
+  previews. Kitty splash output is separate and has its own Ink tests.
 - Incremental syncs cannot see a merge request that was deleted; `r` catches it.
 - Go to (`:`) is each part's own; Slack answers it with "not on Slack yet".
 - Counts to review against 2.12: the tree title ("N repos[ with merge requests]"), the

@@ -119,6 +119,7 @@ support determines which modified key combinations reach radar.
 | `esc` | skip this step |
 | `←` | back a step |
 | `f` | finish later: keeps your answers and leaves setup |
+| `s` | on the set-up page of a part not set up yet (reached from another part's link): walk its setup step; `⏎` opens its settings section |
 
 ## GitLab
 

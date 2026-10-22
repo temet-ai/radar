@@ -1,4 +1,4 @@
-# radar: a terminal workspace for GitLab, GitHub, Jira and Slack
+# radar
 
 radar is a terminal workspace for developers who spend their day across GitLab, GitHub,
 Jira and Slack. It shows your merge requests, pull requests, tickets and the Slack threads

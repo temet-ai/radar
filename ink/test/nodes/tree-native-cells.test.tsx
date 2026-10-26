@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { mount, until } from "../app/harness.js";
-import { parseAnsi, type TCell } from "./ansi.js";
+import { parseAnsi, withoutEdgeDividers, type TCell } from "./ansi.js";
 import { frameOf } from "../../src/chrome/Chrome.js";
 import type { ChromeView } from "../../src/chrome/types.js";
 import { applyHostLook, applyLook, currentLook, defaultLook, type HostLook } from "../../src/text/look.js";
@@ -66,7 +66,8 @@ describe("a folded tree against actual native cells", () => {
       m.welcome();
       m.snapshot({ screen: scene.view.screen, chrome: scene.view.chrome, focus: scene.view.focus }, 1);
       await until(() => parseAnsi(m.frame()).some((row) => textOf(row).includes(marker)));
-      const actual = parseAnsi(m.frame());
+      // the native recording predates the column-edge dividers
+      const actual = withoutEdgeDividers(parseAnsi(m.frame()), scene.rows);
       if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, actual);
       const frame = frameOf(scene.view.chrome, null, width, height);
       const titleRow = scene.rows[frame.bodyTop]!;

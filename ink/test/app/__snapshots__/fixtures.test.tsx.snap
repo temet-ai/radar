@@ -73,7 +73,7 @@ exports[`recorded view fixtures through the whole App > _hand_work_list_160x40.j
 exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ all ─────────────────────────────────────────────────────────────────────────╮
-│ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  │
+│ CLONES · 2 clones, 1 worktree     │AHEAD │BEHIND │⚠ DIRTY   │▪ STAS│↺ UPDAT  │
 │▤ api  on ⎇ alice/ABC-12  ⌂ in use  ↑2     —       ⚠ 3 change 1      3h       │
 │  ├─ ▪ api-hotfix  on ⎇ alice/ABC-… ↑1     ↓3      clean      —      1d       │
 │  ├─ ⎇ main                         —      ↓4      —          —      2d       │
@@ -100,7 +100,7 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.
 exports[`recorded view fixtures through the whole App > git_branch-screen_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api ─────────────────────────────────────────╮
-│ ▽ all                  ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  ││ folder   /work/acme/api                      │
+│ ▽ all                  ││ CLONES · 2 clones, 1 worktree           │AHEAD │BEHIND │⚠ DIRTY   │▪ STAS│↺ UPDAT  ││ folder   /work/acme/api                      │
 │ ⚠ dirty              1 ││▤ api  on ⎇ alice/ABC-12  ⌂ in use        ↑2     —       ⚠ 3 change 1      3h       ││ origin   git@example.com:acme/team-a/api.git │
 │ ◦ ahead of remote    2 ││  ├─ ▪ api-hotfix  on ⎇ alice/ABC-14      ↑1     ↓3      clean      —      1d       ││ repo     acme/team-a/api                     │
 │ ▪ stashes            1 ││  ├─ ⎇ main                               —      ↓4      —          —      2d       ││ on       alice/ABC-12                        │
@@ -983,7 +983,7 @@ exports[`recorded view fixtures through the whole App > github_settings-reposito
 exports[`recorded view fixtures through the whole App > gitlab_repos_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
-│ ⇄ Everything         ││ OPENED BY ⚇ everyone · 4 repos  ⋮ STATE              │
+│ ⇄ Everything         ││ OPENED BY ⚇ everyone · 4 repos │⋮ STATE              │
 │ ◎ Needs my action  2 ││◆ B team-b                                            │
 │ ☻ Opened by me       ││  └─ ▤ worker                                         │
 │ ⚇ Opened by teammate ││     └─ ◌ !342 change 342  ☻ you ◌ draft              │
@@ -1010,7 +1010,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos_80x24.json 
 exports[`recorded view fixtures through the whole App > gitlab_repos_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -1337,7 +1337,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/api · java · ⎇ on alice/ABC-12 ·
  [⇄ Merge requests]  ⋮ Pipelines on main
 ╭ merge requests ──────────────────────────────────────────────────────────────╮
-│        ☻ FOR Y TITLE   ☺ AUTHOR    ⋮ STATE          TICKET           ↺ UPDAT │
+│       │☻ FOR Y│TITLE  │☺ AUTHOR   │⋮ STATE         │TICKET          │↺ UPDAT │
 │ ⇄ !263 review          ☺ alice     ◎ needs 1 approv ▣ ABC-12 · In Pr 16m     │
 │                                                                              │
 │                                                                              │
@@ -1364,7 +1364,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/api · java · ⎇ on alice/ABC-12 · 1 more
  [⇄ Merge requests]  ⋮ Pipelines on main
 ╭ merge requests ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│        ☻ FOR YO TITLE                                                                          ☺ AUTHOR    ⋮ STATE            TICKET                 ↺ UPDAT │
+│       │☻ FOR YO│TITLE                                                                         │☺ AUTHOR   │⋮ STATE           │TICKET                │↺ UPDAT │
 │ ⇄ !263 review   ABC-12: Add a stats endpoint for the dashboard                                 ☺ alice     ◎ needs 1 approval ▣ ABC-12 · In Progres… 16m     │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
@@ -2103,7 +2103,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-views_160x
 exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ My tickets ──────────────────────────────────────────────────────────────────╮
-│ ASSIGNED TO ⚇ everyone        TYPE      STATUS          CODE        ↺ UPDAT  │
+│ ASSIGNED TO ⚇ everyone       │TYPE     │STATUS         │CODE       │↺ UPDAT  │
 │⊕ acme  acme.atlassian.net                                                    │
 │  ├─ ◐ In Progress                                                            │
 │  │  └─ ✦ ABC-1 = Dashboard fo Epic      ◐ In Progress               2w       │
@@ -2130,7 +2130,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json 
 exports[`recorded view fixtures through the whole App > jira_tickets_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ My tickets ────────────────────────────────────────────────────────────────────────╮╭ acme ────────────────────────────────────────╮
-│ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone              TYPE      STATUS          CODE        ↺ UPDAT  ││ ⊕ acme  acme.atlassian.net                   │
+│ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone             │TYPE     │STATUS         │CODE       │↺ UPDAT  ││ ⊕ acme  acme.atlassian.net                   │
 │ ⊟ This sprint          ││⊕ acme  acme.atlassian.net                                                          ││                                              │
 │ ◇ Recently updated     ││  ├─ ◐ In Progress                                                                  ││ signed in   Alice Example                    │
 │                        ││  │  └─ ✦ ABC-1 = Dashboard for the  Epic      ◐ In Progress               2w       ││ watching    ABC, DEF                         │
@@ -2383,7 +2383,7 @@ exports[`recorded view fixtures through the whole App > sessions_settings-agents
 exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ For you ─────────────────────────────────────────────────────────────────────╮
-│ last 7 days                                              ↩ REPLIE ◷ WHEN     │
+│ last 7 days                                             │↩ REPLIE│◷ WHEN     │
 │@ mentions you                                                                │
 │  └─ • #team Bob B.  @Alice Example could you take this o          1d         │
 │@ direct messages                                                             │
@@ -2410,7 +2410,7 @@ exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at
 exports[`recorded view fixtures through the whole App > slack_feed_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
-│ @ For you            4 ││ last 7 days                                                    ↩ REPLIE ◷ WHEN     ││ Acme / # #team                               │
+│ @ For you            4 ││ last 7 days                                                   │↩ REPLIE│◷ WHEN     ││ Acme / # #team                               │
 │ ❝ Discussions          ││@ mentions you                                                                      ││ @Alice Example could you take this one?      │
 │ # #team          6 NEW ││  └─ • #team Bob B.  @Alice Example could you take this one?             1d         ││                       ☺ Bob Builder · 1d ago │
 │ # #svc           1 NEW ││@ direct messages                                                                   ││                                              │

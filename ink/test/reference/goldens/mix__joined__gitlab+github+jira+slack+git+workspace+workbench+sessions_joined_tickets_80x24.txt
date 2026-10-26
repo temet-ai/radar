@@ -1,6 +1,6 @@
  radar    R ●   J   B   I   History   Settings (,)  not synced yet · ever… edit
 ╭ 2 Our project ───────────────────────────────────────────────────────────────╮
-│ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
+│ ASSIGNED TO everyone         │TYPE     │STATUS         │CODE       │UPDATED  │
 │acme  acme.atlassian.net                                                      │
 │  ├─ In Review                                                                │
 │  │  └─ ABC-12 Add a stats end Story     In Review       !263 review 1h       │

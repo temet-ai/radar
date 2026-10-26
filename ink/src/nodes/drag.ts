@@ -37,6 +37,30 @@ export function tintCells(cs: Cell[], from: number, to: number, s: Style): Cell[
   return [...sliceCells(cs, 0, from), ...patchCells(sliceCells(cs, from, to), s), ...sliceCells(cs, to, Math.max(to, widthOfCells(cs)))];
 }
 
+/** Where the heading line's edges are, each the cell between two headings that sizes a column (`sizes`): `sign` 1 when
+ * dragging right widens it, -1 when dragging left does. A tree's columns hold to its right edge, as do a table's after
+ * the column that takes what is left (`tree` false: a table), so there the cell before a heading sizes it. */
+export function columnEdges(placed: Placed[], x0: number, tree: boolean): Array<{ x: number; sizes: Placed; sign: 1 | -1 }> {
+  const flex = placed.findIndex((p) => p.column.flex);
+  const out: Array<{ x: number; sizes: Placed; sign: 1 | -1 }> = [];
+  let x = x0;
+  placed.forEach((p, i) => {
+    if (tree) {
+      if (x > 0) out.push({ x: x - 1, sizes: p, sign: -1 });
+    } else if (flex < 0 || i < flex) out.push({ x: x + p.width - 1, sizes: p, sign: 1 });
+    else if (i + 1 < placed.length) out.push({ x: x + p.width - 1, sizes: placed[i + 1]!, sign: -1 });
+    x += p.width;
+  });
+  return out;
+}
+
+/** The divider drawn on each edge of a heading line, so where a column is sized can be seen. */
+export function withEdges(line: Cell[], placed: Placed[], x0: number, tree: boolean, plain?: boolean): Cell[] {
+  let out = line;
+  for (const e of columnEdges(placed, x0, tree)) out = overlayCells(out, e.x, cellsOf("│", plain ? {} : slotStyle("text.muted")));
+  return out;
+}
+
 /** How a held column is lit: the selection ground, or underlined with no colours. */
 export const heldStyle = (plain?: boolean): Style => (plain ? { underline: true } : { backgroundColor: bgOf("bg.selection") });
 

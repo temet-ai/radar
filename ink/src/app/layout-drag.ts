@@ -63,7 +63,7 @@ export function previewSnapshot(snap: any, p: Preview | null, dockRows: number |
 type Slot = { heading: string; x: number; width: number };
 type Held =
   | { kind: "split"; target: string; edge: Edge; x0: number; width: number; share?: number }
-  | { kind: "width"; target: string; key: string; heading: string; sign: number; x: number; start: number; width?: number }
+  | { kind: "width"; target: string; key: string; heading: string; sign: number; x: number; start: number; most: number; width?: number }
   | { kind: "move"; key: string; heading: string; slots: Slot[]; grab: number; x: number; order?: string[] };
 
 export interface DragHost {
@@ -79,6 +79,8 @@ export interface DragHost {
 export class LayoutDrag {
   private held: Held | null = null;
   private last: { target: string; at: number } | null = null;
+  /** What was last shown: a report that changes nothing on screen draws nothing. */
+  private shown = "";
 
   constructor(private readonly host: DragHost) {}
 
@@ -124,7 +126,8 @@ export class LayoutDrag {
       if (again) return this.send({ layout: "column_width", key, heading, width: null });
       const slot = slots.find((s) => s.heading === heading);
       if (!slot) return false;
-      this.held = { kind: "width", target: hit.target, key, heading, sign: Number(rest[1]) < 0 ? -1 : 1, x: ev.x, start: slot.width };
+      const most = Number(rest[2]);
+      this.held = { kind: "width", target: hit.target, key, heading, sign: Number(rest[1]) < 0 ? -1 : 1, x: ev.x, start: slot.width, most: Number.isFinite(most) && most > 0 ? Math.max(most, slot.width) : MAX_COLUMN };
       return true;
     }
     if (kind === "head") {
@@ -136,6 +139,13 @@ export class LayoutDrag {
     return false;
   }
 
+  private show(p: Preview) {
+    const key = JSON.stringify(p);
+    if (key === this.shown) return;
+    this.shown = key;
+    this.host.show(p);
+  }
+
   private send(layout: any): boolean {
     this.host.send({ intent: "layout", ...layout });
     return true;
@@ -145,10 +155,11 @@ export class LayoutDrag {
     const h = this.held!;
     if (h.kind === "split") {
       h.share = clampShare(((h.edge === "nav" ? x - h.x0 + 1 : h.x0 + h.width - x) * 1000) / h.width);
-      this.host.show({ kind: "split", edge: h.edge, share: h.share });
+      this.show({ kind: "split", edge: h.edge, share: h.share });
     } else if (h.kind === "width") {
-      h.width = clamp(h.start + h.sign * (x - h.x), MIN_COLUMN, MAX_COLUMN);
-      this.host.show({ kind: "width", key: h.key, heading: h.heading, width: h.width });
+      // never wider than the room the names (or a table's title) can give: no other column is pushed off the line
+      h.width = clamp(h.start + h.sign * (x - h.x), MIN_COLUMN, Math.min(MAX_COLUMN, h.most));
+      this.show({ kind: "width", key: h.key, heading: h.heading, width: h.width });
     } else {
       if (h.order === undefined && x === h.x) return;
       const others = h.slots.filter((s) => s.heading !== h.heading);
@@ -165,13 +176,14 @@ export class LayoutDrag {
         if (k < others.length) gx += others[k]!.width;
       }
       h.order = [...others.slice(0, best).map((s) => s.heading), h.heading, ...others.slice(best).map((s) => s.heading)];
-      this.host.show({ kind: "move", key: h.key, heading: h.heading, order: h.order, float: float - bestX });
+      this.show({ kind: "move", key: h.key, heading: h.heading, order: h.order, float: float - bestX });
     }
   }
 
   private drop() {
     const h = this.held!;
     this.held = null;
+    this.shown = "";
     const now = this.host.now?.() ?? Date.now();
     let sent = false;
     if (h.kind === "split") {

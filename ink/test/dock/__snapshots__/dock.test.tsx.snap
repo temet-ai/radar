@@ -30,7 +30,7 @@ exports[`the dock, every state, both sizes > answered at 80x24 1`] = `
 exports[`the dock, every state, both sizes > answered at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -100,7 +100,7 @@ exports[`the dock, every state, both sizes > approval at 80x24 1`] = `
 exports[`the dock, every state, both sizes > approval at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -170,7 +170,7 @@ exports[`the dock, every state, both sizes > approval-write at 80x24 1`] = `
 exports[`the dock, every state, both sizes > approval-write at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -240,7 +240,7 @@ exports[`the dock, every state, both sizes > empty at 80x24 1`] = `
 exports[`the dock, every state, both sizes > empty at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -310,7 +310,7 @@ exports[`the dock, every state, both sizes > error at 80x24 1`] = `
 exports[`the dock, every state, both sizes > error at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -380,7 +380,7 @@ exports[`the dock, every state, both sizes > no-sessions at 80x24 1`] = `
 exports[`the dock, every state, both sizes > no-sessions at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -450,7 +450,7 @@ exports[`the dock, every state, both sizes > picker-model at 80x24 1`] = `
 exports[`the dock, every state, both sizes > picker-model at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -520,7 +520,7 @@ exports[`the dock, every state, both sizes > pty at 80x24 1`] = `
 exports[`the dock, every state, both sizes > pty at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -590,7 +590,7 @@ exports[`the dock, every state, both sizes > question at 80x24 1`] = `
 exports[`the dock, every state, both sizes > question at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -660,7 +660,7 @@ exports[`the dock, every state, both sizes > question-answered at 80x24 1`] = `
 exports[`the dock, every state, both sizes > question-answered at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -730,7 +730,7 @@ exports[`the dock, every state, both sizes > question-several at 80x24 1`] = `
 exports[`the dock, every state, both sizes > question-several at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -800,7 +800,7 @@ exports[`the dock, every state, both sizes > slash-commands at 80x24 1`] = `
 exports[`the dock, every state, both sizes > slash-commands at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -870,7 +870,7 @@ exports[`the dock, every state, both sizes > stopped at 80x24 1`] = `
 exports[`the dock, every state, both sizes > stopped at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -940,7 +940,7 @@ exports[`the dock, every state, both sizes > streaming at 80x24 1`] = `
 exports[`the dock, every state, both sizes > streaming at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -1010,7 +1010,7 @@ exports[`the dock, every state, both sizes > tool-folded at 80x24 1`] = `
 exports[`the dock, every state, both sizes > tool-folded at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -1080,7 +1080,7 @@ exports[`the dock, every state, both sizes > tool-open at 80x24 1`] = `
 exports[`the dock, every state, both sizes > tool-open at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -1150,7 +1150,7 @@ exports[`the dock, every state, both sizes > two-tabs at 80x24 1`] = `
 exports[`the dock, every state, both sizes > two-tabs at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
@@ -1220,7 +1220,7 @@ exports[`the dock, every state, both sizes > unfocused at 80x24 1`] = `
 exports[`the dock, every state, both sizes > unfocused at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
-│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos              │⋮ STATE            │↺ UPDAT│☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
 │ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
 │ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │

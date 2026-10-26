@@ -13,7 +13,7 @@ import { paintHover } from "../../src/app/hover.js";
 import * as fastOutput from "../../src/app/fast-output.js";
 import { frameOf } from "../../src/chrome/Chrome.js";
 import { applyLook, currentLook, defaultLook, slotStyle } from "../../src/text/look.js";
-import { parseAnsi, type TCell } from "../nodes/ansi.js";
+import { parseAnsi, withoutEdgeDividers, type TCell } from "../nodes/ansi.js";
 import { booksChrome } from "../chrome/fixture.js";
 import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
@@ -229,7 +229,7 @@ describe("the hovered tree row against the reference's cells", () => {
       const at = scene.view.pointer;
       let want = scene.rows[at.y]!;
       // the host chrome's rows above the body differ from the scene's, so Ink's row is found by its text
-      const iy = parseAnsi(m.frame()).findIndex((r) => text(r).trimEnd() === text(want).trimEnd());
+      const iy = withoutEdgeDividers(parseAnsi(m.frame()), parseAnsi(m.frame()).map(() => want)).findIndex((r) => text(r).trimEnd() === text(want).trimEnd());
       expect(iy, "Ink drew the row").toBeGreaterThan(-1);
       const plain = m.frame();
       m.type(move(at.x, iy));

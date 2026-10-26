@@ -1,6 +1,6 @@
  radar    R ●   J   B   I   History   Settings (,)                             not synced yet  edit
 ╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────────────────────────╮
-│ Everything           ││ OPENED BY everyone · 1 repo        STATE               UPDATED FOR YOU   │
+│ Everything           ││ OPENED BY everyone · 1 repo       │STATE              │UPDATED│FOR YOU   │
 │ Needs my action    2 ││A team-a                                                                  │
 │ Opened by me         ││  └─ api                            — no recent run     —       3 MRs     │
 │ Opened by teammates  ││     ├─ !263 ABC-12: Add a stats en needs 1 approval    16m     review    │

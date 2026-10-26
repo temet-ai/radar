@@ -11,7 +11,7 @@ import type {
 import type { ColumnSpec } from "./view.js";
 import { InputField } from "../editor/InputField.js";
 import { fitTableColumns, type Placed } from "./columns.js";
-import { markHeadingLine, markRowLine } from "./drag.js";
+import { markHeadingLine, markRowLine, withEdges } from "./drag.js";
 import {
   CellBlock,
   CellLine,
@@ -190,7 +190,7 @@ export function TableNode({
   );
   const heading: Style = { ...slotStyle("text.muted"), bold: true };
   const head: Cell[] = markHeadingLine(
-    [...cellsOf(" "), ...fitted.flatMap(({ column, width: w }) => headingFor(column, w, heading))],
+    withEdges([...cellsOf(" "), ...fitted.flatMap(({ column, width: w }) => headingFor(column, w, heading))], fitted, 1, false, ctx.plainText),
     fitted,
     1,
     (p) => headingFor(p.column, p.width, heading),

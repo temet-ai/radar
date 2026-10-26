@@ -30,7 +30,7 @@ exports[`recorded view fixtures > git_branch-screen at 80x24 1`] = `
  ▪ stashes                                                                    1
 
 ── all ──
- CLONES · 2 clones, 1 worktree        AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT
+ CLONES · 2 clones, 1 worktree       │AHEAD │BEHIND │⚠ DIRTY   │▪ STAS│↺ UPDAT
 ▤ api  on ⎇ alice/ABC-12  ⌂ in use    ↑2     —       ⚠ 3 change 1      3h
   ├─ ▪ api-hotfix  on ⎇ alice/ABC-14  ↑1     ↓3      clean      —      1d
   ├─ ⎇ main                           —      ↓4      —          —      2d
@@ -78,7 +78,7 @@ exports[`recorded view fixtures > git_branch-screen at 160x40 1`] = `
  ▪ stashes                                                                                                                                                    1
 
 ── all ──
- CLONES · 2 clones, 1 worktree                                                                   AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS TICKET               ↺ UPDAT
+ CLONES · 2 clones, 1 worktree                                                                  │AHEAD │BEHIND │⚠ DIRTY   │▪ STAS│TICKET              │↺ UPDAT
 ▤ api  on ⎇ alice/ABC-12  ⌂ in use                                                               ↑2     —       ⚠ 3 change 1                           3h
   ├─ ▪ api-hotfix  on ⎇ alice/ABC-14                                                             ↑1     ↓3      clean      —                           1d
   ├─ ⎇ main                                                                                      —      ↓4      —          —                           2d
@@ -1295,7 +1295,7 @@ exports[`recorded view fixtures > gitlab_repos at 80x24 1`] = `
  ◙ Opened by bots
 
 ── Everything ──
- OPENED BY ⚇ everyone · 4 repos           ⋮ STATE             ↺ UPDAT ☻ FOR YO
+ OPENED BY ⚇ everyone · 4 repos          │⋮ STATE            │↺ UPDAT│☻ FOR YO
 ◆ B team-b
   └─ ▤ worker                                                 —       ⇄ 1 MR
      └─ ◌ !342 change 342  ☻ you          ◌ draft             16m     draft
@@ -1344,7 +1344,7 @@ exports[`recorded view fixtures > gitlab_repos at 160x40 1`] = `
  ◙ Opened by bots
 
 ── Everything ──
- OPENED BY ⚇ everyone · 4 repos                                                ⋮ STATE             TICKET                  ✓ APPROVAL ❝ THREA ↺ UPDAT ☻ FOR YO
+ OPENED BY ⚇ everyone · 4 repos                                               │⋮ STATE            │TICKET                 │✓ APPROVAL│❝ THREA│↺ UPDAT│☻ FOR YO
 ◆ B team-b
   └─ ▤ worker                                                                                                                                 —       ⇄ 1 MR
      └─ ◌ !342 change 342  ☻ you                                               ◌ draft             ABC-342                 0 of 1     ❝ 1 ope 16m     draft
@@ -1662,14 +1662,14 @@ exports[`recorded view fixtures > gitlab_repos-page2-log at 160x40 1`] = `
 
 exports[`recorded view fixtures > gitlab_repos-page2-merge-requests-pipelines-on-main at 80x24 1`] = `
 "── merge requests ──
-        ☻ FOR Y TITLE   ☺ AUTHOR    ⋮ STATE           TICKET            ↺ UPDAT
+       │☻ FOR Y│TITLE  │☺ AUTHOR   │⋮ STATE          │TICKET           │↺ UPDAT
  ⇄ !263 review          ☺ alice     ◎ needs 1 approva ▣ ABC-12 · In Pro 16m
 "
 `;
 
 exports[`recorded view fixtures > gitlab_repos-page2-merge-requests-pipelines-on-main at 160x40 1`] = `
 "── merge requests ──
-        ☻ FOR YO TITLE                                                                            ☺ AUTHOR    ⋮ STATE            TICKET                 ↺ UPDAT
+       │☻ FOR YO│TITLE                                                                           │☺ AUTHOR   │⋮ STATE           │TICKET                │↺ UPDAT
  ⇄ !263 review   ABC-12: Add a stats endpoint for the dashboard                                   ☺ alice     ◎ needs 1 approval ▣ ABC-12 · In Progres… 16m
 "
 `;
@@ -2806,7 +2806,7 @@ exports[`recorded view fixtures > jira_tickets at 80x24 1`] = `
  ◇ Recently updated
 
 ── My tickets ──
- ASSIGNED TO ⚇ everyone          TYPE      STATUS          CODE        ↺ UPDAT
+ ASSIGNED TO ⚇ everyone         │TYPE     │STATUS         │CODE       │↺ UPDAT
 ⊕ acme  acme.atlassian.net
   ├─ ◐ In Progress
   │  └─ ✦ ABC-1 = Dashboard for  Epic      ◐ In Progress               2w
@@ -2855,7 +2855,7 @@ exports[`recorded view fixtures > jira_tickets at 160x40 1`] = `
  ◇ Recently updated
 
 ── My tickets ──
- ASSIGNED TO ⚇ everyone                                                                                          TYPE      STATUS          CODE        ↺ UPDAT
+ ASSIGNED TO ⚇ everyone                                                                                         │TYPE     │STATUS         │CODE       │↺ UPDAT
 ⊕ acme  acme.atlassian.net
   ├─ ◐ In Progress
   │  └─ ✦ ABC-1 = Dashboard for the stats  ☻ you                                                                 Epic      ◐ In Progress               2w
@@ -3353,7 +3353,7 @@ exports[`recorded view fixtures > slack_feed at 80x24 1`] = `
  # #svc                                                                   1 NEW
 
 ── For you ──
- last 7 days                                                ↩ REPLIE ◷ WHEN
+ last 7 days                                               │↩ REPLIE│◷ WHEN
 @ mentions you
   └─ • #team Bob B.  @Alice Example could you take this one          1d
 @ direct messages
@@ -3398,7 +3398,7 @@ exports[`recorded view fixtures > slack_feed at 160x40 1`] = `
  # #svc                                                                                                                                                   1 NEW
 
 ── For you ──
- last 7 days                                                                                                                                ↩ REPLIE ◷ WHEN
+ last 7 days                                                                                                                               │↩ REPLIE│◷ WHEN
 @ mentions you
   └─ • #team Bob B.  @Alice Example could you take this one?                                                                                         1d
 @ direct messages

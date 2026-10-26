@@ -3,7 +3,7 @@ import { Box, Text as InkText } from "ink";
 import type { NodeContext, Text, Tree, TreeRow } from "./view.js";
 import { InputField } from "../editor/InputField.js";
 import { fitTreeColumns, type Placed } from "./columns.js";
-import { markHeadingLine, markRowLine } from "./drag.js";
+import { markHeadingLine, markOf, markRowLine, withEdges } from "./drag.js";
 import { shrinkRuns } from "./cut.js";
 import { useWindow, windowOf } from "./window.js";
 import { thumbOf } from "./index.js";
@@ -357,9 +357,11 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
     !tree.note &&
     ((tree.header && tree.header.length > 0) || Boolean(tree.header_target));
   // What every row of this tree is drawn from besides its own data: a row's key adds that data and its place.
+  // A moved heading's float changes the heading line only: the rows keep their cache while it follows the pointer.
+  const float = fitted.map((f) => markOf(f.column).float ?? 0).join(",");
   const treeKey = JSON.stringify([
     width,
-    fitted.map((f) => [f.column, f.width]),
+    fitted.map((f) => [{ ...f.column, float: undefined }, f.width]),
     tree.look ?? null,
     tree.cut_names ?? null,
     ctx.focused,
@@ -375,14 +377,14 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
     const cols = fitted.flatMap(({ column, width: w }) =>
       headingCells(column, w),
     );
-    return markHeadingLine([...padCells(left, room), ...cols], fitted, room, (p) => headingCells(p.column, p.width), ctx.plainText);
+    return markHeadingLine(withEdges([...padCells(left, room), ...cols], fitted, room, true, ctx.plainText), fitted, room, (p) => headingCells(p.column, p.width), ctx.plainText);
   };
   return (
     <Box flexDirection="column">
       {hasHeader ? (
         <CellLine
           cells={cached(
-            `h${treeKey}${JSON.stringify(tree.header ?? [])}`,
+            `h${treeKey}${float}${JSON.stringify(tree.header ?? [])}`,
             headerCells,
           )}
           plain={ctx.plainText}

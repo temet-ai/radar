@@ -82,7 +82,7 @@ describe("one test per node variant (hand-written minimal nodes)", () => {
   it("table: headings, cells by heading, the selected row, empty text", () => {
     const columns = [{ heading: "Name", width: 12, keep: 4 }, { heading: "State", width: 8, keep: 5 }];
     const out = draw({ node: "table", columns, selected: 0, rows: [{ target: "a", cells: [{ heading: "State", text: t("open") }, { heading: "Name", text: t("alpha") }] }] });
-    expect(out).toMatch(/NAME\s+STATE/);
+    expect(out).toMatch(/NAME\s+│STATE/);
     expect(out).toMatch(/^ alpha\s+open/m);
     expect(draw({ node: "table", columns, rows: [], empty: "No rows." })).toBe(" ∅ No rows.");
   });

@@ -56,7 +56,8 @@ describe("the tree's heading row", () => {
 
   it("draws what is over the names and each column's heading in capitals over its column", () => {
     const lines = draw(node, 62).split("\n");
-    expect(lines[0]).toMatch(/^ OPENED BY everyone\s+STATE\s+UPDATED$/);
+    // a divider marks each edge a column is sized from (nodes/drag.ts withEdges)
+    expect(lines[0]).toMatch(/^ OPENED BY everyone\s+│STATE\s+│UPDATED$/);
     // the headings stand exactly over the cells under them
     const at = (line: string, word: string) => line.indexOf(word);
     expect(at(lines[0], "STATE")).toBe(at(lines[2], "✗ failed"));
@@ -172,7 +173,7 @@ describe("tables", () => {
   it("draws every heading in capitals over its column, the flex column taking the rest", () => {
     const out = draw({ node: "table", columns, rows } as Node, 70);
     const [head, row] = out.split("\n");
-    expect(head).toMatch(/TYPE\s+TITLE\s+STATUS\s+UPDATED/);
+    expect(head).toMatch(/TYPE\s+│TITLE\s+│STATUS\s+│UPDATED/);
     expect(head.indexOf("STATUS")).toBe(row.indexOf("In Progress"));
     expect(head.indexOf("UPDATED")).toBe(row.indexOf("2d"));
     expect(cellWidth(row)).toBeLessThanOrEqual(70);

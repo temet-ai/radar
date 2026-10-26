@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { mount, tick } from "../../app/harness.js";
-import { parseAnsi, type TCell } from "../../nodes/ansi.js";
+import { parseAnsi, withoutEdgeDividers, type TCell } from "../../nodes/ansi.js";
 import { applyLook, currentLook, defaultLook } from "../../../src/text/look.js";
 
 // Ink's cells against the reference cells, for the same view data. `<screen>_<w>x<h>.json` is what the host sends for a
@@ -135,7 +135,8 @@ describe("Ink's cells against the reference buffer for the same view data", () =
         const rat = JSON.parse(
           read(`${name}_${size}.cells.json`),
         ) as RatCell[][];
-        const ink = parseAnsi(m.frame());
+        // the reference buffer predates the column-edge dividers
+        const ink = withoutEdgeDividers(parseAnsi(m.frame()), rat, (c) => c?.[0]);
         const known = KNOWN_TEXT_ROWS[`${name} ${size}`] ?? [];
         expect(textRows(ink, rat)).toEqual(known);
         expect(compareCells(ink, rat, known, LIVE_BG_ROWS[`${name} ${size}`] ?? [])).toEqual([]);

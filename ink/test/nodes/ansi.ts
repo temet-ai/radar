@@ -16,6 +16,14 @@ export interface TCell {
 
 const hex = (n: number) => n.toString(16).padStart(2, "0");
 
+/** Ink's column-edge dividers (nodes/drag.ts `withEdges`) read as the blank a reference recorded before them has:
+ * a `│` where the reference cell is blank. Pane borders are `│` on both sides and stay compared. */
+export function withoutEdgeDividers<R>(ink: TCell[][], ref: R[][], chOf: (c: R | undefined) => string | undefined = (c) => (c as { ch?: string } | undefined)?.ch): TCell[][] {
+  return ink.map((row, y) =>
+    row.map((c, x) => (c.ch === "│" && (chOf(ref[y]?.[x]) ?? " ").trim() === "" ? { ...c, ch: " " } : c)),
+  );
+}
+
 /** Parse an ANSI frame (SGR only) into rows of cells. Wide characters give one cell followed by an empty-`ch` cell. */
 export function parseAnsi(frame: string): TCell[][] {
   const rows: TCell[][] = [];

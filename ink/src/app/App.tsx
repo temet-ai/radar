@@ -2,6 +2,9 @@ import "./fast-output.js";
 import { hover } from "./hover.js";
 import { pointerShape } from "./pointer.js";
 import { LayoutDrag, previewSnapshot, type Preview } from "./layout-drag.js";
+
+/** How often a drag is drawn while the pointer moves (about 60 a second). */
+const FRAME_MS = 16;
 import { EditorOverlay, editorOverlayHeight } from "../editor/EditorOverlay.js";
 import { isEditorData } from "../editor/EditorView.js";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -150,10 +153,21 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   // A border, a column or the dock's edge being dragged is drawn from a preview until the host's next snapshot has it.
   const [preview, setPreview] = React.useState<Preview | null>(null);
   const [dockRows, setDockRows] = React.useState<number | null>(null);
+  // A terminal reports every cell the pointer crosses; the drag is drawn at most once a frame, from the latest.
+  const nextPreview = useRef<{ p: Preview | null; timer: ReturnType<typeof setTimeout> | null }>({ p: null, timer: null });
+  const showPreview = (p: Preview | null) => {
+    const n = nextPreview.current;
+    n.p = p;
+    if (n.timer) return;
+    n.timer = setTimeout(() => {
+      n.timer = null;
+      setPreview(n.p);
+    }, FRAME_MS);
+  };
   const layoutDrag = useMemo(
     () => new LayoutDrag({
       send: (i) => session.sendIntent(i),
-      show: setPreview,
+      show: showPreview,
       screen: () => session.state.snapshot?.screen,
       paneAt: (x, y) => registry.paneAt(x, y),
       hits: () => registry.all(),
@@ -161,7 +175,12 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     [session, registry],
   );
   useEffect(() => {
-    if (preview && !layoutDrag.holding) setPreview(null);
+    if (!layoutDrag.holding) {
+      const n = nextPreview.current;
+      if (n.timer) clearTimeout(n.timer);
+      n.timer = null;
+      if (preview) setPreview(null);
+    }
     if (dockRows !== null && dockDrag.current === null) setDockRows(null);
   }, [state.snapshot]);
   const snap = useMemo(() => previewSnapshot(state.snapshot, preview, dockRows), [state.snapshot, preview, dockRows]);

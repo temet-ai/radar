@@ -1,6 +1,6 @@
  radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                                not synced yet · every 2m  edit
 ╭ 1 views ───────────────╮╭ 2 Our project ─────────────────────────────────────────────────────────────────────╮╭ 3 acme ──────────────────────────────────────╮
-│ Our project            ││ ASSIGNED TO everyone                TYPE      STATUS          CODE        UPDATED  ││ acme  acme.atlassian.net                     │
+│ Our project            ││ ASSIGNED TO everyone               │TYPE     │STATUS         │CODE       │UPDATED  ││ acme  acme.atlassian.net                     │
 │                        ││acme  acme.atlassian.net                                                            ││                                              │
 │                        ││  ├─ In Review                                                                      ││ signed in   Alice Example                    │
 │                        ││  │  └─ ABC-12 Add a stats endpoint  Story     In Review       !263 review 1h       ││ watching    ABC                              │

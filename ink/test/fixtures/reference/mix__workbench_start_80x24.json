@@ -138,9 +138,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -189,7 +190,8 @@
           }
         },
         "label": "new local task…",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       },
       {
         "id": "work.refresh",
@@ -199,7 +201,8 @@
           }
         },
         "label": "refresh local work",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       },
       {
         "id": "work.filter",
@@ -208,7 +211,8 @@
             "char": "/"
           }
         },
-        "label": "filter this item page…"
+        "label": "filter this item page…",
+        "pane": true
       }
     ],
     "panes": [
@@ -350,12 +354,15 @@
             "lines": [
               [
                 {
-                  "text": "● linked sources"
+                  "ink": "accent",
+                  "strong": true,
+                  "text": "linked sources"
                 }
               ],
               [
                 {
-                  "text": "○ evidence"
+                  "ink": "muted",
+                  "text": "evidence"
                 }
               ]
             ],

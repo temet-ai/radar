@@ -180,9 +180,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -226,7 +227,8 @@
           }
         },
         "label": "read the clones again",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       }
     ],
     "panes": [

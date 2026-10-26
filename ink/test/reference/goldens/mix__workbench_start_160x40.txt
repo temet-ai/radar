@@ -1,4 +1,4 @@
- radar    Work items   History   Settings (,)                                                                     local annotations · observations only  ✎ edit
+ radar    Work items   History   Settings (,)                                                                       local annotations · observations only  edit
 ╭ 1 local groups ───────╮╭ 2 work items · page 1 ──────────────────────────────────────────────────────────────╮╭ 3 linked sources and context ────────────────╮
 │ Groups not loaded     ││ Press r to load local work.                                                         ││ No source binding in this evidence page. Add │
 │ All items             ││                                                                                     ││ an exact source from its actions menu; no    │

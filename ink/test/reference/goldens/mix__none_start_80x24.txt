@@ -1,12 +1,12 @@
- radar    History   Settings (,)                                         ✎ edit
+ radar    History   Settings (,)                                           edit
 ╭ 1 settings ──────────╮╭ 2 parts ─────────────────────────────────────────────╮
 │General               ││ No parts are compiled into this build of radar. Each │
 │  ├─ parts            ││ part is a cargo feature: build radar with the ones   │
 │  ├─ mode             ││ you want (cargo build --features <part>).            │
+│  ├─ menus            ││                                                      │
 │  ├─ appearance       ││                                                      │
 │  ├─ colours          ││                                                      │
 │  └─ icons            ││                                                      │
-│                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯

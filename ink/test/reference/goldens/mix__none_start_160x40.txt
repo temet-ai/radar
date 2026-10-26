@@ -1,12 +1,12 @@
- radar    History   Settings (,)                                                                                                                         ✎ edit
+ radar    History   Settings (,)                                                                                                                           edit
 ╭ 1 settings ──────────╮╭ 2 parts ───────────────────────────────────────────────────────────────────────╮╭ 3 about ───────────────────────────────────────────╮
 │General               ││ No parts are compiled into this build of radar. Each part is a cargo feature:  ││ A part is one ability of radar, usually one tool   │
 │  ├─ parts            ││ build radar with the ones you want (cargo build --features <part>).            ││ it works with, compiled in as a cargo feature.     │
 │  ├─ mode             ││                                                                                ││ Parts never depend on each other: each works       │
-│  ├─ appearance       ││                                                                                ││ alone, and each one present adds to the others.    │
+│  ├─ menus            ││                                                                                ││ alone, and each one present adds to the others.    │
+│  ├─ appearance       ││                                                                                ││                                                    │
 │  ├─ colours          ││                                                                                ││                                                    │
 │  └─ icons            ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

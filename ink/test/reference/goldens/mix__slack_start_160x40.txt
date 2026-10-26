@@ -1,4 +1,4 @@
- radar    History   Settings (,)                                                                                                                         ✎ edit
+ radar    History   Settings (,)                                                                                                                           edit
 ╭ 1 set up Slack ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Slack is not set up yet.                                                                                                                                     │
 │                                                                                                                                                              │

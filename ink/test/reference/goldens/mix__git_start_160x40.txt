@@ -1,4 +1,4 @@
- radar    Branches   History   Settings (,)                                                                                   not synced yet · every 1m  ✎ edit
+ radar    Branches   History   Settings (,)                                                                                     not synced yet · every 1m  edit
 ╭ 1 views ───────────────╮╭ 2 all ─────────────────────────────────────────────────────────────────────────────╮╭ 3 branches ──────────────────────────────────╮
 │ all                    ││ No clones known yet. Press , for settings, then add a folder under git ›           ││ Select a clone, a worktree or a branch.      │
 │ dirty                  ││ checkouts.                                                                         ││                                              │

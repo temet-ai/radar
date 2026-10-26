@@ -38,22 +38,28 @@
               "target": "chrome:section:1"
             },
             {
+              "icon": "menu",
+              "id": "menus",
+              "name": "menus",
+              "target": "chrome:section:2"
+            },
+            {
               "icon": "colours",
               "id": "appearance",
               "name": "appearance",
-              "target": "chrome:section:2"
+              "target": "chrome:section:3"
             },
             {
               "icon": "colours",
               "id": "colours",
               "name": "colours",
-              "target": "chrome:section:3"
+              "target": "chrome:section:4"
             },
             {
               "icon": "icons",
               "id": "icons",
               "name": "icons",
-              "target": "chrome:section:4"
+              "target": "chrome:section:5"
             }
           ],
           "target": "chrome:group:general"
@@ -66,14 +72,14 @@
             {
               "id": "agents",
               "name": "Tools and defaults",
-              "target": "chrome:section:5"
+              "target": "chrome:section:6"
             }
           ],
           "target": "chrome:group:sessions"
         }
       ],
       "section_title": "Tools and defaults",
-      "selected": "chrome:section:5"
+      "selected": "chrome:section:6"
     },
     "status": {
       "hints": [
@@ -193,9 +199,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {

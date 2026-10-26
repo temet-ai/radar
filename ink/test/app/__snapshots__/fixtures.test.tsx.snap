@@ -1161,7 +1161,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 │                                                                                                                          ││ ❝ 1 open thread                  │
 │ ❝ LATEST ACTIVITY                                                                                                        ││ ✓ not a draft                    │
 │  BE  Bob Example · 1h ago                                                                                                ││                                  │
-│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││ for you: opened by a bot         │
+│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
@@ -1441,7 +1441,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 │                                                                                                                          ││ ❝ 1 open thread                  │
 │ ❝ LATEST ACTIVITY                                                                                                        ││ ✓ not a draft                    │
 │  BE  Bob Example · 1h ago                                                                                                ││                                  │
-│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││ for you: opened by a bot         │
+│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
@@ -1554,7 +1554,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-look_80x
 │                      ││    bot      a merge request from a bot    muted text ║
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ review ──────────────────────────────────────────────╮
-│                      ││ How a merge request open for your review is drawn.   █
+│                      ││ How a merge request awaiting your review is drawn.   █
 │                      ││                                                      █
 │                      ││   sample  review                                     █
 │                      ││                                                      █
@@ -1570,11 +1570,11 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-look_80x
 exports[`recorded view fixtures through the whole App > gitlab_settings-look_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ review ────────────────────────────────────────────╮
-│GitLab                ││ MERGE REQUEST STATES                                                           ││ How a merge request open for your review is drawn. │
-│  ├─ connection       ││    review   a merge request open for your review                warning · bold ││                                                    │
+│GitLab                ││ MERGE REQUEST STATES                                                           ││ How a merge request awaiting your review is drawn. │
+│  ├─ connection       ││    review   a merge request awaiting your review                warning · bold ││                                                    │
 │  └─ projects         ││    fix                                                            error · bold ││   sample  review                                   │
-│Slack ⋯               ││    ready    yours, and ready to merge: nothing in its way       success · bold ││                                                    │
-│                      ││    waiting  yours, waiting on approvals or a running pipeline             info ││ colour    ██ warning                               │
+│Slack ⋯               ││    ready    your merge request GitLab would merge now           success · bold ││                                                    │
+│                      ││    waiting  your merge request waiting on approvals or a pipeline         info ││ colour    ██ warning                               │
 │                      ││    draft    your draft                                              muted text ││           the theme's warning colour, used for     │
 │                      ││    you      the reader, in place of their own name                      accent ││ things that want you: review, unsaved              │
 │                      ││    team     a teammate's merge request, not asking you          secondary text ││ emphasis  bold                                     │

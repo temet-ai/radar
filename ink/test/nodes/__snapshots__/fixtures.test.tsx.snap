@@ -1523,7 +1523,7 @@ exports[`recorded view fixtures > gitlab_repos-page1-overview-changes-threads-pi
  ❝ 1 open thread
  ✓ not a draft
 
- for you: opened by a bot
+
 
 
 
@@ -1594,7 +1594,7 @@ exports[`recorded view fixtures > gitlab_repos-page1-overview-changes-threads-pi
  ❝ 1 open thread
  ✓ not a draft
 
- for you: opened by a bot
+
 
 
 
@@ -1709,7 +1709,7 @@ exports[`recorded view fixtures > gitlab_repos-page2-overview-changes-threads-pi
  ❝ 1 open thread
  ✓ not a draft
 
- for you: opened by a bot
+
 
 
 
@@ -1780,7 +1780,7 @@ exports[`recorded view fixtures > gitlab_repos-page2-overview-changes-threads-pi
  ❝ 1 open thread
  ✓ not a draft
 
- for you: opened by a bot
+
 
 
 
@@ -1997,10 +1997,10 @@ exports[`recorded view fixtures > gitlab_settings-connection at 160x40 1`] = `
 exports[`recorded view fixtures > gitlab_settings-look at 80x24 1`] = `
 "── settings ──
  MERGE REQUEST STATES
-    review   a merge request open for your review                warning · bold
+    review   a merge request awaiting your review                warning · bold
     fix                                                            error · bold
-    ready    yours, and ready to merge: nothing in its way       success · bold
-    waiting  yours, waiting on approvals or a running pipeline             info
+    ready    your merge request GitLab would merge now           success · bold
+    waiting  your merge request waiting on approvals or a pipeline         info
     draft    your draft                                              muted text
     you      the reader, in place of their own name                      accent
     team     a teammate's merge request, not asking you          secondary text
@@ -2022,7 +2022,7 @@ exports[`recorded view fixtures > gitlab_settings-look at 80x24 1`] = `
     hidden   a repo you have hidden                                  muted text
 
 ── review ──
- How a merge request open for your review is drawn.
+ How a merge request awaiting your review is drawn.
 
    sample  review
 
@@ -2052,10 +2052,10 @@ exports[`recorded view fixtures > gitlab_settings-look at 80x24 1`] = `
 exports[`recorded view fixtures > gitlab_settings-look at 160x40 1`] = `
 "── settings ──
  MERGE REQUEST STATES
-    review   a merge request open for your review                                                                                                warning · bold
-    fix      yours, and what is in its way is yours to do: a rebase, conflicts, a red pipeline, open threads                                       error · bold
-    ready    yours, and ready to merge: nothing in its way                                                                                       success · bold
-    waiting  yours, waiting on approvals or a running pipeline                                                                                             info
+    review   a merge request awaiting your review                                                                                                warning · bold
+    fix      your merge request with conflicts, a needed rebase, a failed pipeline or open threads                                                 error · bold
+    ready    your merge request GitLab would merge now                                                                                           success · bold
+    waiting  your merge request waiting on approvals or a pipeline                                                                                         info
     draft    your draft                                                                                                                              muted text
     you      the reader, in place of their own name                                                                                                      accent
     team     a teammate's merge request, not asking you                                                                                          secondary text
@@ -2081,7 +2081,7 @@ exports[`recorded view fixtures > gitlab_settings-look at 160x40 1`] = `
     lines    the tree lines joining repos and merge requests                                                                                         muted text
 
 ── review ──
- How a merge request open for your review is drawn.
+ How a merge request awaiting your review is drawn.
 
    sample  review
 

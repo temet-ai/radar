@@ -180,10 +180,12 @@ const PROJECTS_BATCH: usize = 6;
 /// 31 for a project in full), so 8 cost about 200.
 const PINS_BATCH: usize = 8;
 
-/// What a recheck reads of a merge request: what a running pipeline or
-/// GitLab's own check changes without touching its update time. Holds
-/// [`CHECKS`] whole, so an older server is asked again without it.
-pub(crate) const RECHECK_FIELDS: &str = "detailedMergeStatus conflicts shouldBeRebased mergeabilityChecks { identifier status } headPipeline { status path duration stages { nodes { name status } } }";
+/// What a recheck reads of a merge request: what a running pipeline,
+/// GitLab's own check or a merge it accepted (`mergeOngoing`, `mergeError`)
+/// changes without touching its update time. Holds [`CHECKS`] whole, so an
+/// older server is asked again without it. Measured on gitlab.com: 8 cost
+/// 203 of 250 with the merge fields.
+pub(crate) const RECHECK_FIELDS: &str = "detailedMergeStatus mergeError mergeOngoing conflicts shouldBeRebased mergeabilityChecks { identifier status } headPipeline { status path duration stages { nodes { name status } } }";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
@@ -341,7 +343,7 @@ macro_rules! mr_fields {
         notes(filter: ONLY_COMMENTS, last: 1) { nodes { url body createdAt author { username name } } }
         diffStatsSummary { additions deletions fileCount }
         project { name fullPath }
-        state mergedAt closedAt
+        state mergedAt closedAt mergeError mergeOngoing
         labels { nodes { title } }
 "#
     };
@@ -1818,6 +1820,9 @@ pub fn parse_mr(n: &Value, base_url: &str) -> Mr {
             .unwrap_or_default()
             .to_string(),
         labels: nodes(&n["labels"]).map(|l| str_of(&l["title"])).collect(),
+        merge_ongoing: n["mergeOngoing"].as_bool().unwrap_or(false),
+        merge_error: str_of(&n["mergeError"]),
+        merge_watch: Default::default(),
     }
 }
 
@@ -2300,6 +2305,7 @@ mod tests {
     fn a_recheck_asks_each_merge_request_of_its_own_project() {
         let answer = json!({"data": {
             "m0": {"mergeRequest": {"detailedMergeStatus": "MERGEABLE", "conflicts": false,
+                "mergeOngoing": true, "mergeError": "Branch cannot be merged",
                 "shouldBeRebased": false, "mergeabilityChecks": [],
                 "headPipeline": {"status": "SUCCESS", "path": "/acme/team-a/api/-/pipelines/9",
                     "duration": 61, "stages": {"nodes": [{"name": "test", "status": "success"}]}}}},
@@ -2330,6 +2336,7 @@ mod tests {
         assert!(q.contains("m0: project(fullPath: $p0) { mergeRequest(iid: $i0) {"), "{q}");
         assert!(!q.contains("iids") && !q.contains("group("), "{q}");
         assert!(!q.contains("title") && q.contains("detailedMergeStatus") && q.contains("headPipeline"));
+        assert!(q.contains("mergeError") && q.contains("mergeOngoing"), "{q}");
         assert_eq!(body(1)["variables"]["p0"], "acme/team-a/api");
         assert_eq!(body(1)["variables"]["i0"], "1");
         assert_eq!(body(1)["variables"]["i1"], "3");
@@ -2342,6 +2349,7 @@ mod tests {
         assert_eq!((m.project_path.as_str(), m.iid), ("acme/team-a/api", 1));
         assert_eq!((m.pipeline, m.merge_status.as_str()), (Some(Pipeline::Passed), "MERGEABLE"));
         assert_eq!(m.duration_secs, Some(61));
+        assert_eq!((m.merge_ongoing, m.merge_error.as_str()), (true, "Branch cannot be merged"));
         assert!(!got.mrs_truncated);
     }
 

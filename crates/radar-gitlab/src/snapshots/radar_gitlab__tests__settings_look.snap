@@ -4,10 +4,10 @@ expression: "crate::tests::shown(&host, 160, 40)"
 ---
 ── section · look ──
   # MERGE REQUEST STATES  {row:0}
-> review  a merge request open for your review  warning · bold  {row:1}
-  fix  yours, and what is in its way is yours to do: a rebase, conflicts, a red pipeline, open threads  error · bold  {row:2}
-  ready  yours, and ready to merge: nothing in its way  success · bold  {row:3}
-  waiting  yours, waiting on approvals or a running pipeline  info  {row:4}
+> review  a merge request awaiting your review  warning · bold  {row:1}
+  fix  your merge request with conflicts, a needed rebase, a failed pipeline or open threads  error · bold  {row:2}
+  ready  your merge request GitLab would merge now  success · bold  {row:3}
+  waiting  your merge request waiting on approvals or a pipeline  info  {row:4}
   draft  your draft  muted text  {row:5}
   you  the reader, in place of their own name  accent  {row:6}
   team  a teammate's merge request, not asking you  secondary text  {row:7}
@@ -32,7 +32,7 @@ expression: "crate::tests::shown(&host, 160, 40)"
   heading  the shade behind a tenancy's heading  overlays  {row:26}
   lines  the tree lines joining repos and merge requests  muted text  {row:27}
 ── detail · review ──
-How a merge request open for your review is drawn.
+How a merge request awaiting your review is drawn.
 
   sample  review
 

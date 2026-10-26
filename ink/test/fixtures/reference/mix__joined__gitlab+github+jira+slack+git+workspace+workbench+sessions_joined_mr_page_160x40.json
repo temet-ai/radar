@@ -636,17 +636,6 @@
                   "ink": "primary",
                   "text": "not a draft"
                 }
-              ],
-              [],
-              [
-                {
-                  "ink": "muted",
-                  "text": "for you: "
-                },
-                {
-                  "look": "status.warning bold",
-                  "text": "waiting for your review"
-                }
               ]
             ],
             "node": "document"

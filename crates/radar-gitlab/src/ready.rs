@@ -11,7 +11,7 @@
 use radar_core::Tone;
 use radar_core::ui::icon::Icon;
 
-use crate::model::{Check, Mr, MrState, Pipeline};
+use crate::model::{Check, MergeWatch, Mr, MrState, Pipeline};
 
 /// One thing in the way.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,6 +33,15 @@ pub enum Block {
     Blocked,
     /// Anything else GitLab names, in words.
     Other(String),
+    /// A merge under way: GitLab's `mergeOngoing`, or radar checking one
+    /// GitLab accepted (`true`).
+    Merging(bool),
+    /// GitLab's `mergeError`, in its words.
+    MergeFailed(String),
+    /// GitLab accepted a merge and is neither merging it nor saying why.
+    NotMerging,
+    /// GitLab has not answered about a merge for 2 minutes.
+    MergeUnanswered,
 }
 
 impl Block {
@@ -51,11 +60,24 @@ impl Block {
             Self::Checking => "checking".into(),
             Self::Blocked => "blocked by another MR".into(),
             Self::Other(w) => w.clone(),
+            Self::Merging(true) => "merging · checking".into(),
+            Self::Merging(false) => "merging".into(),
+            Self::MergeFailed(why) => format!("merge failed: {why}"),
+            Self::NotMerging => "not merging · merge again".into(),
+            Self::MergeUnanswered => "merge unconfirmed".into(),
         }
+    }
+
+    /// The result of a merge already asked for, which a new merge may follow.
+    pub const fn after_a_merge(&self) -> bool {
+        matches!(self, Self::MergeFailed(_) | Self::NotMerging | Self::MergeUnanswered)
     }
 
     pub const fn tone(&self) -> Tone {
         match self {
+            Self::Merging(_) => Tone::Info,
+            Self::MergeFailed(_) => Tone::Bad,
+            Self::NotMerging | Self::MergeUnanswered => Tone::Warn,
             Self::Conflicts | Self::ChangesRequested => Tone::Bad,
             Self::Pipeline(Some(Pipeline::Running)) => Tone::Info,
             Self::Pipeline(Some(Pipeline::Pending)) => Tone::Muted,
@@ -73,9 +95,16 @@ impl Block {
             | Self::Conflicts
             | Self::Rebase
             | Self::Threads(_)
-            | Self::ChangesRequested => true,
+            | Self::ChangesRequested
+            | Self::MergeFailed(_)
+            | Self::NotMerging => true,
             Self::Pipeline(p) => !matches!(p, Some(Pipeline::Running | Pipeline::Pending)),
-            Self::Approvals(_) | Self::Checking | Self::Blocked | Self::Other(_) => false,
+            Self::Approvals(_)
+            | Self::Checking
+            | Self::Blocked
+            | Self::Other(_)
+            | Self::Merging(_)
+            | Self::MergeUnanswered => false,
         }
     }
 
@@ -92,6 +121,9 @@ impl Block {
             Self::Threads(_) => Icon::Thread,
             Self::Approvals(_) => Icon::NeedsApproval,
             Self::Other(_) => Icon::Info,
+            Self::Merging(_) => Icon::RunRunning,
+            Self::MergeFailed(_) => Icon::Error,
+            Self::NotMerging | Self::MergeUnanswered => Icon::Warning,
         }
     }
 }
@@ -160,8 +192,10 @@ fn from_fields(mr: &Mr) -> Vec<Check> {
     ids
 }
 
-/// Everything in the way of an open merge request, GitLab's lead first;
-/// empty when it is ready to merge. Merged and closed ones have nothing.
+/// Everything in the way of an open merge request: how a merge asked for
+/// stands first, then GitLab's lead and its checks, with `checking` last when
+/// anything else is known (so STATE and the detail pane agree); empty when it
+/// is ready to merge. Merged and closed ones have nothing.
 pub fn blocks(mr: &Mr) -> Vec<Block> {
     if mr.state != MrState::Opened {
         return vec![];
@@ -176,6 +210,19 @@ pub fn blocks(mr: &Mr) -> Vec<Block> {
             out.push(b);
         }
     };
+    // How a merge stands leads: GitLab's error, then a merge under way.
+    if !mr.merge_error.is_empty() {
+        push(Some(Block::MergeFailed(mr.merge_error.clone())));
+    }
+    push(match mr.merge_watch {
+        MergeWatch::Checking => Some(Block::Merging(true)),
+        MergeWatch::NotMerging => Some(Block::NotMerging),
+        MergeWatch::Unanswered => Some(Block::MergeUnanswered),
+        MergeWatch::None => None,
+    });
+    if mr.merge_ongoing {
+        push(Some(Block::Merging(false)));
+    }
     // Nothing said yet (an old cache): not ready until GitLab says so.
     if mr.merge_status.is_empty() {
         push(Some(Block::Checking));
@@ -192,6 +239,8 @@ pub fn blocks(mr: &Mr) -> Vec<Block> {
     for c in checks {
         push(block_of(&c.id, c.checking, mr));
     }
+    // A known blocker leads while GitLab is still checking.
+    out.sort_by_key(|b| *b == Block::Checking);
     out
 }
 
@@ -207,12 +256,6 @@ pub fn cell(mr: &Mr) -> (String, Tone) {
             Some(b) => (b.words(), b.tone()),
         },
     }
-}
-
-
-/// Why it cannot be merged now, in words; `None` when it can.
-pub fn first_words(mr: &Mr) -> Option<String> {
-    blocks(mr).first().map(Block::words)
 }
 
 #[cfg(test)]
@@ -320,6 +363,47 @@ mod tests {
         m.merge_status = "SOMETHING_NEW".into();
         m.checks = checks(&[]);
         assert_eq!(words(&m), ["something new"]);
+    }
+
+    /// The row says what the detail pane says first: GitLab still checking
+    /// does not hide conflicts it already knows of.
+    #[test]
+    fn a_known_blocker_leads_while_gitlab_is_still_checking() {
+        let mut m = mr(1, "vimes", "ankh-morpork/watch");
+        m.merge_status = "CHECKING".into();
+        m.checks = checks(&["CONFLICT"]);
+        assert_eq!(words(&m), ["has conflicts", "checking"]);
+        assert_eq!(cell(&m), ("has conflicts".into(), Tone::Bad));
+    }
+
+    #[test]
+    fn a_merge_leads_the_state_in_gitlabs_words_or_radars() {
+        let mut m = mr(1, "vimes", "ankh-morpork/watch");
+        m.merge_status = "MERGEABLE".into();
+        m.approved = true;
+        m.approvals_left = 0;
+        m.checks = checks(&[]);
+        let first = |m: &Mr| blocks(m).first().cloned().unwrap();
+        m.merge_watch = MergeWatch::Checking;
+        assert_eq!(cell(&m), ("merging · checking".into(), Tone::Info));
+        assert!(!first(&m).on_author());
+        // GitLab saying it is merging adds nothing while radar checks.
+        m.merge_ongoing = true;
+        assert_eq!(words(&m), ["merging · checking"]);
+        m.merge_watch = MergeWatch::None;
+        assert_eq!(cell(&m), ("merging".into(), Tone::Info));
+        m.merge_ongoing = false;
+        m.merge_watch = MergeWatch::NotMerging;
+        assert_eq!(cell(&m), ("not merging · merge again".into(), Tone::Warn));
+        assert!(first(&m).on_author() && first(&m).after_a_merge());
+        m.merge_watch = MergeWatch::Unanswered;
+        assert_eq!(cell(&m), ("merge unconfirmed".into(), Tone::Warn));
+        m.merge_watch = MergeWatch::None;
+        m.merge_error = "Branch cannot be merged".into();
+        assert_eq!(cell(&m), ("merge failed: Branch cannot be merged".into(), Tone::Bad));
+        assert!(first(&m).on_author() && first(&m).after_a_merge());
+        m.state = MrState::Merged;
+        assert!(blocks(&m).is_empty(), "merged has nothing in the way");
     }
 
     #[test]

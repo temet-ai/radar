@@ -35,7 +35,6 @@ state: open
 approvals: 1 required · 0 left
 approved by: bob
 § :info: STATE
-  yours, and ready to merge
   :run_passed: ready to merge
 § :pipeline: PIPELINE  passed · 6m 12s
   build done → test done → deploy manual

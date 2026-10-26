@@ -177,6 +177,8 @@ fn apply_recheck(held: &mut Mr, got: Mr) {
     held.conflicts = got.conflicts;
     held.rebase = got.rebase;
     held.checks = got.checks;
+    held.merge_ongoing = got.merge_ongoing;
+    held.merge_error = got.merge_error;
 }
 
 /// The newest change held for a tenancy: what the next sync asks from.
@@ -237,15 +239,19 @@ pub fn plan(p: &GitlabPlugin, full: bool) -> Vec<(String, Want)> {
                             d.mrs
                                 .iter()
                                 .filter(|m| m.state == MrState::Opened)
-                                // A running pipeline, or GitLab still checking
-                                // (after a rebase): neither touches the merge
-                                // request's update time when it ends.
+                                // A running pipeline, GitLab still checking
+                                // (after a rebase), or a merge under way, failed
+                                // or followed (merge_follow): none of these
+                                // touches the merge request's update time.
                                 .filter(|m| {
                                     matches!(
                                         m.pipeline,
                                         Some(Pipeline::Running | Pipeline::Pending)
                                     ) || crate::ready::blocks(m)
                                         .contains(&crate::ready::Block::Checking)
+                                        || m.merge_ongoing
+                                        || !m.merge_error.is_empty()
+                                        || crate::merge_follow::following(p, &m.project_path, m.iid)
                                 })
                                 .map(|m| (m.project_path.clone(), m.iid))
                                 .collect()
@@ -434,6 +440,33 @@ mod tests {
         let want = plan(&p, false).into_iter().find(|(path, _)| path == A).unwrap().1;
         assert_eq!(want.nudge, vec![(format!("{A}/web"), 198)]);
         assert_eq!(want.recheck, vec![(format!("{A}/web"), 198)]);
+    }
+
+    /// GitLab's merge fields and radar's own follow-up change without the
+    /// merge request's update time moving.
+    #[test]
+    fn a_merge_under_way_or_failed_or_being_checked_is_asked_again() {
+        let mut p = sample();
+        p.sync.full_done.insert(A.into());
+        let recheck = |p: &GitlabPlugin| plan(p, false).into_iter().find(|(path, _)| path == A).unwrap().1.recheck;
+        assert!(recheck(&p).is_empty(), "nothing to ask again");
+        p.data.get_mut(A).unwrap().mrs[0].merge_ongoing = true;
+        assert_eq!(recheck(&p), vec![(format!("{A}/web"), 198)]);
+        let mr = &mut p.data.get_mut(A).unwrap().mrs[0];
+        mr.merge_ongoing = false;
+        mr.merge_error = "Branch cannot be merged".into();
+        assert_eq!(recheck(&p), vec![(format!("{A}/web"), 198)]);
+        p.data.get_mut(A).unwrap().mrs[0].merge_error.clear();
+        p.merging.insert(
+            crate::pages::mr_key(&format!("{A}/web"), 198),
+            crate::merge_follow::Merging {
+                group: A.into(),
+                since: p.now,
+                watch: crate::model::MergeWatch::Checking,
+                connection: p.connection_stamp(),
+            },
+        );
+        assert_eq!(recheck(&p), vec![(format!("{A}/web"), 198)]);
     }
 
     #[test]

@@ -1363,6 +1363,50 @@
       ]
     },
     {
+      "id": "gitlab-merge-follow",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "merge_follow::tests::",
+      "cases": [
+        {
+          "name": "merge_follow::tests::a_merge_gitlab_accepted_is_checked_until_it_merges",
+          "tier": "unit",
+          "parts": ["gitlab"],
+          "boundary": "Plugin-local follow-up of an accepted merge over held data; no client, no task polled."
+        },
+        {
+          "name": "merge_follow::tests::a_merge_gitlab_refuses_later_says_its_reason_and_can_be_asked_again",
+          "tier": "unit",
+          "parts": ["gitlab"],
+          "boundary": "Plugin-local follow-up of an accepted merge over held data; no client, no task polled."
+        },
+        {
+          "name": "merge_follow::tests::a_merge_gitlab_is_not_doing_is_said_after_15_seconds",
+          "tier": "unit",
+          "parts": ["gitlab"],
+          "boundary": "Plugin-local follow-up of an accepted merge over held data; no client, no task polled."
+        },
+        {
+          "name": "merge_follow::tests::no_answer_is_said_only_when_the_tenancy_fails",
+          "tier": "unit",
+          "parts": ["gitlab"],
+          "boundary": "Plugin-local follow-up of an accepted merge over held data; no client, no task polled."
+        },
+        {
+          "name": "merge_follow::tests::a_check_from_an_old_connection_is_dropped",
+          "tier": "unit",
+          "parts": ["gitlab"],
+          "boundary": "Plugin-local follow-up of an accepted merge over held data; no client, no task polled."
+        },
+        {
+          "name": "merge_follow::tests::the_tick_syncs_while_a_merge_is_checked",
+          "tier": "unit",
+          "parts": ["gitlab"],
+          "boundary": "Plugin-local follow-up of an accepted merge over held data; the sync task is created, never polled."
+        }
+      ]
+    },
+    {
       "id": "gitlab-confirmation-contract",
       "package": "radar-gitlab",
       "binary": "radar_gitlab",

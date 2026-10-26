@@ -94,8 +94,11 @@ pub fn blocker(mr: &Mr) -> Option<String> {
     if let Some(over) = over_already(mr) {
         return Some(over);
     }
-    // The same words as its STATE.
-    crate::ready::first_words(mr)
+    // The same words as its STATE, past the result of an earlier merge (merge again).
+    crate::ready::blocks(mr)
+        .into_iter()
+        .find(|b| !b.after_a_merge())
+        .map(|b| b.words())
 }
 
 /// `it is merged already`, for a merge request that is not open.
@@ -210,6 +213,11 @@ pub struct ActMsg {
 
 /// Rebase success means GitLab accepted the request, not that its background job ended.
 pub(crate) fn journal(p: &GitlabPlugin, operation: &'static str, project: &str, iid: u64) -> Effect {
+    Effect::Journal(descriptor(p, operation, project, iid))
+}
+
+/// An action on one merge request, for the journal.
+pub(crate) fn descriptor(p: &GitlabPlugin, operation: &'static str, project: &str, iid: u64) -> ActionDescriptor {
     let mut action = ActionDescriptor::new(operation, Origin::Plugin("gitlab".into()));
     if let Ok(key) = SubjectKey::new("gitlab", &p.cfg.url, "merge-request", &format!("{project}!{iid}")) {
         action = action.with_subject(SubjectSnapshot::new(key, SubjectRole::Primary));
@@ -217,7 +225,7 @@ pub(crate) fn journal(p: &GitlabPlugin, operation: &'static str, project: &str, 
         action.metadata.redacted = true;
         action.metadata.omitted_subjects = 1;
     }
-    Effect::Journal(action)
+    action
 }
 
 pub fn running(p: &GitlabPlugin) -> bool {
@@ -232,6 +240,10 @@ pub fn start(p: &mut GitlabPlugin, project: &str, iid: u64, what: &'static str) 
     if p.acting.get(&key).is_some_and(|a| a.state == Acting::Running) {
         fx.extend([Effect::Report(JournalOutcome::Blocked), Effect::Notify(format!("already asked GitLab for a {what}"))]);
         return fx;
+    }
+    if what == "merge" {
+        // A new merge ends the follow-up of the last one.
+        crate::merge_follow::forget(p, &key);
     }
     let how = p.merge_as.remove(&key).flatten();
     // A rebase and a merge change what is there: edit mode.
@@ -315,6 +327,14 @@ fn merge_outcome(d: &Value) -> JournalOutcome {
 
 /// Record how it went and say so; the caller refreshes.
 pub fn on_msg(p: &mut GitlabPlugin, msg: ActMsg) -> Vec<Effect> {
+    // GitLab accepted the merge but has not done it: follow it (merge_follow).
+    if msg.what == "merge"
+        && msg.result.is_ok()
+        && msg.outcome == JournalOutcome::Unknown
+        && let Some(fx) = crate::merge_follow::begin(p, &msg.key, msg.connection)
+    {
+        return fx;
+    }
     let iid = msg.key.rsplit_once('!').map_or("", |(_, iid)| iid);
     let (state, said) = match msg.result {
         Ok(m) => (Acting::Done(m.clone()), radar_core::writes::done(&m)),

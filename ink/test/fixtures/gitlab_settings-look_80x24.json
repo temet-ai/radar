@@ -85,7 +85,7 @@
         "detail": [
           {
             "ink": "muted",
-            "text": "a merge request open for your review"
+            "text": "a merge request awaiting your review"
           }
         ],
         "right": [
@@ -109,7 +109,7 @@
         "detail": [
           {
             "ink": "muted",
-            "text": "yours, and what is in its way is yours to do: a rebase, conflicts, a red pipeline, open threads"
+            "text": "your merge request with conflicts, a needed rebase, a failed pipeline or open threads"
           }
         ],
         "right": [
@@ -133,7 +133,7 @@
         "detail": [
           {
             "ink": "muted",
-            "text": "yours, and ready to merge: nothing in its way"
+            "text": "your merge request GitLab would merge now"
           }
         ],
         "right": [
@@ -157,7 +157,7 @@
         "detail": [
           {
             "ink": "muted",
-            "text": "yours, waiting on approvals or a running pipeline"
+            "text": "your merge request waiting on approvals or a pipeline"
           }
         ],
         "right": [
@@ -696,7 +696,7 @@
   "detail": [
     [
       {
-        "text": "How a merge request open for your review is drawn."
+        "text": "How a merge request awaiting your review is drawn."
       }
     ],
     [],

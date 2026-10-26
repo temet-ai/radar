@@ -288,6 +288,9 @@ impl Default for MrBuilder {
             state: crate::model::MrState::Opened,
             ended_at: String::new(),
             labels: vec![],
+            merge_ongoing: false,
+            merge_error: String::new(),
+            merge_watch: crate::model::MergeWatch::None,
         })
     }
 }

@@ -947,21 +947,6 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailCon
             Ink::Secondary,
         )]
     };
-    if mr.state == MrState::Opened {
-        state.insert(
-            0,
-            Text::of(
-                item.role.sentence(),
-                Ink::from(match item.role {
-                    Role::Review => Tone::Warn,
-                    Role::Fix => Tone::Bad,
-                    Role::Ready => Tone::Good,
-                    Role::Waiting => Tone::Info,
-                    _ => Tone::Muted,
-                }),
-            ),
-        );
-    }
     let subject = join::of_mr(mr);
     state.extend(
         cx.parts

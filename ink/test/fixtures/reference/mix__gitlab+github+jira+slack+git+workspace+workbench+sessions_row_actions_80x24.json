@@ -808,15 +808,6 @@
                     "block": "line",
                     "text": [
                       {
-                        "ink": "muted",
-                        "text": "a teammate's"
-                      }
-                    ]
-                  },
-                  {
-                    "block": "line",
-                    "text": [
-                      {
                         "icon": "rebase"
                       },
                       {
@@ -992,15 +983,6 @@
               {
                 "block": "section",
                 "blocks": [
-                  {
-                    "block": "line",
-                    "text": [
-                      {
-                        "ink": "muted",
-                        "text": "a teammate's"
-                      }
-                    ]
-                  },
                   {
                     "block": "line",
                     "text": [

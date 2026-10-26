@@ -1073,7 +1073,7 @@ fn mr_overview_view(
     let detail = fetched
         .and_then(|f| f.value.as_ref())
         .map(|(_, detail)| detail);
-    let mut checks = merge_checks(p, mr, detail);
+    let mut checks = merge_checks(mr, detail);
     if let Some(acting) = p.acting.get(&mr_key(project_path, iid)) {
         use crate::mr_actions::Acting;
         checks.push(Text::new());
@@ -1241,7 +1241,7 @@ fn mr_overview_view(
     Some(view)
 }
 
-fn merge_checks(p: &GitlabPlugin, mr: &Mr, detail: Option<&MrDetail>) -> Vec<Text> {
+fn merge_checks(mr: &Mr, detail: Option<&MrDetail>) -> Vec<Text> {
     use crate::ready::Block as Check;
     let blockers = crate::ready::blocks(mr);
     let mark = |icon: Icon, words: String| {
@@ -1314,23 +1314,13 @@ fn merge_checks(p: &GitlabPlugin, mr: &Mr, detail: Option<&MrDetail>) -> Vec<Tex
             })
             .map(block),
     );
-    out.push(Text::new());
     if !mr.approved_by.is_empty() {
+        out.push(Text::new());
         out.push(Text::from(vec![
             Seg::new("approved by ", Ink::Muted),
             Seg::new(mr.approved_by.join(", "), Ink::Secondary),
         ]));
     }
-    let role = mr.role(&p.me);
-    let (sentence, word) = match mr.state {
-        crate::model::MrState::Opened => (role.sentence(), role.word()),
-        crate::model::MrState::Merged => ("nothing: it is merged", "merged"),
-        crate::model::MrState::Closed => ("nothing: it was closed", "closed"),
-    };
-    out.push(Text::from(vec![
-        Seg::new("for you: ", Ink::Muted),
-        Seg::styled(sentence, p.cfg.style_for(word)),
-    ]));
     out
 }
 

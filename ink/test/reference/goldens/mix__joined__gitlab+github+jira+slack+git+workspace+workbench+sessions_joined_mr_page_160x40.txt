@@ -11,7 +11,7 @@
 │ Add a stats endpoint for the dashboard                                                                                   ││ no open threads                  │
 │ assigned to you                                                                                                          ││ not a draft                      │
 │                                                                                                                          ││                                  │
-│ What ABC-12 is about.                                                                                                    ││ for you: waiting for your review │
+│ What ABC-12 is about.                                                                                                    ││                                  │
 │                                                                                                                          ││                                  │
 │ LATEST ACTIVITY                                                                                                          ││                                  │
 │ No comments yet.                                                                                                         ││                                  │

@@ -54,7 +54,7 @@ query($project: ID!, $iid: String!) {
         notes(filter: ONLY_COMMENTS, last: 1) { nodes { url body createdAt author { username name } } }
         diffStatsSummary { additions deletions fileCount }
         project { name fullPath }
-        state mergedAt closedAt
+        state mergedAt closedAt mergeError mergeOngoing
         labels { nodes { title } }
 
       description

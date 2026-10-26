@@ -399,17 +399,6 @@
                 "ink": "primary",
                 "text": "not a draft"
               }
-            ],
-            [],
-            [
-              {
-                "ink": "muted",
-                "text": "for you: "
-              },
-              {
-                "look": "text.muted",
-                "text": "opened by a bot"
-              }
             ]
           ],
           "node": "document"

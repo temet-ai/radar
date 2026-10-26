@@ -27,7 +27,6 @@ project: api
 state: open
 approvals: 1 required · 0 left
 § :info: STATE
-  a teammate's
   :rebase: needs rebase
 § :pipeline: PIPELINE  passed
 

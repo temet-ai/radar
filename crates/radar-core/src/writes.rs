@@ -18,7 +18,9 @@
 //!   ([`confirm_note`]); a row of the `x` menu says so too ([`row_note`]).
 //! - **The words**: `asking {service} to {what}…` ([`Service::asking`]),
 //!   then `✓ {done}` ([`done`]) or `✗ {service} did not {what}: {why}`
-//!   ([`failed`] of [`Service::did_not`]); the notices carry the pack's
+//!   ([`failed`] of [`Service::did_not`]); a write the service takes and
+//!   does later is `{service} accepted {what}; checking…` ([`Service::taken`])
+//!   until it says how it went, or [`Service::no_answer`]; the notices carry the pack's
 //!   icons ([`Effect::notify`]) when icons are on, the symbols otherwise.
 //!   Refused or declined text is kept for the key that writes it again
 //!   ([`kept`]).
@@ -220,6 +222,18 @@ impl Service {
     pub fn did_not(&self, what: &str, why: &str) -> String {
         format!("{} did not {what}: {why}", self.name)
     }
+
+    /// A write the service took but does later: `{service} accepted {what};
+    /// checking…`, while the part asks until the service says how it went.
+    pub fn taken(&self, what: &str) -> String {
+        format!("{} accepted {what}; checking…", self.name)
+    }
+
+    /// No answer about a write it took: `no answer from {service} about
+    /// {what}; the next sync will show it`.
+    pub fn no_answer(&self, what: &str) -> String {
+        format!("no answer from {} about {what}; the next sync will show it", self.name)
+    }
 }
 
 /// The notice when it was taken: `✓ {words}`, the pack's icon in its
@@ -335,6 +349,11 @@ mod tests {
         // No theme on this thread: the symbols, not the pack's icons.
         assert_eq!(format!("{:?}", done("note posted on #12")), "Notify(✓ note posted on #12)");
         assert_eq!(ACME.did_not("post a note on #12", "busy"), "Acme did not post a note on #12: busy");
+        assert_eq!(ACME.taken("merge !12"), "Acme accepted merge !12; checking…");
+        assert_eq!(
+            ACME.no_answer("merge !12"),
+            "no answer from Acme about merge !12; the next sync will show it"
+        );
         assert_eq!(
             format!("{:?}", failed(&ACME.did_not("post a note on #12", "busy"))),
             "Notice(Error: ✗ Acme did not post a note on #12: busy)"

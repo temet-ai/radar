@@ -28,7 +28,6 @@ project: api
 state: open
 approvals: 1 required · 1 left
 § :info: STATE
-  waiting for your review
   :needs_approval: needs 1 approval
 § :pipeline: PIPELINE  passed
 

@@ -282,6 +282,8 @@ pub(crate) fn state_click(mr: &Mr) -> Option<StateClick> {
         Some(Block::Rebase) => Some(StateClick::Rebase),
         None => Some(StateClick::Merge),
         Some(Block::Pipeline(Some(Pipeline::Failed))) => Some(StateClick::Why),
+        // A merge that did not happen: merge again.
+        Some(Block::NotMerging | Block::MergeFailed(_)) => Some(StateClick::Merge),
         Some(_) => None,
     }
 }

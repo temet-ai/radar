@@ -232,15 +232,15 @@ const LOOK: [(&str, &[(&str, &str)]); 4] = [
     (
         "merge request states",
         &[
-            ("review", "a merge request open for your review"),
+            ("review", "a merge request awaiting your review"),
             (
                 "fix",
-                "yours, and what is in its way is yours to do: a rebase, conflicts, a red pipeline, open threads",
+                "your merge request with conflicts, a needed rebase, a failed pipeline or open threads",
             ),
-            ("ready", "yours, and ready to merge: nothing in its way"),
+            ("ready", "your merge request GitLab would merge now"),
             (
                 "waiting",
-                "yours, waiting on approvals or a running pipeline",
+                "your merge request waiting on approvals or a pipeline",
             ),
             ("draft", "your draft"),
             ("you", "the reader, in place of their own name"),
@@ -1832,7 +1832,7 @@ pub fn on_menu(p: &mut GitlabPlugin, menu: &str, value: &str) -> Vec<Effect> {
             let items: Vec<MenuItem> = match kind {
                 "is" => Role::ALL
                     .iter()
-                    .map(|r| MenuItem::pick(r.word(), r.sentence(), r.word()))
+                    .map(|r| MenuItem::pick(r.word(), r.about(), r.word()))
                     .collect(),
                 "me" => return vec![sign_menu(i, "author", "@me", "opened by you")],
                 "author" => p

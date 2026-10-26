@@ -167,6 +167,29 @@ pub struct Mr {
     pub ended_at: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub labels: Vec<String>,
+    /// GitLab's `mergeOngoing`: a merge it accepted is under way.
+    #[serde(default)]
+    pub merge_ongoing: bool,
+    /// GitLab's `mergeError`: why its last merge or rebase failed; empty when none.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub merge_error: String,
+    /// radar's own follow-up of a merge it asked for, not GitLab's data; written only by
+    /// `merge_follow::mark`, never by sync or parse, and never cached.
+    #[serde(skip)]
+    pub merge_watch: MergeWatch,
+}
+
+/// What radar knows of a merge it asked for, beside GitLab's fields.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum MergeWatch {
+    #[default]
+    None,
+    /// GitLab accepted the merge; radar is asking until it says how it went.
+    Checking,
+    /// GitLab accepted it but is neither merging it nor saying why not.
+    NotMerging,
+    /// GitLab has not answered for 2 minutes.
+    Unanswered,
 }
 
 /// One of GitLab's mergeability checks that is not passing.
@@ -521,16 +544,16 @@ impl Role {
         Self::ALL.into_iter().find(|r| r.word() == word)
     }
 
-    /// The sentence the detail panel shows for this state.
-    pub const fn sentence(self) -> &'static str {
+    /// What a filter on this state matches, for the picker.
+    pub const fn about(self) -> &'static str {
         match self {
-            Self::Review => "waiting for your review",
-            Self::Fix => "yours, and it needs fixing",
-            Self::Ready => "yours, and ready to merge",
-            Self::Waiting => "yours, waiting on reviewers",
-            Self::Draft => "yours, still a draft",
-            Self::Team => "a teammate's",
-            Self::Bot => "opened by a bot",
+            Self::Review => "open merge requests that ask for your review",
+            Self::Fix => "your merge requests with conflicts, a needed rebase, a failed pipeline or open threads",
+            Self::Ready => "your merge requests GitLab would merge now",
+            Self::Waiting => "your merge requests waiting for approvals or a running pipeline",
+            Self::Draft => "your drafts",
+            Self::Team => "your team's merge requests",
+            Self::Bot => "merge requests opened by a bot",
         }
     }
 }
@@ -675,6 +698,9 @@ pub mod fixtures {
             state: MrState::Opened,
             ended_at: String::new(),
             labels: vec![],
+            merge_ongoing: false,
+            merge_error: String::new(),
+            merge_watch: MergeWatch::None,
         }
     }
 

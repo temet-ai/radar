@@ -35,7 +35,6 @@ state: open
 approvals: 1 required · 1 left
 labels: :label: #backend
 § :info: STATE
-  waiting for your review
   :needs_approval: needs 1 approval
 § :pipeline: PIPELINE  passed · 6m 12s
   build done → test done → deploy manual

@@ -1119,15 +1119,6 @@
                     "block": "line",
                     "text": [
                       {
-                        "ink": "warn",
-                        "text": "waiting for your review"
-                      }
-                    ]
-                  },
-                  {
-                    "block": "line",
-                    "text": [
-                      {
                         "icon": "needs_approval"
                       },
                       {
@@ -1377,15 +1368,6 @@
               {
                 "block": "section",
                 "blocks": [
-                  {
-                    "block": "line",
-                    "text": [
-                      {
-                        "ink": "warn",
-                        "text": "waiting for your review"
-                      }
-                    ]
-                  },
                   {
                     "block": "line",
                     "text": [

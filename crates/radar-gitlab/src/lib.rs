@@ -32,6 +32,7 @@ mod join;
 mod list_actions;
 mod log_history;
 mod log_ownership;
+mod merge_follow;
 mod model;
 mod mr_actions;
 mod page_history;
@@ -307,6 +308,8 @@ pub struct GitlabPlugin {
     pub(crate) acting: BTreeMap<String, mr_actions::Act>,
     /// A merge asked for, as its question showed it, by `project!iid`.
     pub(crate) merge_as: BTreeMap<String, Option<model::MergeSettings>>,
+    /// Merges GitLab accepted, followed until it says how they went, by `project!iid`.
+    pub(crate) merging: BTreeMap<String, merge_follow::Merging>,
     /// A comment being typed.
     pub(crate) compose: Option<write::Compose>,
     /// A change shown and waiting for its `y`.
@@ -1179,11 +1182,12 @@ impl Plugin for GitlabPlugin {
                 .data
                 .iter()
                 .any(|(group, d)| d.ended_since.is_none() && !self.backing_off(group));
-        if due || missing {
-            self.sync_now(false, false)
-        } else {
-            vec![]
+        let mut fx = merge_follow::unanswered(self);
+        // A merge GitLab accepted is asked about every few seconds until it says how it went.
+        if due || missing || merge_follow::check_due(self) {
+            fx.extend(self.sync_now(false, false));
         }
+        fx
     }
 
     fn on_msg(&mut self, msg: Msg) -> Vec<Effect> {
@@ -1346,6 +1350,7 @@ impl Plugin for GitlabPlugin {
                 if let Some(at) = self.sync.last_started {
                     self.sync.synced_at.insert(group.clone(), at);
                 }
+                let ended = merge_follow::ended(&got);
                 let data = sync::merge(
                     self.data.get(&group),
                     &want,
@@ -1354,6 +1359,7 @@ impl Plugin for GitlabPlugin {
                     self.cfg.history_days,
                 );
                 let held = self.data.insert(group.clone(), data);
+                fx.extend(merge_follow::settle(self, &group, &ended));
                 runs_ownership::reconcile(self);
                 // What the sync changed, for the rows to glow (motion).
                 changes = radar_core::motion::Changes::between(

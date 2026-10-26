@@ -1827,6 +1827,13 @@ asks, then reports what it said. Writes behave one way in every part, through th
 - **The words around it** are the kit's: `asking {Service} to {what}…` while it is sent,
   then `✓ {what was done}` or `✗ {Service} did not {what}: {why}` (`Service::asking`,
   `writes::done`, `Service::did_not`, `writes::kept`), with the pack's icons.
+- A service that takes a write and does it later (a GitLab merge) is followed up: the
+  notice says `{Service} accepted {what}; checking…` (`Service::taken`), the item's STATE
+  says `merging · checking`, and radar asks again every 3 s until the service says it is
+  done (`✓ merged !12`), refuses it (`✗ GitLab did not merge !12: {its reason}`) or, after
+  15 s, is doing nothing (`not merging · merge again`). With the service unreachable for
+  2 minutes it stops asking and says so (`Service::no_answer`); it never sends the write
+  again by itself.
 - Anything else irreversible on this machine (checking out a branch) asks first with
   `Menu::confirm`, naming the item and what will happen.
 - An action that cannot be done now stays in the `x` menu, disabled in words ("merge ·

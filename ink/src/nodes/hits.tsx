@@ -8,6 +8,8 @@ import { useScrollReport } from "./index.js";
 import { entriesFirst, entryLines } from "./lists.js";
 import { fitTableColumns, type Placed } from "./columns.js";
 import { columnEdges } from "./drag.js";
+import { lineCells, widthOfCells } from "../text/cells.js";
+import type { ColumnSpec } from "./view.js";
 import { WindowContext, firstRow, type Window } from "./window.js";
 import { motion } from "../motion/motion.js";
 import { nodeMarks, treeMark } from "../motion/node-marks.js";
@@ -44,7 +46,7 @@ export function padded(x: number, w: number, within: number): { dx: number; w: n
  * The edge's last part is the widest the column may be dragged to: as wide as it is plus the room `spare` (what the
  * names or the title have beyond their least), so a column dragged wider never pushes another off the line. Headings
  * are URI-encoded. */
-export function headingHits(out: HitSpec[], placed: Placed[], x0: number, tree: boolean, spare: number) {
+export function headingHits(out: HitSpec[], placed: Placed[], x0: number, tree: boolean, spare: number, fits: Map<string, number>) {
   const name = (p: Placed) => encodeURIComponent(p.column.heading);
   let x = x0;
   for (const p of placed) {
@@ -52,8 +54,29 @@ export function headingHits(out: HitSpec[], placed: Placed[], x0: number, tree: 
     x += p.width;
   }
   // An edge takes the divider and a cell either side of it (over the headings' ends): one cell is too fine to find.
-  for (const e of columnEdges(placed, x0, tree))
-    out.push({ dx: Math.max(0, e.x - 1), dy: 0, w: e.x > 0 ? 3 : 2, h: 1, target: `layout:edge:${name(e.sizes)}:${e.sign}:${e.sizes.width + Math.max(0, spare)}` });
+  // Its last part is the width that fits the column's longest value (a double click sizes it to that).
+  for (const e of columnEdges(placed, x0, tree)) {
+    const most = e.sizes.width + Math.max(0, spare);
+    const fit = fits.get(e.sizes.column.heading) ?? e.sizes.width;
+    out.push({ dx: Math.max(0, e.x - 1), dy: 0, w: e.x > 0 ? 3 : 2, h: 1, target: `layout:edge:${name(e.sizes)}:${e.sign}:${most}:${fit}` });
+  }
+}
+
+/** Each column's widest value, heading included, with its cell of air: what a double click on its edge sizes it to.
+ * Measured once per node the host sent. */
+const fitsMemo = new WeakMap<object, Map<string, number>>();
+export function contentWidths(node: object, columns: ColumnSpec[], rows: Array<{ cells?: Array<{ heading: string; text: any }> | null }>): Map<string, number> {
+  const kept = fitsMemo.get(node);
+  if (kept) return kept;
+  const m = new Map<string, number>();
+  for (const c of columns) m.set(c.heading, cellWidth(c.heading) + (c.icon ? 2 : 0) + 1);
+  for (const r of rows)
+    for (const c of r.cells ?? []) {
+      const w = m.get(c.heading);
+      if (w !== undefined) m.set(c.heading, Math.max(w, widthOfCells(lineCells(c.text)) + 1));
+    }
+  fitsMemo.set(node, m);
+  return m;
 }
 
 /** ui::view's Target::PATH_SEP: a tree row's target is its path's ids joined by it (TreeRow::target_of). */
@@ -88,7 +111,7 @@ export function hitSpecs(
         const title = placed.find((p) => p.column.flex);
         // With no title the columns stop at the line's end.
         const spare = title ? title.width - title.column.width : width - 1 - placed.reduce((n, p) => n + p.width, 0);
-        headingHits(out, placed, 1, false, spare);
+        headingHits(out, placed, 1, false, spare, contentWidths(node, node.columns, node.rows));
       }
       break;
     case "entries": {
@@ -129,7 +152,7 @@ export function hitSpecs(
         );
         out.push({ ...padded(0, w, width), dy: 0, h: 1, target: node.header_target });
       }
-      if (hasHeader) headingHits(out, fitted, namesWidth, true, namesWidth - (node.name_width ?? 24));
+      if (hasHeader) headingHits(out, fitted, namesWidth, true, namesWidth - (node.name_width ?? 24), contentWidths(node, node.columns, shown.map((s) => s.row)));
       shown.forEach(({ row: r, path }, i) => {
         if (!inWin(i)) return;
         const open = (node.open ?? []).some((p) => p.length === path.length && p.every((id, at) => id === path[at]));

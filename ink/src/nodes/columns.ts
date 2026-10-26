@@ -9,18 +9,41 @@ export interface Placed {
 
 const total = (cs: { width: number }[]) => cs.reduce((n, c) => n + c.width, 0);
 
-/** ui::Columns::fit: while the columns and a name of at least `name` cells do not fit `width`, the lowest `keep` goes
- * (the later of equals first); the order stays; the last one left is kept whatever the width. */
-function fit(columns: ColumnSpec[], width: number, name: number): ColumnSpec[] {
-  const cols = [...columns];
-  while (cols.length > 1 && total(cols) + name > width) {
+/** Columns the user dragged wider than their part made them (`natural`, layout.rs) give the cells back, the widest
+ * first, until `over` cells are found or none is wider than its part's width: room is never made by dropping a
+ * column, or by drawing past the edge, while a dragged one can give it. */
+export function giveBack(placed: Placed[], over: number): Placed[] {
+  if (over <= 0) return placed;
+  const extra = (p: Placed) => Math.max(0, p.width - Math.max(MIN_WIDTH, p.column.natural ?? p.width));
+  const order = placed.map((p, i) => i).sort((a, b) => extra(placed[b]!) - extra(placed[a]!));
+  const out = [...placed];
+  for (const i of order) {
+    if (over <= 0) break;
+    const give = Math.min(over, extra(out[i]!));
+    if (give > 0) {
+      out[i] = { ...out[i]!, width: out[i]!.width - give };
+      over -= give;
+    }
+  }
+  return out;
+}
+const MIN_WIDTH = 3;
+
+/** ui::Columns::fit: while the columns and a name of at least `name` cells do not fit `width`, a dragged column gives
+ * its extra back, then the lowest `keep` goes (the later of equals first); the order stays; the last one left is kept
+ * whatever the width. */
+function fit(columns: ColumnSpec[], width: number, name: number): Placed[] {
+  let cols: Placed[] = columns.map((column) => ({ column, width: column.width }));
+  for (;;) {
+    cols = giveBack(cols, total(cols) + name - width);
+    if (cols.length <= 1 || total(cols) + name <= width) return cols;
     let drop = 0;
     cols.forEach((c, i) => {
-      if (c.keep <= cols[drop].keep) drop = i;
+      if (c.column.keep <= cols[drop]!.column.keep) drop = i;
     });
-    cols.splice(drop, 1);
+    // what the dropped column took is given back to the rest at their dragged widths, then taken again if need be
+    cols = columns.filter((c) => c !== cols[drop]!.column && cols.some((p) => p.column === c)).map((column) => ({ column, width: column.width }));
   }
-  return cols;
 }
 
 /** The columns of a tree in `width` cells beside names of at least `name` (ui view_tui::draw_tree): with
@@ -32,24 +55,24 @@ export function fitTreeColumns(
   width: number,
   name: number,
 ): Placed[] {
-  const placed = (cs: ColumnSpec[]) =>
-    cs.map((column) => ({ column, width: column.width }));
-  if (ordered) return placed(fit(columns, width, name));
+  if (ordered) return fit(columns, width, name);
   const own = fit(
     columns.filter((c) => !c.extra),
     width,
     name,
   );
   let used = total(own) + name;
-  const add: ColumnSpec[] = [];
+  const add: Placed[] = [];
   for (const c of columns.filter((c) => c.extra)) {
-    if (used + c.width <= width) {
-      add.push(c);
-      used += c.width;
+    // a contributed column dragged wider comes at what is left, down to its part's width
+    const w = Math.min(c.width, width - used);
+    if (w >= Math.min(c.width, c.natural ?? c.width) && w > 0) {
+      add.push({ column: c, width: w });
+      used += w;
     }
   }
   const at = Math.max(0, own.length - 1);
-  return placed([...own.slice(0, at), ...add, ...own.slice(at)]);
+  return [...own.slice(0, at), ...add, ...own.slice(at)];
 }
 
 /** The columns of a table in `width` cells (ui::table::Table): none is dropped. Every column goes to the layout
@@ -60,8 +83,11 @@ export function fitTableColumns(
   width: number,
 ): Placed[] {
   const flex = columns.findIndex((c) => c.flex);
+  // a column dragged wider gives its extra back first; the layout shares out any shortfall after that
+  const want = columns.reduce((n, c) => n + Math.max(0, c.width - 1), 0);
+  const given = giveBack(columns.map((column) => ({ column, width: column.width })), want - Math.max(0, width - (columns.length - 1)));
   const values = solveWidths(
-    columns.map((c) => Math.max(0, c.width - 1)),
+    given.map((p) => Math.max(0, p.width - 1)),
     flex < 0 ? undefined : flex,
     width,
   );

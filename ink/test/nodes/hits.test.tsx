@@ -64,8 +64,9 @@ describe("the rows a press can reach", () => {
       30,
     );
     // the heading and the cell after it are dragged to move and size the column (app/layout-drag.ts)
-    // the edge names the widest the column may be dragged to: here the line's end (30 less the leading space)
-    expect(hits.map((h) => h.target)).toEqual(["r1", "r2", "layout:head:name", "layout:edge:name:1:29"]);
+    // the edge names the widest the column may be dragged to (here the line's end, 30 less the leading space) and the
+    // width its widest value takes (NAME and a cell of air)
+    expect(hits.map((h) => h.target)).toEqual(["r1", "r2", "layout:head:name", "layout:edge:name:1:29:5"]);
     const edge = hits[3]!;
     expect(hits[2]!.y).toBe(edge.y);
     // three cells, the divider after the heading in the middle
@@ -100,14 +101,16 @@ describe("the rows a press can reach", () => {
     const { hits, lines } = hitsOf(node, 40);
     const targets = hits.map((h) => h.target);
     // a tree's columns hold to the right: the cell before a heading sizes its column
-    expect(targets.map((t) => t.replace(/:\d+$/, ""))).toEqual(["g", `g${PATH_SEP}c`, "authors", "layout:head:state", "layout:edge:state:-1", "state:c"]);
+    expect(targets.map((t) => t.replace(/:\d+:\d+$/, ""))).toEqual(["g", `g${PATH_SEP}c`, "authors", "layout:head:state", "layout:edge:state:-1", "state:c"]);
     const head = hits.find((h) => h.target === "layout:head:state")!;
     expect(lines[head.y].slice(head.x, head.x + 5)).toBe("STATE");
     const edge = hits.find((h) => h.target.startsWith("layout:edge:state:-1:"))!;
     expect([edge.x, edge.w]).toEqual([head.x - 2, 3]);
     expect(lines[head.y][head.x - 1]).toBe("│");
     // it may grow by what the names have beyond their least: 39 cells of row, 10 of column, 12 for the names
-    expect(Number(edge.target.split(":").pop())).toBe(10 + (39 - 10 - 12));
+    expect(Number(edge.target.split(":").at(-2))).toBe(10 + (39 - 10 - 12));
+    // and fits to its widest value: STATE and a cell of air
+    expect(Number(edge.target.split(":").at(-1))).toBe(6);
     const row = hits.find((h) => h.target === `g${PATH_SEP}c`)!;
     expect(lines[row.y]).toContain("child");
     const cell = hits.find((h) => h.target === "state:c")!;

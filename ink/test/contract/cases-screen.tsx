@@ -347,6 +347,12 @@ export const SCREEN_CASES: Record<string, Case> = {
     n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }, { heading: "COLZ", text: t("cellz") }];
     n.name_width = 20;
   }),
+  // COLX was dragged to 30: with `natural` it gives that back in the narrow room and COLY stays; without, COLY goes.
+  "ColumnSpec.natural": treeNarrow((n, on) => {
+    n.columns = [{ heading: "COLX", width: 30, keep: 5, natural: on ? 8 : null }, { heading: "COLY", width: 8, keep: 0 }];
+    n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }];
+    n.name_width = 12;
+  }),
   "CellView.heading": table((n, on) => (n.rows[0].cells[0].heading = pick(on, "COLA", "ZZHEAD"))),
   "CellView.text": table((n, on) => (n.rows[0].cells[0].text = t(pick(on, "cella", "ZZCELL")))),
 

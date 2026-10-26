@@ -123,10 +123,15 @@ export class LayoutDrag {
       .sort((a, b) => a.x - b.x)
       .map((h) => ({ heading: decodeURIComponent(h.target.slice("layout:head:".length)), x: h.x, width: h.w + 1 }));
     if (kind === "edge") {
-      if (again) return this.send({ layout: "column_width", key, heading, width: null });
       const slot = slots.find((s) => s.heading === heading);
       if (!slot) return false;
       const most = Number(rest[2]);
+      if (again) {
+        // A double click fits the column to its widest value, never past the room the others leave; on a column that
+        // fits already it puts the part's width back.
+        const fit = clamp(Number(rest[3]) || slot.width, MIN_COLUMN, Math.min(MAX_COLUMN, Number.isFinite(most) && most > 0 ? Math.max(most, slot.width) : MAX_COLUMN));
+        return this.send({ layout: "column_width", key, heading, width: fit === slot.width ? null : fit });
+      }
       this.held = { kind: "width", target: hit.target, key, heading, sign: Number(rest[1]) < 0 ? -1 : 1, x: ev.x, start: slot.width, most: Number.isFinite(most) && most > 0 ? Math.max(most, slot.width) : MAX_COLUMN };
       return true;
     }

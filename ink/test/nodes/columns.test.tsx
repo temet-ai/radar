@@ -301,3 +301,23 @@ describe("every tree and table of every recorded fixture", () => {
     });
   }
 });
+
+describe("a column dragged wider than there is room for", () => {
+  const col = (heading: string, width: number, keep: number, natural?: number) => ({ heading, width, keep, ...(natural ? { natural } : {}) });
+
+  it("gives its extra back before any column of a tree is dropped, never more than it was given", () => {
+    const columns = [col("state", 40, 6, 20), col("approvals", 11, 1), col("updated", 8, 4)];
+    // 59 wanted beside names of 24 in 70: 13 too many, all from the dragged column
+    const placed = fitTreeColumns(columns, true, 70, 24);
+    expect(placed.map((p) => [p.column.heading, p.width])).toEqual([["state", 27], ["approvals", 11], ["updated", 8]]);
+    // with less room still it is back at the part's width before APPROVALS goes
+    expect(fitTreeColumns(columns, true, 63, 24).map((p) => [p.column.heading, p.width])).toEqual([["state", 20], ["approvals", 11], ["updated", 8]]);
+    expect(fitTreeColumns(columns, true, 62, 24).map((p) => p.column.heading)).toEqual(["state", "updated"]);
+  });
+
+  it("gives its extra back in a table before the others are squeezed", () => {
+    const placed = fitTableColumns([col("type", 6, 0), { ...col("title", 10, 0), flex: true }, col("status", 30, 0, 10)], 40);
+    // 43 value cells wanted in 38 (40 less two spacers): STATUS gives the 5, the title keeps its least, TYPE its own
+    expect(placed.map((p) => p.width)).toEqual([6, 10, 25]);
+  });
+});

@@ -13,4 +13,10 @@ flex?: boolean,
  * Another part's column: shown before the last of the part's own while
  * the names keep their room, never pushing one of those out.
  */
-extra?: boolean, };
+extra?: boolean, 
+/**
+ * The part's own width, when the user dragged it to `width`
+ * ([`crate::layout`]): with too little room the renderer gives that
+ * back before it drops a column. Set by the host, never by a part.
+ */
+natural?: number | null, };

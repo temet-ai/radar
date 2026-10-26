@@ -69,6 +69,25 @@ describe("dragging a column, a heading or a pane border", () => {
     expect(drag.holding).toBe(false);
   });
 
+  it("a double click fits a column to its widest value, no wider than the room; again on a fitted one, back to the part's", () => {
+    const { sent, drag, later } = rig();
+    const edge = (most: number, fit: number): Hit => ({ x: 17, y: 3, w: 1, h: 1, target: `layout:edge:state:1:${most}:${fit}` });
+    const twice = (hit: Hit) => {
+      drag.mouse(ev("press", 17), hit);
+      drag.mouse(ev("release", 17), undefined);
+      later(100);
+      drag.mouse(ev("press", 17), hit);
+      later(1000);
+    };
+    twice(edge(30, 14));
+    expect(sent.at(-1)).toEqual({ intent: "layout", layout: "column_width", key: "gitlab/middle", heading: "state", width: 14 });
+    twice(edge(11, 40));
+    expect(sent.at(-1)).toMatchObject({ width: 11 });
+    // STATE is 8 wide in the rig: a value that fits in 8 means it fits already, so the part's width comes back
+    twice(edge(30, 8));
+    expect(sent.at(-1)).toMatchObject({ width: null });
+  });
+
   it("a heading moved goes where its floating left edge is nearest; the others make room as it passes", () => {
     const { sent, shown, drag, at } = rig();
     drag.mouse(ev("press", 12), at("layout:head:state"));

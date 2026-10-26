@@ -51,6 +51,8 @@ export interface ColumnSpec {
   icon?: string | null;
   flex?: boolean;
   extra?: boolean;
+  /** The part's own width when the user dragged it to `width` (layout.rs): given back before a column is dropped. */
+  natural?: number | null;
 }
 
 export interface SubjectRef {

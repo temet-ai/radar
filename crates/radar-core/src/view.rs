@@ -761,6 +761,11 @@ pub struct ColumnSpec {
     /// the names keep their room, never pushing one of those out.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub extra: bool,
+    /// The part's own width, when the user dragged it to `width`
+    /// ([`crate::layout`]): with too little room the renderer gives that
+    /// back before it drops a column. Set by the host, never by a part.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub natural: Option<u16>,
 }
 
 impl ColumnSpec {
@@ -772,6 +777,7 @@ impl ColumnSpec {
             icon: None,
             flex: false,
             extra: false,
+            natural: None,
         }
     }
 

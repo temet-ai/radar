@@ -221,7 +221,11 @@ fn arrange(columns: &mut Vec<ColumnSpec>, kept: &Columns) {
     }
     for c in columns.iter_mut() {
         if let Some(w) = kept.widths.get(&c.heading) {
-            c.width = (*w).clamp(MIN_COLUMN, MAX_COLUMN);
+            let w = (*w).clamp(MIN_COLUMN, MAX_COLUMN);
+            if w != c.width {
+                c.natural = Some(c.width);
+                c.width = w;
+            }
         }
     }
     if !kept.hidden.is_empty() {
@@ -268,7 +272,7 @@ mod tests {
         };
         arrange(&mut c, &kept);
         assert_eq!(names(&c), ["state", "title"]);
-        assert_eq!(c[0].width, MAX_COLUMN);
+        assert_eq!((c[0].width, c[0].natural), (MAX_COLUMN, Some(8)), "the part's width goes with it");
         let mut one = cols(&["state"]);
         arrange(&mut one, &Columns { hidden: vec!["state".into()], ..Columns::default() });
         assert_eq!(names(&one), ["state"]);

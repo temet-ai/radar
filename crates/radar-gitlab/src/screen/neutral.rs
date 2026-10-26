@@ -379,6 +379,7 @@ fn tree_body(p: &GitlabPlugin, cx: &v::ViewCx<'_>, nodes: &[TenancyNode<'_>]) ->
         cut_names: false,
         editing: None,
         pointer_action: false,
+        names: None,
     })
 }
 

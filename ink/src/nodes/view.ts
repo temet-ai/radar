@@ -97,6 +97,8 @@ export interface Tree {
   selected?: string[];
   open?: string[][];
   name_width?: number;
+  /** The width the user dragged the names to (layout.rs): the names take it and the last column the room left. */
+  names?: number | null;
   look?: { lines: string; band: string; heading: string; band_level: number } | null;
   header_target?: Target | null;
   note?: Note | null;

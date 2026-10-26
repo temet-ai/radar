@@ -708,6 +708,7 @@ fn tree_body(p: &JiraPlugin, cx: &v::ViewCx<'_>, nodes: &[SiteNode<'_>]) -> Node
         cut_names: false,
         editing: None,
         pointer_action: false,
+        names: None,
     })
 }
 

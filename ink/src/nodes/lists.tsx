@@ -190,7 +190,7 @@ export function TableNode({
   );
   const heading: Style = { ...slotStyle("text.muted"), bold: true };
   const head: Cell[] = markHeadingLine(
-    withEdges([...cellsOf(" "), ...fitted.flatMap(({ column, width: w }) => headingFor(column, w, heading))], fitted, 1, false, ctx.plainText),
+    withEdges([...cellsOf(" "), ...fitted.flatMap(({ column, width: w }) => headingFor(column, w, heading))], fitted, 1, "table", ctx.plainText),
     fitted,
     1,
     (p) => headingFor(p.column, p.width, heading),

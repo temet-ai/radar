@@ -58,4 +58,11 @@ editing?: TreeEditing | null,
  * A pointer press sends `node:<id>` so it can choose a file while
  * keyboard selection only moves the tree cursor.
  */
-pointer_action?: boolean, };
+pointer_action?: boolean, 
+/**
+ * The width the user dragged the names to ([`crate::layout`]): the
+ * names take exactly it, the columns follow, and the last column takes
+ * the room left. Absent, the names take what the columns leave. Set by
+ * the host, never by a part.
+ */
+names?: number | null, };

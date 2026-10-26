@@ -88,6 +88,25 @@ describe("dragging a column, a heading or a pane border", () => {
     expect(sent.at(-1)).toMatchObject({ width: null });
   });
 
+  it("a tree's names edge follows the pointer between its least and its most; a double click lets them go", () => {
+    const { sent, shown, drag, later } = rig();
+    const names: Hit = { x: 9, y: 3, w: 3, h: 1, target: "layout:names:10:30" };
+    drag.mouse(ev("press", 10), names);
+    drag.mouse(ev("motion", 18), undefined);
+    expect(shown.at(-1)).toEqual({ kind: "names", key: "gitlab/middle", width: 18 });
+    drag.mouse(ev("motion", 90), undefined);
+    expect(shown.at(-1)).toMatchObject({ width: 30 });
+    drag.mouse(ev("motion", 0), undefined);
+    expect(shown.at(-1)).toMatchObject({ width: 8 });
+    drag.mouse(ev("release", 0), undefined);
+    expect(sent).toEqual([{ intent: "layout", layout: "names_width", key: "gitlab/middle", width: 8 }]);
+    drag.mouse(ev("press", 10), names);
+    drag.mouse(ev("release", 10), undefined);
+    later(100);
+    drag.mouse(ev("press", 10), names);
+    expect(sent.at(-1)).toEqual({ intent: "layout", layout: "names_width", key: "gitlab/middle", width: null });
+  });
+
   it("a heading moved goes where its floating left edge is nearest; the others make room as it passes", () => {
     const { sent, shown, drag, at } = rig();
     drag.mouse(ev("press", 12), at("layout:head:state"));

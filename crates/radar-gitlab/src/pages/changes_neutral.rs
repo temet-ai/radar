@@ -145,6 +145,7 @@ fn files_pane(
         cut_names: false,
         editing: None,
         pointer_action: true,
+        names: None,
     });
     PaneView::new(PaneId::Nav, title, body)
 }

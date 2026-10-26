@@ -101,23 +101,39 @@ describe("the rows a press can reach", () => {
     const { hits, lines } = hitsOf(node, 40);
     const targets = hits.map((h) => h.target);
     // a tree's columns hold to the right: the cell before a heading sizes its column
-    expect(targets.map((t) => t.replace(/:\d+:\d+$/, ""))).toEqual(["g", `g${PATH_SEP}c`, "authors", "layout:head:state", "layout:edge:state:-1", "state:c"]);
+    // the first edge sizes the names (29 of the 39-cell row, up to all the room the column at its own width leaves)
+    expect(targets).toEqual(["g", `g${PATH_SEP}c`, "authors", "layout:head:state", "layout:names:29:29", "state:c"]);
     const head = hits.find((h) => h.target === "layout:head:state")!;
     expect(lines[head.y].slice(head.x, head.x + 5)).toBe("STATE");
-    const edge = hits.find((h) => h.target.startsWith("layout:edge:state:-1:"))!;
+    const edge = hits.find((h) => h.target.startsWith("layout:names:"))!;
     expect([edge.x, edge.w]).toEqual([head.x - 2, 3]);
     expect(lines[head.y][head.x - 1]).toBe("│");
-    // it may grow by what the names have beyond their least: 39 cells of row, 10 of column, 12 for the names
-    expect(Number(edge.target.split(":").at(-2))).toBe(10 + (39 - 10 - 12));
-    // and fits to its widest value: STATE and a cell of air
-    expect(Number(edge.target.split(":").at(-1))).toBe(6);
+    // the header's own target stops short of the names' edge
+    const authors = hits.find((h) => h.target === "authors")!;
+    expect(authors.x + authors.w).toBeLessThanOrEqual(edge.x);
     const row = hits.find((h) => h.target === `g${PATH_SEP}c`)!;
     expect(lines[row.y]).toContain("child");
     const cell = hits.find((h) => h.target === "state:c")!;
     expect(lines[cell.y].slice(cell.x, cell.x + 2)).toBe("ok");
-    expect(lines[hits.find((h) => h.target === "authors")!.y]).toContain(
-      "OPENED BY",
-    );
+    expect(lines[authors.y]).toContain("OPENED BY");
+  });
+  it("tree with sized names: the columns follow them, each edge sizes the column left of it, the last takes the rest", () => {
+    const node = {
+      node: "tree",
+      header: t("OPENED BY"),
+      columns: [{ heading: "state", width: 10, keep: 1 }, { heading: "updated", width: 8, keep: 1 }],
+      name_width: 12,
+      names: 15,
+      rows: [{ id: "r", name: t("repo"), cells: [{ heading: "state", text: t("ok") }] }],
+    } as unknown as Node;
+    const { hits, lines } = hitsOf(node, 40);
+    const targets = hits.map((h) => h.target);
+    expect(targets).toContain("layout:names:15:21");
+    const head = hits.find((h) => h.target === "layout:head:state")!;
+    expect(lines[head.y].slice(head.x - 1, head.x + 6)).toBe("│STATE ");
+    expect(head.x - hits.find((h) => h.target.startsWith("layout:names:"))!.x).toBe(2);
+    // STATE's right edge sizes it: it may take the 6 cells UPDATED holds beyond its own 8 (39 - 15 - 10 - 8)
+    expect(targets).toContain("layout:edge:state:1:16:6");
   });
   it("tree with pointer_action sends node:<id>; heading rows are not pointable", () => {
     const node = {

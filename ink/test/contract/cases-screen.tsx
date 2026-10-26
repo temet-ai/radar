@@ -353,6 +353,12 @@ export const SCREEN_CASES: Record<string, Case> = {
     n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }];
     n.name_width = 12;
   }),
+  // Sized names hold COLX at cell 15 from the left; unsized, the names take what COLX leaves and it sits at the right.
+  "Tree.names": tree((n, on) => {
+    n.columns = [{ heading: "COLX", width: 10, keep: 0 }];
+    n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }];
+    n.names = on ? 15 : null;
+  }),
   "CellView.heading": table((n, on) => (n.rows[0].cells[0].heading = pick(on, "COLA", "ZZHEAD"))),
   "CellView.text": table((n, on) => (n.rows[0].cells[0].text = t(pick(on, "cella", "ZZCELL")))),
 

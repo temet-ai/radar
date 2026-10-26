@@ -275,7 +275,7 @@ export class InputController {
       return at && (!item || !(item.shown_only || item.heading || item.note)) ? "pointer" : "default";
     }
     const lit = this.litAt(x, y);
-    if (lit?.target.startsWith("layout:edge:") || lit?.target.startsWith("layout:split:")) return "col-resize";
+    if (lit?.target.startsWith("layout:edge:") || lit?.target.startsWith("layout:split:") || lit?.target.startsWith("layout:names:")) return "col-resize";
     if (lit?.target.startsWith("layout:head:")) return "grab";
     if (lit) return "pointer";
     return this.view.selectAt?.(x, y) ? "text" : "default";

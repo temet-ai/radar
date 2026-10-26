@@ -507,6 +507,7 @@ fn middle_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
         cut_names: false,
         editing: None,
         pointer_action: false,
+        names: None,
     };
     let mut pane = PaneView::new(PaneId::Middle, title, Node::Tree(tree));
     pane.notes = notes(p);

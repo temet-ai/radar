@@ -37,16 +37,21 @@ export function tintCells(cs: Cell[], from: number, to: number, s: Style): Cell[
   return [...sliceCells(cs, 0, from), ...patchCells(sliceCells(cs, from, to), s), ...sliceCells(cs, to, Math.max(to, widthOfCells(cs)))];
 }
 
-/** Where the heading line's edges are, each the cell between two headings that sizes a column (`sizes`): `sign` 1 when
- * dragging right widens it, -1 when dragging left does. A tree's columns hold to its right edge, as do a table's after
- * the column that takes what is left (`tree` false: a table), so there the cell before a heading sizes it. */
-export function columnEdges(placed: Placed[], x0: number, tree: boolean): Array<{ x: number; sizes: Placed; sign: 1 | -1 }> {
+/** How a heading line's columns are laid: a table's from the left with a title taking the rest; a tree's held to the
+ * right edge with the names taking the rest; a tree whose names the user sized (`names`), from the left after them. */
+export type EdgeMode = "table" | "tree" | "names";
+
+/** Where the heading line's edges are, each the cell between two headings that sizes a column (`sizes`; null: a
+ * tree's names): `sign` 1 when dragging right widens it, -1 when dragging left does. Where columns hold to the right
+ * edge (a tree's, a table's after its title) the cell before a heading sizes it; a tree's first edge always sizes its
+ * names, and once they are sized every edge sizes the column left of it. */
+export function columnEdges(placed: Placed[], x0: number, mode: EdgeMode): Array<{ x: number; sizes: Placed | null; sign: 1 | -1 }> {
   const flex = placed.findIndex((p) => p.column.flex);
-  const out: Array<{ x: number; sizes: Placed; sign: 1 | -1 }> = [];
+  const out: Array<{ x: number; sizes: Placed | null; sign: 1 | -1 }> = [];
   let x = x0;
   placed.forEach((p, i) => {
-    if (tree) {
-      if (x > 0) out.push({ x: x - 1, sizes: p, sign: -1 });
+    if (mode !== "table") {
+      if (x > 0) out.push(i === 0 ? { x: x - 1, sizes: null, sign: 1 } : mode === "names" ? { x: x - 1, sizes: placed[i - 1]!, sign: 1 } : { x: x - 1, sizes: p, sign: -1 });
     } else if (flex < 0 || i < flex) out.push({ x: x + p.width - 1, sizes: p, sign: 1 });
     else if (i + 1 < placed.length) out.push({ x: x + p.width - 1, sizes: placed[i + 1]!, sign: -1 });
     x += p.width;
@@ -55,9 +60,9 @@ export function columnEdges(placed: Placed[], x0: number, tree: boolean): Array<
 }
 
 /** The divider drawn on each edge of a heading line, so where a column is sized can be seen. */
-export function withEdges(line: Cell[], placed: Placed[], x0: number, tree: boolean, plain?: boolean): Cell[] {
+export function withEdges(line: Cell[], placed: Placed[], x0: number, mode: EdgeMode, plain?: boolean): Cell[] {
   let out = line;
-  for (const e of columnEdges(placed, x0, tree)) out = overlayCells(out, e.x, cellsOf("│", plain ? {} : slotStyle("text.muted")));
+  for (const e of columnEdges(placed, x0, mode)) out = overlayCells(out, e.x, cellsOf("│", plain ? {} : slotStyle("text.muted")));
   return out;
 }
 

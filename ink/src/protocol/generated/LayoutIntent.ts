@@ -5,4 +5,4 @@ import type { SplitEdge } from "./SplitEdge.js";
  * What a drag or a heading's menu changed. `key` names the place
  * ([`key`]); a renderer computes it the same way.
  */
-export type LayoutIntent = { "layout": "split", edge: SplitEdge, share: number | null, } | { "layout": "column_width", key: string, heading: string, width: number | null, } | { "layout": "column_order", key: string, order: Array<string>, } | { "layout": "column_hidden", key: string, heading: string, hidden: boolean, } | { "layout": "columns_reset", key: string, };
+export type LayoutIntent = { "layout": "split", edge: SplitEdge, share: number | null, } | { "layout": "column_width", key: string, heading: string, width: number | null, } | { "layout": "column_order", key: string, order: Array<string>, } | { "layout": "column_hidden", key: string, heading: string, hidden: boolean, } | { "layout": "names_width", key: string, width: number | null, } | { "layout": "columns_reset", key: string, };

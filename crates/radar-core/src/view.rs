@@ -1028,6 +1028,12 @@ pub struct Tree {
     /// keyboard selection only moves the tree cursor.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub pointer_action: bool,
+    /// The width the user dragged the names to ([`crate::layout`]): the
+    /// names take exactly it, the columns follow, and the last column takes
+    /// the room left. Absent, the names take what the columns leave. Set by
+    /// the host, never by a part.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub names: Option<u16>,
 }
 
 /// A tree's marks: its lines, the band behind every other block at

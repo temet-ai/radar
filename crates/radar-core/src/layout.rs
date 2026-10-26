@@ -15,6 +15,8 @@ use crate::view::{ColumnSpec, Node, PaneId, PaneView, ScreenView};
 /// Least and most cells a dragged column may take (with its cell of air).
 pub const MIN_COLUMN: u16 = 3;
 pub const MAX_COLUMN: u16 = 120;
+/// Least cells a tree's names may be dragged to.
+pub const MIN_NAMES: u16 = 8;
 
 /// The `[layout]` table.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,6 +49,9 @@ pub struct Columns {
     pub widths: BTreeMap<String, u16>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub hidden: Vec<String>,
+    /// A tree's names, dragged to this width ([`crate::view::Tree::names`]).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub names: Option<u16>,
 }
 
 /// Which border between the panes a drag moved.
@@ -72,6 +77,9 @@ pub enum LayoutIntent {
     /// A heading dropped somewhere else: the columns shown, in their new order.
     ColumnOrder { key: String, order: Vec<String> },
     ColumnHidden { key: String, heading: String, hidden: bool },
+    /// A tree's names dragged to `width` cells; `None` lets them take what
+    /// the columns leave again.
+    NamesWidth { key: String, width: Option<u16> },
     /// The place's columns as the part has them.
     ColumnsReset { key: String },
 }
@@ -150,6 +158,7 @@ impl LayoutConfig {
                     tree.ordered_columns = true;
                 }
                 arrange(&mut tree.columns, kept);
+                tree.names = kept.names;
             }
             _ => {}
         }
@@ -185,6 +194,9 @@ impl LayoutConfig {
                 if *hidden {
                     c.hidden.push(heading.clone());
                 }
+            }
+            LayoutIntent::NamesWidth { key, width } => {
+                self.columns.entry(key.clone()).or_default().names = width.map(|w| w.clamp(MIN_NAMES, MAX_COLUMN));
             }
             LayoutIntent::ColumnsReset { key } => {
                 self.columns.remove(key);
@@ -298,7 +310,7 @@ mod tests {
         let mut l = LayoutConfig { nav: Some(150), dock: Some(12), ..LayoutConfig::default() };
         l.columns.insert(
             "watch/middle".into(),
-            Columns { order: vec!["".into(), "state".into()], widths: BTreeMap::from([("state".into(), 24)]), hidden: vec![] },
+            Columns { order: vec!["".into(), "state".into()], widths: BTreeMap::from([("state".into(), 24)]), hidden: vec![], names: Some(40) },
         );
         let text = toml::to_string(&l).unwrap();
         assert_eq!(toml::from_str::<LayoutConfig>(&text).unwrap(), l);
@@ -318,9 +330,11 @@ mod tests {
         );
         let mut l = LayoutConfig::default();
         l.on_intent(&LayoutIntent::ColumnOrder { key: "watch/middle".into(), order: vec!["updated".into(), "patrol".into(), "state".into()] });
+        l.on_intent(&LayoutIntent::NamesWidth { key: "watch/middle".into(), width: Some(2) });
         l.apply(&mut view);
         let Node::Tree(tree) = &view.panes[0].body else { panic!() };
         assert!(tree.ordered_columns);
+        assert_eq!(tree.names, Some(MIN_NAMES), "the names keep a least width");
         assert_eq!(names(&tree.columns), ["updated", "patrol", "state"]);
         assert!(view.layout.is_none());
     }

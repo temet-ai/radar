@@ -1,13 +1,13 @@
 import React, { useId, useLayoutEffect, useRef, useContext } from "react";
 import { Box, type DOMElement } from "ink";
 import type { Node, NodeContext, SubjectRef } from "./view.js";
-import { visibleRows, treeLayout, treeRowHasColumns } from "./tree.js";
+import { partWidths, visibleRows, treeLayout, treeRowHasColumns } from "./tree.js";
 import { textWords } from "../text/TextLine.js";
 import { cellWidth } from "../chrome/width.js";
 import { useScrollReport } from "./index.js";
 import { entriesFirst, entryLines } from "./lists.js";
-import { fitTableColumns, type Placed } from "./columns.js";
-import { columnEdges } from "./drag.js";
+import { fitTableColumns, fitTreeColumns, type Placed } from "./columns.js";
+import { columnEdges, type EdgeMode } from "./drag.js";
 import { lineCells, widthOfCells } from "../text/cells.js";
 import type { ColumnSpec } from "./view.js";
 import { WindowContext, firstRow, type Window } from "./window.js";
@@ -46,7 +46,7 @@ export function padded(x: number, w: number, within: number): { dx: number; w: n
  * The edge's last part is the widest the column may be dragged to: as wide as it is plus the room `spare` (what the
  * names or the title have beyond their least), so a column dragged wider never pushes another off the line. Headings
  * are URI-encoded. */
-export function headingHits(out: HitSpec[], placed: Placed[], x0: number, tree: boolean, spare: number, fits: Map<string, number>) {
+export function headingHits(out: HitSpec[], placed: Placed[], x0: number, mode: EdgeMode, spare: number, fits: Map<string, number>, names?: { width: number; most: number }) {
   const name = (p: Placed) => encodeURIComponent(p.column.heading);
   let x = x0;
   for (const p of placed) {
@@ -54,11 +54,17 @@ export function headingHits(out: HitSpec[], placed: Placed[], x0: number, tree: 
     x += p.width;
   }
   // An edge takes the divider and a cell either side of it (over the headings' ends): one cell is too fine to find.
-  // Its last part is the width that fits the column's longest value (a double click sizes it to that).
-  for (const e of columnEdges(placed, x0, tree)) {
+  // Its last part is the width that fits the column's longest value (a double click sizes it to that). A tree's
+  // first edge sizes its names: `layout:names:<width>:<most>`.
+  for (const e of columnEdges(placed, x0, mode)) {
+    const at = { dx: Math.max(0, e.x - 1), dy: 0, w: e.x > 0 ? 3 : 2, h: 1 };
+    if (!e.sizes) {
+      if (names) out.push({ ...at, target: `layout:names:${names.width}:${Math.max(names.width, names.most)}` });
+      continue;
+    }
     const most = e.sizes.width + Math.max(0, spare);
     const fit = fits.get(e.sizes.column.heading) ?? e.sizes.width;
-    out.push({ dx: Math.max(0, e.x - 1), dy: 0, w: e.x > 0 ? 3 : 2, h: 1, target: `layout:edge:${name(e.sizes)}:${e.sign}:${most}:${fit}` });
+    out.push({ ...at, target: `layout:edge:${name(e.sizes)}:${e.sign}:${most}:${fit}` });
   }
 }
 
@@ -111,7 +117,7 @@ export function hitSpecs(
         const title = placed.find((p) => p.column.flex);
         // With no title the columns stop at the line's end.
         const spare = title ? title.width - title.column.width : width - 1 - placed.reduce((n, p) => n + p.width, 0);
-        headingHits(out, placed, 1, false, spare, contentWidths(node, node.columns, node.rows));
+        headingHits(out, placed, 1, "table", spare, contentWidths(node, node.columns, node.rows));
       }
       break;
     case "entries": {
@@ -150,9 +156,20 @@ export function hitSpecs(
           1 + cellWidth(textWords(node.header ?? [])),
           Math.max(0, namesWidth - 1),
         );
-        out.push({ ...padded(0, w, width), dy: 0, h: 1, target: node.header_target });
+        // it stops short of the names' edge (its divider and the cell either side), which a drag sizes them by
+        out.push({ ...padded(0, Math.min(w, Math.max(0, namesWidth - 4)), Math.max(0, namesWidth - 2)), dy: 0, h: 1, target: node.header_target });
       }
-      if (hasHeader) headingHits(out, fitted, namesWidth, true, namesWidth - (node.name_width ?? 24), contentWidths(node, node.columns, shown.map((s) => s.row)));
+      if (hasHeader) {
+        const last = fitted[fitted.length - 1];
+        // Sized names: an edge sizes the column left of it, taking from the room the last column holds beyond its
+        // own. Not yet sized: from the names, down to their least. The names may grow until the columns are at their
+        // part's widths.
+        const spare = node.names ? (last ? last.width - last.column.width : 0) : namesWidth - (node.name_width ?? 24);
+        // the names' room as treeLayout gives it: the columns shown with the names at their least, at their parts' widths
+        const least = Math.min(node.names ?? namesWidth, node.name_width ?? 24);
+        const most = rowWidth - partWidths(fitTreeColumns(node.columns, Boolean(node.ordered_columns), rowWidth, least));
+        headingHits(out, fitted, namesWidth, node.names ? "names" : "tree", spare, contentWidths(node, node.columns, shown.map((s) => s.row)), { width: namesWidth, most });
+      }
       shown.forEach(({ row: r, path }, i) => {
         if (!inWin(i)) return;
         const open = (node.open ?? []).some((p) => p.length === path.length && p.every((id, at) => id === path[at]));

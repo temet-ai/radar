@@ -114,8 +114,26 @@ const total = (cs: { width: number }[]) => cs.reduce((n, c) => n + c.width, 0);
 
 /** The tree's cells and where they go in `width` cells (the pane's inner width): the last cell holds the scrollbar,
  * so the rows use `width - 1`; the columns take their declared widths (ui::Columns::fit) and the names the rest. */
+/** What placed columns take at their part's widths (a dragged one counts its part's width). */
+export const partWidths = (placed: Placed[]) => placed.reduce((n, p) => n + Math.min(p.column.width, p.column.natural ?? p.column.width), 0);
+
 export function treeLayout(tree: Tree, width: number) {
   const row = Math.max(0, width - 1);
+  if (tree.names) {
+    // Names the user sized take that width, giving way (down to the part's least) before any column does; the
+    // columns follow them and the last takes the room left.
+    // Their room: what the columns shown with names at their least take at their part's widths (a dragged one's
+    // extra is the names' to take); hits.tsx offers a drag the same room.
+    const least = Math.min(tree.names, tree.name_width ?? 24);
+    const shown = fitTreeColumns(tree.columns, Boolean(tree.ordered_columns), row, least);
+    const names = Math.min(row, Math.max(least, Math.min(tree.names, row - partWidths(shown))));
+    let fitted = fitTreeColumns(tree.columns, Boolean(tree.ordered_columns), row, names);
+    const left = row - names - total(fitted);
+    const last = fitted[fitted.length - 1];
+    if (last && left > 0) fitted = [...fitted.slice(0, -1), { ...last, width: last.width + left }];
+    const colsWidth = total(fitted);
+    return { row, fitted, colsWidth, namesWidth: Math.max(0, row - colsWidth) };
+  }
   const fitted = fitTreeColumns(
     tree.columns,
     Boolean(tree.ordered_columns),
@@ -377,7 +395,7 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
     const cols = fitted.flatMap(({ column, width: w }) =>
       headingCells(column, w),
     );
-    return markHeadingLine(withEdges([...padCells(left, room), ...cols], fitted, room, true, ctx.plainText), fitted, room, (p) => headingCells(p.column, p.width), ctx.plainText);
+    return markHeadingLine(withEdges([...padCells(left, room), ...cols], fitted, room, tree.names ? "names" : "tree", ctx.plainText), fitted, room, (p) => headingCells(p.column, p.width), ctx.plainText);
   };
   return (
     <Box flexDirection="column">

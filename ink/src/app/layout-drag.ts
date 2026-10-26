@@ -12,7 +12,8 @@ export type Edge = "nav" | "detail";
 export type Preview =
   | { kind: "split"; edge: Edge; share: number }
   | { kind: "width"; key: string; heading: string; width: number }
-  | { kind: "move"; key: string; heading: string; order: string[]; float: number };
+  | { kind: "move"; key: string; heading: string; order: string[]; float: number }
+  | { kind: "names"; key: string; width: number };
 
 /** layout::key: where a pane's columns are kept. `<screen>/<pane>`, on an item's page `<screen>/page/<tab>/<pane>`. */
 export function layoutKey(screen: any, pane: string): string {
@@ -24,6 +25,8 @@ export function layoutKey(screen: any, pane: string): string {
 
 export const MIN_COLUMN = 3;
 export const MAX_COLUMN = 120;
+/** layout::MIN_NAMES. */
+export const MIN_NAMES = 8;
 const DOUBLE_MS = 400;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 /** A share of the width in thousandths, as layout::LayoutIntent::Split takes it. */
@@ -32,6 +35,7 @@ export const clampShare = (s: number) => clamp(Math.round(s), 50, 800);
 /** The columns of a pane's body as the preview has them. */
 function previewBody(body: any, p: Preview): any {
   if (!body || (body.node !== "table" && body.node !== "tree") || p.kind === "split") return body;
+  if (p.kind === "names") return body.node === "tree" ? { ...body, names: p.width } : body;
   const columns: any[] = body.columns ?? [];
   if (p.kind === "width")
     return { ...body, columns: columns.map((c) => (c.heading === p.heading ? { ...c, width: p.width, lit: true } : c)) };
@@ -64,7 +68,8 @@ type Slot = { heading: string; x: number; width: number };
 type Held =
   | { kind: "split"; target: string; edge: Edge; x0: number; width: number; share?: number }
   | { kind: "width"; target: string; key: string; heading: string; sign: number; x: number; start: number; most: number; width?: number }
-  | { kind: "move"; key: string; heading: string; slots: Slot[]; grab: number; x: number; order?: string[] };
+  | { kind: "move"; key: string; heading: string; slots: Slot[]; grab: number; x: number; order?: string[] }
+  | { kind: "names"; target: string; key: string; x: number; start: number; most: number; width?: number };
 
 export interface DragHost {
   send(intent: any): void;
@@ -122,6 +127,13 @@ export class LayoutDrag {
       .filter((h) => h.y === hit.y && h.target.startsWith("layout:head:") && this.host.paneAt(h.x, h.y) === pane)
       .sort((a, b) => a.x - b.x)
       .map((h) => ({ heading: decodeURIComponent(h.target.slice("layout:head:".length)), x: h.x, width: h.w + 1 }));
+    if (kind === "names") {
+      // A tree's names: their edge follows the pointer; a double click lets them take what the columns leave again.
+      if (again) return this.send({ layout: "names_width", key, width: null });
+      const start = Number(rest[0]);
+      this.held = { kind: "names", target: hit.target, key, x: ev.x, start, most: Math.max(start, Number(rest[1]) || start) };
+      return true;
+    }
     if (kind === "edge") {
       const slot = slots.find((s) => s.heading === heading);
       if (!slot) return false;
@@ -161,6 +173,9 @@ export class LayoutDrag {
     if (h.kind === "split") {
       h.share = clampShare(((h.edge === "nav" ? x - h.x0 + 1 : h.x0 + h.width - x) * 1000) / h.width);
       this.show({ kind: "split", edge: h.edge, share: h.share });
+    } else if (h.kind === "names") {
+      h.width = clamp(h.start + (x - h.x), MIN_NAMES, h.most);
+      this.show({ kind: "names", key: h.key, width: h.width });
     } else if (h.kind === "width") {
       // never wider than the room the names (or a table's title) can give: no other column is pushed off the line
       h.width = clamp(h.start + h.sign * (x - h.x), MIN_COLUMN, Math.min(MAX_COLUMN, h.most));
@@ -194,6 +209,9 @@ export class LayoutDrag {
     if (h.kind === "split") {
       if (h.share !== undefined) sent = this.send({ layout: "split", edge: h.edge, share: h.share });
       else this.last = { target: h.target, at: now };
+    } else if (h.kind === "names") {
+      if (h.width !== undefined && h.width !== h.start) sent = this.send({ layout: "names_width", key: h.key, width: h.width });
+      else if (h.width === undefined) this.last = { target: h.target, at: now };
     } else if (h.kind === "width") {
       if (h.width !== undefined && h.width !== h.start) sent = this.send({ layout: "column_width", key: h.key, heading: h.heading, width: h.width });
       else if (h.width === undefined) this.last = { target: h.target, at: now };

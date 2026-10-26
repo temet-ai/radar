@@ -284,6 +284,8 @@ pub(crate) enum Target {
     Purpose(usize),
     Template,
     Link,
+    /// How `{mrs}` shows each merge request.
+    Line,
     Reask,
     /// How many hours resolved alerts stay shown.
     Hours,

@@ -105,7 +105,16 @@ or editing the draft.
 
 Settings → Slack → Review holds the normal channel, the user group to mention, a test
 channel, the message template and when an unanswered request can be asked again. Sending
-to the test channel leaves out the review-group mention. Once posted, the merge request
+to the test channel leaves out the review-group mention.
+
+The template puts the merge requests at `{mrs}`; **each request** sets how each one shows
+there (`{link} {title}` by default). Both can name a merge request by `{link}`, `{url}`,
+`{repo}`, `{project}`, `{iid}`, `{title}`, `{branch}`, `{target}`, `{author}` and
+`{tickets}`. The template also takes `{count}`, `{group}` and `{@handle}`; with several
+merge requests, a placeholder in the template joins their different values with commas.
+For example, `{group} :gitlab: {repo} !{iid} by {author}: {link} {title}` names the repo,
+number and author of one merge request. The settings page previews one and two merge
+requests as you type. Once posted, the merge request
 offers its review-ask thread and, when due, **ask again in the thread…**. A re-ask is an
 explicit action, not an automatic reminder.
 

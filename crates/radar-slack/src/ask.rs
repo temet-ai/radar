@@ -2,6 +2,8 @@
 //! settings, shown exactly as it will post and where, and posted only after
 //! a yes. The user group is mentioned only in the review channel.
 
+use std::collections::BTreeMap;
+
 use radar_core::Subject;
 use radar_core::input::TextInput;
 
@@ -19,7 +21,18 @@ pub struct Item {
     pub words: String,
     /// Ticket keys and their URLs, supplied by the part that owns them.
     pub tickets: Vec<(String, String)>,
+    /// What else the part said about it, for the template's placeholders:
+    /// `project`, `iid`, `branch`, `target`, `author`.
+    pub facts: BTreeMap<String, String>,
 }
+
+/// The facts of a merge request a template can name, as its subject holds them.
+const FACTS: [&str; 5] = ["project", "iid", "branch", "target", "author"];
+
+/// What each merge request can be named by, in the template and in the
+/// line for each one.
+pub const ITEM_PLACEHOLDERS: [&str; 10] =
+    ["link", "url", "repo", "project", "iid", "title", "branch", "target", "author", "tickets"];
 
 impl Item {
     /// From a merge request subject: its link, its label and its title.
@@ -32,6 +45,37 @@ impl Item {
             tickets: s.related.iter().filter(|s| s.is("ticket"))
                 .filter_map(|s| s.url.as_ref().map(|url| (s.id.clone(), url.clone())))
                 .collect(),
+            facts: FACTS.iter()
+                .filter_map(|f| s.field(f).filter(|v| !v.trim().is_empty())
+                    .map(|v| ((*f).to_string(), v.trim().to_string())))
+                .collect(),
+        })
+    }
+
+    /// The repo's own name: the end of its project path, else the start of
+    /// its label (`api` of `api !263`).
+    pub fn repo(&self) -> &str {
+        match self.facts.get("project") {
+            Some(project) => project.rsplit('/').next().unwrap_or(project),
+            None => self.label.split(" !").next().unwrap_or(&self.label),
+        }
+    }
+
+    /// One placeholder's value, as Slack text. `link` is the link's text;
+    /// `tickets_shown` leaves out of `{title}` the tickets `{tickets}` lists.
+    fn value(&self, name: &str, link: &str, tickets_shown: bool) -> Option<String> {
+        Some(match name {
+            "link" => format!("<{}|{}>", self.url, escape(link)),
+            "url" => self.url.clone(),
+            "repo" => escape(self.repo()),
+            "title" => linked_words(self, !tickets_shown),
+            "tickets" => self.tickets.iter()
+                .filter(|(key, url)| !key.is_empty() && !url.is_empty())
+                .map(|(key, url)| format!("<{}|{}>", escape(url), escape(key)))
+                .collect::<Vec<_>>()
+                .join(", "),
+            f if FACTS.contains(&f) => escape(self.facts.get(f).map_or("", String::as_str)),
+            _ => return None,
         })
     }
 }
@@ -99,6 +143,9 @@ impl Draft {
         if let Err(why) = check_template(&cfg.review.template, groups) {
             return Some(format!("the template: {why}"));
         }
+        if let Err(why) = check_line(&cfg.review.line) {
+            return Some(format!("each merge request: {why}"));
+        }
         if self.sending.is_some() {
             return Some("being sent".into());
         }
@@ -155,18 +202,21 @@ pub fn group_by_handle<'a>(groups: &'a [UserGroup], handle: &str) -> Option<&'a 
     groups.iter().find(|g| g.handle.eq_ignore_ascii_case(handle))
 }
 
-/// Whether a template can be sent as it is: it has `{mrs}`; every
-/// placeholder is `{mrs}`, `{group}` or `{@handle}` of a user group Slack
-/// has; and no group is named as bare `@handle`, which Slack would post as
-/// plain words that ping no one. `Ok` says what it mentions.
+/// Whether a template can be sent as it is: it has `{mrs}` or `{link}`;
+/// every placeholder is `{mrs}`, `{count}`, `{group}`, `{@handle}` of a user
+/// group Slack has, or one of [`ITEM_PLACEHOLDERS`]; and no group is named
+/// as bare `@handle`, which Slack would post as plain words that ping no
+/// one. `Ok` says what it mentions.
 pub fn check_template(template: &str, groups: &[UserGroup]) -> Result<String, String> {
-    if !template.contains("{mrs}") {
-        return Err("needs {mrs}: where the merge requests go".into());
+    let names = placeholders(template);
+    if !names.iter().any(|p| *p == "mrs" || *p == "link") {
+        return Err("needs {mrs} or {link}: where the merge requests go".into());
     }
     let mut mentions = Vec::new();
-    for p in placeholders(template) {
+    for p in names {
         match p {
-            "mrs" => {}
+            "mrs" | "count" => {}
+            p if ITEM_PLACEHOLDERS.contains(&p) => {}
             "group" => mentions.push("the group picked under user group".to_string()),
             _ => match p.strip_prefix('@') {
                 Some(h) if groups.is_empty() => {
@@ -176,7 +226,10 @@ pub fn check_template(template: &str, groups: &[UserGroup]) -> Result<String, St
                     Some(g) => mentions.push(format!("@{}", g.handle)),
                     None => return Err(format!("{{@{h}}}: Slack has no user group with that handle")),
                 },
-                None => return Err(format!("{{{p}}} is not a placeholder: {{mrs}}, {{group}} or {{@handle}}")),
+                None => return Err(format!(
+                    "{{{p}}} is not a placeholder: {{mrs}}, {{count}}, {{group}}, {{@handle}}, {}",
+                    item_placeholders()
+                )),
             },
         }
     }
@@ -194,12 +247,52 @@ pub fn check_template(template: &str, groups: &[UserGroup]) -> Result<String, St
     })
 }
 
+/// Whether the line for each merge request can be sent: it links the merge
+/// request with `{link}`, and names it only by [`ITEM_PLACEHOLDERS`].
+pub fn check_line(line: &str) -> Result<String, String> {
+    let names = placeholders(line);
+    if !names.contains(&"link") {
+        return Err("needs {link}: the merge request's link".into());
+    }
+    for p in &names {
+        if !ITEM_PLACEHOLDERS.contains(p) {
+            return Err(format!("{{{p}}} is not a placeholder here: {}", item_placeholders()));
+        }
+    }
+    Ok("names each merge request".into())
+}
+
+/// The placeholders that name a merge request, as they are typed.
+fn item_placeholders() -> String {
+    ITEM_PLACEHOLDERS.iter().map(|p| format!("{{{p}}}")).collect::<Vec<_>>().join(", ")
+}
+
+/// `template` with each `{…}` that `value` knows replaced, in one pass, so
+/// words put in are never read as placeholders themselves.
+fn fill(template: &str, value: impl Fn(&str) -> Option<String>) -> String {
+    let mut out = String::new();
+    let mut rest = template;
+    while let Some(open) = rest.find('{') {
+        let after = &rest[open + 1..];
+        let Some(close) = after.find('}') else { break };
+        out.push_str(&rest[..open]);
+        match value(&after[..close]) {
+            Some(v) => out.push_str(&v),
+            None => out.push_str(&rest[open..open + close + 2]),
+        }
+        rest = &after[close + 1..];
+    }
+    out.push_str(rest);
+    out
+}
+
 /// The message exactly as it will be sent to `channel`: the template with
 /// `{group}` (the user group picked in settings) and `{@handle}` (a user
 /// group by its handle), each as Slack's mention `<!subteam^ID>` and only
-/// in the review channel, and `{mrs}` (one merge request linked with its
-/// words, or a bullet each). A `{@handle}` Slack has no group for is left
-/// as it is, and [`Draft::blocked`] says so.
+/// in the review channel; `{mrs}` (the line for each merge request, or a
+/// bullet each); `{count}`; and each of [`ITEM_PLACEHOLDERS`], which with
+/// several merge requests is their different values joined. A `{@handle}`
+/// Slack has no group for is left as it is, and [`Draft::blocked`] says so.
 pub fn text(cfg: &Settings, groups: &[UserGroup], channel: &str, items: &[Item]) -> String {
     let r = &cfg.review;
     let review = !r.channel.is_empty() && channel == r.channel;
@@ -209,31 +302,39 @@ pub fn text(cfg: &Settings, groups: &[UserGroup], channel: &str, items: &[Item])
         String::new()
     };
     let link = if r.link.trim().is_empty() { "mr" } else { r.link.trim() };
-    let words = |i: &Item| {
-        let w = linked_words(i);
-        if w.is_empty() { String::new() } else { format!(" {w}") }
-    };
+    // One is linked by the link text; several each by their label.
+    let link_of = |i: &Item| if items.len() == 1 { link.to_string() } else { i.label.clone() };
+    let line = if r.line.trim().is_empty() { crate::config::default_line() } else { r.line.clone() };
+    let line_tickets = placeholders(&line).contains(&"tickets");
+    let line_of = |i: &Item| fill(&line, |p| i.value(p, &link_of(i), line_tickets));
     let mrs = match items {
-        [one] => format!("<{}|{link}>{}", one.url, words(one)),
-        many => many
-            .iter()
-            .map(|i| format!("\n• <{}|{}>{}", i.url, escape(&i.label), words(i)))
-            .collect(),
+        [one] => line_of(one),
+        many => many.iter().map(|i| format!("\n• {}", line_of(i))).collect(),
     };
     let template = if r.template.trim().is_empty() {
         crate::config::default_template()
     } else {
         r.template.clone()
     };
-    let mut filled = template.replace("{group}", &group);
-    for p in placeholders(&template) {
-        let Some(g) = p.strip_prefix('@').and_then(|h| group_by_handle(groups, h)) else {
-            continue;
-        };
-        let mention = if review { format!("<!subteam^{}>", g.id) } else { String::new() };
-        filled = filled.replace(&format!("{{{p}}}"), &mention);
-    }
-    let filled = filled.replace("{mrs}", &mrs);
+    let tickets = placeholders(&template).contains(&"tickets");
+    let filled = fill(&template, |p| match p {
+        "group" => Some(group.clone()),
+        "mrs" => Some(mrs.clone()),
+        "count" => Some(items.len().to_string()),
+        p if ITEM_PLACEHOLDERS.contains(&p) => {
+            let mut seen: Vec<String> = Vec::new();
+            for v in items.iter().filter_map(|i| i.value(p, &link_of(i), tickets)) {
+                if !v.is_empty() && !seen.contains(&v) {
+                    seen.push(v);
+                }
+            }
+            Some(seen.join(", "))
+        }
+        p => {
+            let g = p.strip_prefix('@').and_then(|h| group_by_handle(groups, h))?;
+            Some(if review { format!("<!subteam^{}>", g.id) } else { String::new() })
+        }
+    });
     // An empty mention leaves its spaces behind: tidy each line.
     filled
         .lines()
@@ -246,8 +347,9 @@ pub fn text(cfg: &Settings, groups: &[UserGroup], channel: &str, items: &[Item])
 
 /// Keep editable words plain; insert Slack links only when formatting the
 /// preview/confirmation/post. A branch or development-panel ticket that is
-/// absent from the title is appended so that relationship is still visible.
-fn linked_words(item: &Item) -> String {
+/// absent from the title is appended so that relationship is still visible,
+/// unless `append` is false because `{tickets}` lists them.
+fn linked_words(item: &Item, append: bool) -> String {
     let words = item.words.trim();
     let word = |c: char| c.is_alphanumeric() || c == '_';
     let mut matches = Vec::new();
@@ -282,7 +384,7 @@ fn linked_words(item: &Item) -> String {
         at = end;
     }
     out.push_str(&escape(&words[at..]));
-    if !missing.is_empty() {
+    if append && !missing.is_empty() {
         if !out.is_empty() {
             out.push_str(" · ");
         }
@@ -299,7 +401,16 @@ pub fn sample() -> Vec<Item> {
         label: "api !263".into(),
         words: "Add a stats endpoint for the dashboard".into(),
         tickets: vec![],
+        facts: sample_facts("acme/team-a/api", "263", "stats-endpoint", "vimes"),
     }]
+}
+
+/// A sample merge request's facts, for the previews in settings.
+pub fn sample_facts(project: &str, iid: &str, branch: &str, author: &str) -> BTreeMap<String, String> {
+    [("project", project), ("iid", iid), ("branch", branch), ("target", "main"), ("author", author)]
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
 }
 
 #[cfg(test)]
@@ -335,6 +446,7 @@ mod tests {
             label: format!("api !{iid}"),
             words: words.into(),
             tickets: vec![],
+            facts: Default::default(),
         }
     }
 
@@ -376,7 +488,8 @@ mod tests {
         assert!(check_template("{@nobody} {mrs}", &g).unwrap_err().contains("no user group with that handle"));
         assert!(check_template("{grop} {mrs}", &g).unwrap_err().contains("{grop} is not a placeholder"));
         assert!(check_template("@acme-devs please {mrs}", &g).unwrap_err().contains("plain words that ping no one"));
-        assert!(check_template("{group}", &g).unwrap_err().contains("needs {mrs}"));
+        assert!(check_template("{group}", &g).unwrap_err().contains("needs {mrs} or {link}"));
+        assert!(check_template("{group} {link} {title}", &g).is_ok());
         assert_eq!(check_template(":gitlab: {mrs}", &g).unwrap(), "mentions no one");
     }
 
@@ -401,7 +514,7 @@ mod tests {
             ":gitlab: <https://git.example/mr/1|mr> chore(<https://acme.atlassian.net/browse/ABC-1274|ABC-1274>): Update build &amp; release tasks.");
         let mut edited = i;
         edited.words = "ABC-12740 <tag> ABC-1274 / ABC-1274".into();
-        let words = linked_words(&edited);
+        let words = linked_words(&edited, true);
         assert!(words.starts_with("ABC-12740 &lt;tag&gt; <"), "{words}");
         assert_eq!(words.matches("|ABC-1274>").count(), 2);
     }
@@ -416,7 +529,7 @@ mod tests {
         let mut subject = Subject::new("merge-request", "mr-1", "api !1")
             .with_url("https://git.example/mr/1").with("title", "ABC-12");
         subject.related.push(Subject::new("ticket", "ABC-12", "ABC-12"));
-        assert_eq!(linked_words(&Item::of(&subject).unwrap()), "ABC-12");
+        assert_eq!(linked_words(&Item::of(&subject).unwrap(), true), "ABC-12");
     }
 
     #[test]
@@ -428,6 +541,63 @@ mod tests {
              • <https://git.example/acme/team-a/api/-/merge_requests/263|api !263> Add it\n\
              • <https://git.example/acme/team-a/api/-/merge_requests/264|api !264> Fix &lt;b&gt; &amp; more"
         );
+    }
+
+    fn watch_item(iid: u32, words: &str, author: &str) -> Item {
+        Item {
+            id: format!("ankh-morpork/watch!{iid}"),
+            url: format!("https://git.example/ankh-morpork/watch/-/merge_requests/{iid}"),
+            label: format!("watch !{iid}"),
+            words: words.into(),
+            tickets: vec![("WATCH-12".into(), "https://jira.example/browse/WATCH-12".into())],
+            facts: sample_facts("ankh-morpork/watch", &iid.to_string(), "night-shift", author),
+        }
+    }
+
+    #[test]
+    fn a_template_names_the_merge_request_by_its_facts() {
+        let mut c = cfg();
+        c.review.template = "{group} {repo} !{iid} by {author}: {link} {title} ({branch} → {target}) {tickets}".into();
+        assert_eq!(check_template(&c.review.template, &groups()).unwrap(), "mentions the group picked under user group (in the review channel)");
+        let t = text(&c, &[], "test", &[watch_item(12, "Add the night shift", "vimes")]);
+        assert_eq!(
+            t,
+            "watch !12 by vimes: <https://git.example/ankh-morpork/watch/-/merge_requests/12|mr> Add the night shift \
+             (night-shift → main) <https://jira.example/browse/WATCH-12|WATCH-12>"
+        );
+    }
+
+    #[test]
+    fn each_merge_request_is_shown_by_the_line_and_the_template_joins_their_facts() {
+        let mut c = cfg();
+        c.review.template = "{count} in {repo} from {author}:{mrs}".into();
+        c.review.line = "{link} {title} · {author}".into();
+        let t = text(&c, &[], "test", &[watch_item(12, "Add it", "vimes"), watch_item(13, "Fix it", "carrot")]);
+        assert_eq!(
+            t,
+            "2 in watch from vimes, carrot:\n\
+             • <https://git.example/ankh-morpork/watch/-/merge_requests/12|watch !12> Add it \
+             · <https://jira.example/browse/WATCH-12|WATCH-12> · vimes\n\
+             • <https://git.example/ankh-morpork/watch/-/merge_requests/13|watch !13> Fix it \
+             · <https://jira.example/browse/WATCH-12|WATCH-12> · carrot"
+        );
+        // A {title} that holds braces is not read as placeholders.
+        c.review.line = "{link} {title}".into();
+        let t = text(&c, &[], "test", &[watch_item(12, "{mrs} {author}", "vimes")]);
+        assert!(t.ends_with("|mr> {mrs} {author} · <https://jira.example/browse/WATCH-12|WATCH-12>"), "{t}");
+        // Without a project, the repo is the start of the label.
+        assert_eq!(item(1, "").repo(), "api");
+    }
+
+    #[test]
+    fn the_line_needs_a_link_and_only_names_a_merge_request() {
+        assert!(check_line("{link} {title}").is_ok());
+        assert!(check_line("{title}").unwrap_err().contains("needs {link}"));
+        assert!(check_line("{link} {group}").unwrap_err().contains("{group} is not a placeholder here"));
+        let mut c = cfg();
+        c.review.line = "{title}".into();
+        let d = Draft::new(&c, item(1, ""));
+        assert!(d.blocked(&c, &[]).unwrap().starts_with("each merge request: needs {link}"));
     }
 
     #[test]

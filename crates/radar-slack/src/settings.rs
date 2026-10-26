@@ -409,15 +409,17 @@ pub(crate) enum RvRow {
     Group,
     Template,
     Link,
+    Line,
     Test,
     Reask,
 }
 
-const RV_ROWS: [RvRow; 6] = [
+const RV_ROWS: [RvRow; 7] = [
     RvRow::Channel,
     RvRow::Group,
     RvRow::Template,
     RvRow::Link,
+    RvRow::Line,
     RvRow::Test,
     RvRow::Reask,
 ];
@@ -429,6 +431,7 @@ impl RvRow {
             Self::Group => "user group",
             Self::Template => "template",
             Self::Link => "link text",
+            Self::Line => "each request",
             Self::Test => "test channel",
             Self::Reask => "ask again",
         }
@@ -628,6 +631,7 @@ fn rv_value(p: &SlackPlugin, r: RvRow) -> String {
         RvRow::Group => format!("@{}", crate::page::review_handle(p)),
         RvRow::Template => rv.template.clone(),
         RvRow::Link => rv.link.clone(),
+        RvRow::Line => rv.line.clone(),
         RvRow::Test => or_dash(&rv.test_channel),
         RvRow::Reask => rv.reask().words(),
     }
@@ -1121,6 +1125,14 @@ fn validate(p: &SlackPlugin, target: &Target, text: &str) -> Result<String, Stri
                 )
                 .replace('\n', " ⏎ ")
             ))
+        }
+        Target::Line => {
+            let names = ask::check_line(text)?;
+            let mut cfg = p.cfg.clone();
+            cfg.review.line = text.to_string();
+            let mut two = ask::sample();
+            two.extend(ask::sample().into_iter().map(|mut i| { i.label = "api !264".into(); i.url = i.url.replace("263", "264"); i }));
+            Ok(format!("{names}; posts: {}", ask::text(&cfg, &p.data.groups, &p.cfg.review.channel, &two).replace('\n', " ⏎ ")))
         }
         Target::Link => {
             if text.is_empty() || text.chars().count() > 30 {
@@ -1713,19 +1725,21 @@ pub fn alerts_view(p: &SlackPlugin, width: u16) -> v::SectionView {
 pub fn review_view(p: &SlackPlugin) -> v::SectionView {
     let mut editing = None;
     let rows = RV_ROWS.iter().copied().enumerate().map(|(i, row)| {
-        let target = match row { RvRow::Template => Some(Target::Template), RvRow::Link => Some(Target::Link), RvRow::Reask => Some(Target::Reask), _ => None };
+        let target = match row { RvRow::Template => Some(Target::Template), RvRow::Link => Some(Target::Link), RvRow::Line => Some(Target::Line), RvRow::Reask => Some(Target::Reask), _ => None };
         if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) { editing = editing_view(p, i, KV_W as u16); }
         let mut list = v::ListRow::new(format!("row:{i}"), v::kit::labelled(row.label(), KV_W, v::Text::of(rv_value(p, row), v::Ink::Primary)));
         if row == RvRow::Group { list.right = check_mark_text(p, "groups"); }
-        if row == RvRow::Template && ask::check_template(&p.cfg.review.template, &p.data.groups).is_err() { list.right = Some(v::Text::new().push(v::Seg::icon_or(Icon::Error, "✗", v::Ink::Bad))); }
+        if (row == RvRow::Template && ask::check_template(&p.cfg.review.template, &p.data.groups).is_err())
+            || (row == RvRow::Line && ask::check_line(&p.cfg.review.line).is_err()) { list.right = Some(v::Text::new().push(v::Seg::icon_or(Icon::Error, "✗", v::Ink::Bad))); }
         list
     }).collect();
     let row = rv_row(p);
     let (about, accepts, key) = match row {
         RvRow::Channel => ("Where review asks go. The user group is mentioned only here.", "a channel in the registry", "[slack.review] channel"),
         RvRow::Group => ("The user group mentioned in the review channel, so its people see the ask. Picked from Slack's groups.", "one of Slack's user groups", "[slack.review] group, handle"),
-        RvRow::Template => ("The message: {mrs} is the merge request linked with its words, or one bullet each for several; {group} mentions the user group picked above, and {@handle} any of Slack's user groups by its handle. Both are sent as Slack's mention of the group's id, so it pings, and only in the review channel. :name: is an emoji.", "text with {mrs}; {group} and {@handle} optional", "[slack.review] template"),
+        RvRow::Template => ("The message: {mrs} is each merge request as written under each request, or one bullet each for several; {count} is how many. {group} mentions the user group picked above, and {@handle} any of Slack's user groups by its handle. Both are sent as Slack's mention of the group's id, so it pings, and only in the review channel. The placeholders of each request work here too; with several merge requests each is their different values joined by commas. :name: is an emoji.", "text with {mrs} or {link}; {count}, {group}, {@handle}, {link}, {url}, {repo}, {project}, {iid}, {title}, {branch}, {target}, {author}, {tickets} optional", "[slack.review] template"),
         RvRow::Link => ("The text one merge request is linked with; several are each named by their repo and number.", "a few characters", "[slack.review] link"),
+        RvRow::Line => ("How {mrs} shows each merge request. {link} is its link, {url} the bare address, {repo} and {project} its repo's name and path, {iid} its number, {title} its words (edited in the draft, tickets linked), {branch} and {target} its branches, {author} who opened it, and {tickets} its tickets, linked. Tickets missing from the title are added after it unless {tickets} is used.", "text with {link}", "[slack.review] line"),
         RvRow::Test => ("A channel to try a review ask in first: change the draft's channel to it; no one is mentioned there.", "a channel in the registry", "[slack.review] test_channel"),
         RvRow::Reask => ("When an ask with no reply is due again, its merge request's slack column turns to a warning and it offers to ask again in the thread (asked first): a reply that mentions the group and links to the ask. Working days are Monday to Friday, in your Slack time zone.", "2d (working days) · 4h (working hours) · 10:00 (that time on the next working day) · never", "[slack.review] reask"),
     };
@@ -1740,14 +1754,23 @@ pub fn review_view(p: &SlackPlugin) -> v::SectionView {
     detail_block(&mut detail, "accepts", v::Text::of(accepts, v::Ink::Secondary));
     detail_block(&mut detail, "now", v::Text::of(rv_value(p, row), v::Ink::Emphasis));
     let mut blocks: Vec<v::Block> = detail.iter().cloned().map(v::Block::line).collect();
-    if matches!(row, RvRow::Template | RvRow::Link | RvRow::Channel | RvRow::Group) {
-        let cfg = match &p.edit { Some((Target::Template, input)) => with_template(p, &input.value()), _ => p.cfg.clone() };
+    if row == RvRow::Line && p.edit.is_none() {
+        let verdict = ask::check_line(&p.cfg.review.line);
+        detail.extend([v::kit::heading("checked"), v::kit::as_you_type(verdict.as_deref().map_err(String::as_str)), v::Text::new()]);
+    }
+    if matches!(row, RvRow::Template | RvRow::Link | RvRow::Line | RvRow::Channel | RvRow::Group) {
+        let cfg = match &p.edit {
+            Some((Target::Template, input)) => with_template(p, &input.value()),
+            Some((Target::Line, input)) => { let mut c = p.cfg.clone(); c.review.line = input.value(); c }
+            _ => p.cfg.clone(),
+        };
         let channel = cfg.review.channel.clone();
         blocks.extend([v::Block::line(v::Text::new()), v::Block::line(v::kit::heading("with a sample merge request")),
             v::Block::doc(view::doc(&p.data, &cfg, &ask::text(&cfg, &p.data.groups, &channel, &ask::sample())))]);
         let mut two = ask::sample();
         two.push(ask::Item { label: "web !12".into(), url: "https://git.example/acme/team-a/web/-/merge_requests/12".into(),
-            id: "acme/team-a/web!12".into(), words: "Show the stats".into(), tickets: vec![] });
+            id: "acme/team-a/web!12".into(), words: "Show the stats".into(), tickets: vec![],
+            facts: ask::sample_facts("acme/team-a/web", "12", "show-stats", "carrot") });
         blocks.extend([v::Block::line(v::Text::new()), v::Block::line(v::kit::heading("with two")),
             v::Block::doc(view::doc(&p.data, &cfg, &ask::text(&cfg, &p.data.groups, &channel, &two)))]);
     }
@@ -1965,6 +1988,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
             let changed = match r {
                 RvRow::Template => rv.template != config::default_template(),
                 RvRow::Link => rv.link != "mr",
+                RvRow::Line => rv.line != config::default_line(),
                 _ => false,
             };
             if changed {
@@ -2511,6 +2535,10 @@ pub fn on_menu(p: &mut SlackPlugin, menu: &str, value: &str) -> Vec<Effect> {
                     p.edit = Some((Target::Link, TextInput::new(&p.cfg.review.link)));
                     vec![]
                 }
+                (RvRow::Line, "edit") => {
+                    p.edit = Some((Target::Line, TextInput::new(&p.cfg.review.line)));
+                    vec![]
+                }
                 (RvRow::Reask, "edit") => {
                     p.edit = Some((Target::Reask, TextInput::new(&p.cfg.review.reask().spec())));
                     vec![]
@@ -2521,6 +2549,10 @@ pub fn on_menu(p: &mut SlackPlugin, menu: &str, value: &str) -> Vec<Effect> {
                 }
                 (RvRow::Link, "reset") => {
                     p.cfg.review.link = "mr".into();
+                    vec![]
+                }
+                (RvRow::Line, "reset") => {
+                    p.cfg.review.line = config::default_line();
                     vec![]
                 }
                 (RvRow::Channel, "clear") => {
@@ -2812,6 +2844,10 @@ fn commit(p: &mut SlackPlugin, target: Target, value: String) -> Vec<Effect> {
         Target::Link => {
             p.cfg.review.link = value;
             vec![]
+        }
+        Target::Line => {
+            p.cfg.review.line = value;
+            vec![Effect::Notify("each request kept".into())]
         }
         Target::Reask => {
             if let Ok(r) = config::Reask::parse(&value) {

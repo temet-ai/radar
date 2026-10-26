@@ -4043,6 +4043,7 @@ exports[`recorded view fixtures > slack_settings-review at 80x24 1`] = `
  user group       @review-squad
  template         {group} :gitlab: {mrs}
  link text        mr
+ each request     {link} {title}
  test channel     try
  ask again        after 2 working days without a reply
 
@@ -4106,6 +4107,7 @@ exports[`recorded view fixtures > slack_settings-review at 160x40 1`] = `
  user group       @review-squad
  template         {group} :gitlab: {mrs}
  link text        mr
+ each request     {link} {title}
  test channel     try
  ask again        after 2 working days without a reply
 

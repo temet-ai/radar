@@ -437,6 +437,7 @@ fn ask_item(iid: &str, words: &str) -> crate::ask::Item {
         label: format!("watch !{iid}"),
         words: words.into(),
         tickets: vec![],
+        facts: Default::default(),
     }
 }
 

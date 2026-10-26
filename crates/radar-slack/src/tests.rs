@@ -914,7 +914,7 @@ fn a_template_slack_would_not_understand_is_refused_as_you_type() {
 #[test]
 fn when_to_ask_again_is_typed_as_hours_days_or_a_time_and_kept() {
     let mut host = settings_at(2);
-    keys(&mut host, &[Key::Down; 5]);
+    keys(&mut host, &[Key::Down; 6]);
     press(&mut host, Key::Enter);
     host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "10:00");
@@ -2186,7 +2186,8 @@ fn every_settings_input_starts_where_its_value_was_drawn() {
     // review: the template, the link text, how long before asking again.
     input_sits_on_its_value(&mut host, "review", 2, &[Char('e')], "template ", "{group}");
     input_sits_on_its_value(&mut host, "review", 3, &[Char('e')], "link text ", "mr");
-    input_sits_on_its_value(&mut host, "review", 5, &[Char('e')], "ask again", "after 2");
+    input_sits_on_its_value(&mut host, "review", 4, &[Char('e')], "each request ", "{link}");
+    input_sits_on_its_value(&mut host, "review", 6, &[Char('e')], "ask again", "after 2");
 }
 
 #[test]

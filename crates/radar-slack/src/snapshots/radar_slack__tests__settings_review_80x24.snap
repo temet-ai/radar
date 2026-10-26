@@ -7,8 +7,9 @@ expression: "shown(&host, 80, 24)"
   user group       @review-squad  {row:1}
   template         {group} :gitlab: {mrs}  {row:2}
   link text        mr  {row:3}
-  test channel     try  {row:4}
-  ask again        after 2 working days without a reply  {row:5}
+  each request     {link} {title}  {row:4}
+  test channel     try  {row:5}
+  ask again        after 2 working days without a reply  {row:6}
 ── detail · channel ──
 Where review asks go. The user group is mentioned only here.
 

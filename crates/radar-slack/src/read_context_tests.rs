@@ -52,6 +52,7 @@ fn sample() -> SlackPlugin {
             label: "api !263".into(),
             words: "kept review words".into(),
             tickets: vec![],
+            facts: Default::default(),
         }],
         ..Default::default()
     });

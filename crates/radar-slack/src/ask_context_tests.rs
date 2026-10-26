@@ -40,6 +40,7 @@ fn item() -> Item {
         label: "api !263".into(),
         words: "private_review_words_canary".into(),
         tickets: vec![],
+        facts: Default::default(),
     }
 }
 

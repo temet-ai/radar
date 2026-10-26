@@ -96,6 +96,19 @@
         "text": [
           {
             "ink": "muted",
+            "text": "each request     "
+          },
+          {
+            "ink": "primary",
+            "text": "{link} {title}"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "ink": "muted",
             "text": "test channel     "
           },
           {
@@ -105,7 +118,7 @@
         ]
       },
       {
-        "target": "row:5",
+        "target": "row:6",
         "text": [
           {
             "ink": "muted",

@@ -250,12 +250,17 @@ pub struct Review {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub handle: String,
     /// The message: `{group}` the mention (only in the review channel),
-    /// `{mrs}` the merge request linked with its words (bullets for several).
+    /// `{mrs}` each merge request as `line` (bullets for several), and the
+    /// placeholders of [`crate::ask::ITEM_PLACEHOLDERS`].
     #[serde(default = "default_template")]
     pub template: String,
     /// The text of the link to one merge request.
     #[serde(default = "default_link")]
     pub link: String,
+    /// How `{mrs}` shows each merge request: `{link} {title}`, by the
+    /// placeholders of [`crate::ask::ITEM_PLACEHOLDERS`].
+    #[serde(default = "default_line")]
+    pub line: String,
     /// The alias of a channel to try asks in first.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub test_channel: String,
@@ -385,6 +390,7 @@ impl Default for Review {
             handle: String::new(),
             template: default_template(),
             link: default_link(),
+            line: default_line(),
             test_channel: String::new(),
             reask: None,
             reask_days: None,
@@ -409,6 +415,9 @@ fn yes() -> bool {
 }
 pub fn default_template() -> String {
     "{group} :gitlab: {mrs}".into()
+}
+pub fn default_line() -> String {
+    "{link} {title}".into()
 }
 fn default_link() -> String {
     "mr".into()

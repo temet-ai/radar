@@ -90,7 +90,7 @@ mod page_identity_tests {
         draft.items.push(ask::Item {
             id: "ankh-morpork/watch!12".into(),
             url: "https://gitlab.example/ankh-morpork/watch/-/merge_requests/12".into(),
-            label: "Watch patrol".into(), words: "Please review".into(), tickets: vec![],
+            label: "Watch patrol".into(), words: "Please review".into(), tickets: vec![], facts: Default::default(),
         });
         draft.items[0].label = "Night watch patrol".into();
         draft.items[0].words = "Please review the patrol".into();
@@ -1104,7 +1104,7 @@ mod mnemonic_tests {
         let item = crate::ask::Item {
             id: "ankh-morpork/watch!44".into(),
             url: "https://gitlab.example/ankh-morpork/watch/-/merge_requests/44".into(),
-            label: "zzz".into(), words: "Keep these exact words".into(), tickets: vec![],
+            label: "zzz".into(), words: "Keep these exact words".into(), tickets: vec![], facts: Default::default(),
         };
         p.draft = Some(crate::ask::Draft::new(&p.cfg, item));
         p.pages.push(Page::Draft);

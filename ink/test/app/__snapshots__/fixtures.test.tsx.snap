@@ -2807,9 +2807,9 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_80
 │  ├─ connection       ││ user group       @review-squad                       │
 │  └─ projects         ││ template         {group} :gitlab: {mrs}              │
 │Slack ⋯               ││ link text        mr                                  │
+│                      ││ each request     {link} {title}                      │
 │                      ││ test channel     try                                 │
 │                      ││ ask again        after 2 working days without a repl │
-│                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
@@ -2834,9 +2834,9 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_16
 │  ├─ connection       ││ user group       @review-squad                                                 ││ only here.                                         │
 │  └─ projects         ││ template         {group} :gitlab: {mrs}                                        ││                                                    │
 │Slack ⋯               ││ link text        mr                                                            ││ ACCEPTS                                            │
-│                      ││ test channel     try                                                           ││ a channel in the registry                          │
-│                      ││ ask again        after 2 working days without a reply                          ││                                                    │
-│                      ││                                                                                ││ NOW                                                │
+│                      ││ each request     {link} {title}                                                ││ a channel in the registry                          │
+│                      ││ test channel     try                                                           ││                                                    │
+│                      ││ ask again        after 2 working days without a reply                          ││ NOW                                                │
 │                      ││                                                                                ││ team                                               │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │

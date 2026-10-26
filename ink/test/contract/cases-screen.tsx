@@ -167,6 +167,10 @@ export const SCREEN_CASES: Record<string, Case> = {
   // ScreenView
   "ScreenView.panes": (on) => sceneOf(screenOf(on ? [paneOf(doc("ZZPANE"))] : [])),
   "ScreenView.medium_from": (on) => sceneOf(screenOf([paneOf(doc("NAVPANE"), { pane: "nav", title: "NAV" }), paneOf(doc("MIDPANE"))], { medium_from: on ? 60 : 150 }), [100, 30]),
+  // A dragged split moves the borders between the panes ([layout], app/layout-drag.ts).
+  "ScreenView.layout": (on) => sceneOf(screenOf([paneOf(doc("NAVPANE"), { pane: "nav", title: "NAV" }), paneOf(doc("MIDPANE"))], { layout: on ? { nav: 400 } : null }), [160, 30]),
+  "LayoutView.nav": (on) => sceneOf(screenOf([paneOf(doc("NAVPANE"), { pane: "nav", title: "NAV" }), paneOf(doc("MIDPANE"))], { layout: { nav: on ? 400 : 100 } }), [160, 30]),
+  "LayoutView.detail": (on) => sceneOf(screenOf([paneOf(doc("MIDPANE")), paneOf(doc("DETPANE"), { pane: "detail", title: "DETAIL" })], { layout: { detail: on ? 600 : 200 } }), [160, 30]),
   "ScreenView.page": (on) => sceneOf(screenOf([paneOf(doc("UNDERPAGE"))], { page: on ? pageBase() : null })),
   // A generic overlay is a titled pane over the foot of the body; its text must show, not only the focus ramp's change.
   "ScreenView.overlay": (on) => ({ ...sceneOf(screenOf([paneOf(doc("BODYUNDER"))], { overlay: on ? paneOf(doc("OVERLAYTEXT"), { title: "OVERLAY" }) : null })), needle: "OVERLAYTEXT" }),

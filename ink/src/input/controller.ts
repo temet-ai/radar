@@ -35,6 +35,9 @@ export interface InputView {
   dock?(chord: Chord): boolean;
   /** A pointer event on the dock, or one that continues a drag of its edge: true when the dock took it. */
   dockMouse?(ev: MouseEvent, hit: Hit | undefined): boolean;
+  /** A pointer event on a pane border or a column heading, or one that continues a drag of one: true when it was
+   * taken (app/layout-drag.ts). Asked before a press can start selecting text. */
+  layoutMouse?(ev: MouseEvent, hit: Hit | undefined): boolean;
   /** The pane drawn at the cell (HitRegistry.paneAt), if any. */
   paneAt?(x: number, y: number): string | undefined;
   /** The wheel over pane `pane` (none: over no pane) at the cell: that pane scrolls (and has the focus, host.rs
@@ -271,7 +274,10 @@ export class InputController {
       const item = at ? menu.items.find((c) => c.target === at.target) : undefined;
       return at && (!item || !(item.shown_only || item.heading || item.note)) ? "pointer" : "default";
     }
-    if (this.litAt(x, y)) return "pointer";
+    const lit = this.litAt(x, y);
+    if (lit?.target.startsWith("layout:edge:") || lit?.target.startsWith("layout:split:")) return "col-resize";
+    if (lit?.target.startsWith("layout:head:")) return "grab";
+    if (lit) return "pointer";
     return this.view.selectAt?.(x, y) ? "text" : "default";
   }
 
@@ -305,6 +311,11 @@ export class InputController {
       if (ev.kind === "press") this.noticePress = { target: notice.target, button: ev.button };
       this.hover(null);
       this.shape("pointer");
+      return;
+    }
+    // A border or a heading held: its drag takes every report until the release.
+    if (!this.view.menu() && !this.view.capturing() && this.view.layoutMouse?.(ev, hitAt(this.view.hits(), ev.x, ev.y))) {
+      this.hover(null);
       return;
     }
     // The selection first: a left press in a pane's text, the moves and release after it, and any press clears it.
@@ -375,8 +386,9 @@ export class InputController {
       return;
     }
     const target = hit.target;
-    // Inside a menu's frame, off its rows: nothing (Hit::MenuBox).
-    if (target === MENU_BOX) return;
+    // Inside a menu's frame, off its rows: nothing (Hit::MenuBox). A border or heading is Ink's own (layout-drag.ts):
+    // only a left drag does anything there.
+    if (target === MENU_BOX || target.startsWith("layout:")) return;
     if (field && ev.button === "left" && !statusKeyTarget(target) && !target.startsWith("chrome:menu:")) {
       this.sendRaw({ intent: "key", chord: { key: "esc" } });
       return;

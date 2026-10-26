@@ -50,6 +50,10 @@ type Pane = {
 const WIDE = 120;
 const MEDIUM = 84;
 export const detailWidth = (total: number) => Math.min(60, Math.max(38, Math.floor((total * 30) / 100)));
+/** The least room a dragged border leaves each pane. */
+const NAV_LEAST = 12;
+const DETAIL_LEAST = 24;
+const MIDDLE_LEAST = 30;
 
 /** Share `total` among parts: lengths first, then fills by weight (a Length and a Fill). */
 export function share(total: number, parts: Array<{ length?: number; fill?: number }>): number[] {
@@ -329,12 +333,28 @@ export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock
   // (view.rs setup_screen), whose id the host's focus need not name.
   const setUp = panes.length === 1 && String(panes[0]!.title).startsWith("set up ");
   const focusId = setUp ? panes[0]!.pane : (focus ?? "middle");
+  // The borders between panes are dragged to resize them (app/layout-drag.ts): the two border cells, full height.
+  const rowRef = useRef<DOMElement>(null);
+  const borders = useRef<Array<{ dx: number; edge: "nav" | "detail" }>>([]);
+  borders.current = [];
+  useLayoutEffect(() => {
+    const at = cx.registry?.add && borders.current.length ? screenAt(rowRef.current) : null;
+    if (at) for (const b of borders.current) cx.registry!.add!({ x: at.x + b.dx, y: at.y, w: 2, h: height, target: `layout:split:${b.edge}:${at.x}:${width}` });
+  });
   const row = (list: Array<{ pane: Pane; w: number }>) => {
     // The dock sits under the middle pane (or the one pane a narrow screen shows); below 100 columns it covers it.
     const host = list.find((l) => l.pane.pane === "middle") ?? list.find((l) => l.pane.pane !== "nav");
     const split = dock ? splitDock(height, width, true, dock.rows, dock.full) : null;
+    let edgeAt = 0;
+    list.forEach((l, i) => {
+      edgeAt += l.w;
+      const next = list[i + 1];
+      if (!next || setUp) return;
+      const edge = l.pane.pane === "nav" ? "nav" : next.pane.pane === "detail" ? "detail" : null;
+      if (edge) borders.current.push({ dx: edgeAt - 1, edge });
+    });
     return (
-      <Box flexDirection="row" width={width} height={height} overflow="hidden">
+      <Box ref={rowRef} flexDirection="row" width={width} height={height} overflow="hidden">
         {list.map(({ pane, w }) =>
           dock && split && split.dock > 0 && host?.pane === pane ? (
             <Box key={pane.pane} flexDirection="column" width={w} height={height} flexShrink={0}>
@@ -348,18 +368,23 @@ export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock
       </Box>
     );
   };
+  // A split the user dragged ([layout]) is a share of the width; each pane keeps room to be read.
+  const dragged = (share: number | null | undefined, least: number, others: number) =>
+    share ? Math.max(least, Math.min(Math.max(least, width - others - MIDDLE_LEAST), Math.round((width * share) / 1000))) : null;
   if (width >= WIDE) {
-    const navW = nav ? (nav.width ?? 26) : 0;
-    const detW = det ? detailWidth(width) : 0;
+    const detDefault = det ? detailWidth(width) : 0;
+    const navW = nav ? (dragged(screen.layout?.nav, NAV_LEAST, detDefault) ?? nav.width ?? 26) : 0;
+    const detW = det ? (dragged(screen.layout?.detail, DETAIL_LEAST, navW) ?? detDefault) : 0;
     const [a, b, c] = share(width, [{ length: navW }, { fill: 1 }, { length: detW }]);
     return row([nav && { pane: nav, w: a! }, mid && { pane: mid, w: b! }, det && { pane: det, w: c! }].filter(Boolean) as any);
   }
   if (width >= (screen.medium_from ?? MEDIUM)) {
     if (!nav && mid && det) {
-      const [a, b] = share(width, [{ fill: 58 }, { fill: 42 }]);
+      const detW = dragged(screen.layout?.detail, DETAIL_LEAST, 0);
+      const [a, b] = detW ? [width - detW, detW] : share(width, [{ fill: 58 }, { fill: 42 }]);
       return row([{ pane: mid, w: a! }, { pane: det, w: b! }]);
     }
-    const navW = nav ? Math.max(0, (nav.width ?? 26) - 2) : 0;
+    const navW = nav ? (dragged(screen.layout?.nav, NAV_LEAST, 0) ?? Math.max(0, (nav.width ?? 26) - 2)) : 0;
     const [a, b] = share(width, [{ length: navW }, { fill: 1 }]);
     const right = focusId === "detail" ? (det ?? mid) : mid;
     return row([nav && { pane: nav, w: a! }, right && { pane: right, w: b! }].filter(Boolean) as any);

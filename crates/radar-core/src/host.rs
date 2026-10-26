@@ -406,6 +406,7 @@ pub enum View {
 pub const SETTINGS_KEY: char = ',';
 /// The config table of the row menus' customisation.
 pub const MENUS_TABLE: &str = "menus";
+pub const LAYOUT_TABLE: &str = "layout";
 /// In a row menu: its gear, the menu as its own editor.
 pub const GEAR_KEY: char = ',';
 /// Read-only activity history; text editors retain this key while capturing.
@@ -674,6 +675,9 @@ pub struct Host {
     pub mode_cfg: crate::writes::Mode,
     /// `[menus]`: how the row menus are customised.
     pub menus: crate::menus::MenusConfig,
+    /// `[layout]`: pane splits and columns the user dragged. The dock's
+    /// height is kept in `dock.rows` and written here.
+    pub layout: crate::layout::LayoutConfig,
     /// The selected row of Settings › Menus.
     pub(crate) menus_row: usize,
     /// The open keys menu is its own editor (the gear is on).
@@ -744,6 +748,7 @@ impl Host {
                 crate::mode::MODE_SECTION.id,
                 crate::mode::GENERAL_TABLE,
                 MENUS_TABLE,
+                LAYOUT_TABLE,
                 "terminal",
                 "setup",
             ]
@@ -870,6 +875,7 @@ impl Host {
             interaction_motion: Default::default(),
             mode_cfg: crate::writes::Mode::default(),
             menus: crate::menus::MenusConfig::default(),
+            layout: crate::layout::LayoutConfig::default(),
             menus_row: 0,
             menu_customising: false,
             menu_rekey: None,
@@ -1262,6 +1268,14 @@ impl Host {
                 .map_err(|e| anyhow::anyhow!("[{MENUS_TABLE}]: {e}"))?,
             None => crate::menus::MenusConfig::default(),
         };
+        self.layout = match table.get(LAYOUT_TABLE) {
+            Some(v) => v
+                .clone()
+                .try_into()
+                .map_err(|e| anyhow::anyhow!("[{LAYOUT_TABLE}]: {e}"))?,
+            None => crate::layout::LayoutConfig::default(),
+        };
+        self.dock.rows = self.layout.dock;
         self.mode_cfg = match table
             .get(crate::mode::GENERAL_TABLE)
             .and_then(|g| g.get("mode"))
@@ -1310,7 +1324,7 @@ impl Host {
     pub(crate) fn save(&mut self, asked: bool) -> HostEffect {
         let table = self.config_table();
         let mut owned: Vec<&str> = self.plugins.iter().map(|p| p.id()).collect();
-        owned.extend(["theme", ICONS_TABLE, crate::mode::GENERAL_TABLE, MENUS_TABLE]);
+        owned.extend(["theme", ICONS_TABLE, crate::mode::GENERAL_TABLE, MENUS_TABLE, LAYOUT_TABLE]);
         let text = merged_config(&self.file, &table, &owned);
         self.file = text.clone();
         self.saving.push_back((table, asked));
@@ -1356,6 +1370,12 @@ impl Host {
             && let Ok(menus) = toml::Value::try_from(&self.menus)
         {
             table.insert(MENUS_TABLE.into(), menus);
+        }
+        let layout = crate::layout::LayoutConfig { dock: self.dock.rows, ..self.layout.clone() };
+        if !layout.is_default()
+            && let Ok(layout) = toml::Value::try_from(&layout)
+        {
+            table.insert(LAYOUT_TABLE.into(), layout);
         }
         // Edit, the default, is not written.
         let mut general = toml::Table::new();
@@ -3029,6 +3049,10 @@ impl Host {
         if let Intent::Dock(dock) = intent {
             return self.on_dock_intent(dock);
         }
+        if let Intent::Layout(layout) = intent {
+            self.layout.on_intent(&layout);
+            return vec![];
+        }
         if let Intent::Copy { text } = intent {
             return self.copy_selection(text);
         }
@@ -3338,6 +3362,7 @@ impl Host {
         // text form: terminal controls go here, for every part.
         crate::view::clean::controls(&mut view);
         self.mark_scrolls(p, scope, &mut view);
+        self.layout.apply(&mut view);
         Some(view)
     }
 

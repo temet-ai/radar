@@ -78,7 +78,8 @@ describe("actual native detail captures replay in Ink", () => {
       expect(controls.length).toBeGreaterThan(0);
       const footY = frame.bodyTop + frame.bodyHeight - 2;
       expect(controls.every((hit) => hit.y === footY && hit.h === 1 && hit.x >= left + 1 && hit.x + hit.w <= columns! - 1)).toBe(true);
-      expect(registry.all().filter((hit) => !hit.target.startsWith("detail-foot:") && hit.x >= left + 1).every((hit) => hit.y + hit.h <= footY - 1)).toBe(true);
+      // A pane border dragged to resize (layout:split:) runs the full height on the frame, not inside the pane.
+      expect(registry.all().filter((hit) => !hit.target.startsWith("detail-foot:") && !hit.target.startsWith("layout:split:") && hit.x >= left + 1).every((hit) => hit.y + hit.h <= footY - 1)).toBe(true);
       expect(scene.view.detail_foot_hits, "native shell recorded actual control rectangles after painting").toBeDefined();
       expect(controls).toEqual(scene.view.detail_foot_hits.map(({ width, height, ...hit }) => ({ ...hit, w: width, h: height })));
       const supplied = [...(detail.foot_actions?.actions ?? []), detail.foot_actions?.menu].filter(Boolean);

@@ -294,7 +294,7 @@ pub fn intent(p: &mut GithubPlugin, section: &str, intent: &v::Intent) -> Outcom
         | v::Intent::End { .. }
         | v::Intent::EditSelect { .. }
         | v::Intent::EditUnselect
-        | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
+        | v::Intent::Dock(_) | v::Intent::Layout(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
     }
 }
 

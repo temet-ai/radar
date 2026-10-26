@@ -63,7 +63,11 @@ describe("the rows a press can reach", () => {
       } as Node,
       30,
     );
-    expect(hits.map((h) => h.target)).toEqual(["r1", "r2"]);
+    // the heading and the cell after it are dragged to move and size the column (app/layout-drag.ts)
+    expect(hits.map((h) => h.target)).toEqual(["r1", "r2", "layout:head:name", "layout:edge:name:1"]);
+    const edge = hits[3]!;
+    expect(hits[2]!.y).toBe(edge.y);
+    expect(edge.x).toBe(hits[2]!.x + hits[2]!.w);
     expect(lines[hits[0].y]).toContain("one");
     expect(lines[hits[1].y]).toContain("two");
     expect(lines[hits[0].y - 1]).toContain("NAME");
@@ -92,7 +96,11 @@ describe("the rows a press can reach", () => {
     } as unknown as Node;
     const { hits, lines } = hitsOf(node, 40);
     const targets = hits.map((h) => h.target);
-    expect(targets).toEqual(["g", `g${PATH_SEP}c`, "authors", "state:c"]);
+    // a tree's columns hold to the right: the cell before a heading sizes its column
+    expect(targets).toEqual(["g", `g${PATH_SEP}c`, "authors", "layout:head:state", "layout:edge:state:-1", "state:c"]);
+    const head = hits.find((h) => h.target === "layout:head:state")!;
+    expect(lines[head.y].slice(head.x, head.x + 5)).toBe("STATE");
+    expect(hits.find((h) => h.target === "layout:edge:state:-1")!.x).toBe(head.x - 1);
     const row = hits.find((h) => h.target === `g${PATH_SEP}c`)!;
     expect(lines[row.y]).toContain("child");
     const cell = hits.find((h) => h.target === "state:c")!;

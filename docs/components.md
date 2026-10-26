@@ -204,7 +204,7 @@ tails, styles and rectangles from recorded view data.
 | Icons | `icons.rs`, `ui/icon.rs` (Rust), `text/icons.ts` | Semantic icons and packs | nerd, unicode, emoji, off | icon's own slot | from pack |
 | Hover | `app/hover.ts` | Lights what the pointer is over, painted over the finished frame | BgHover, or underline on Ansi16 and Mono | BgHover | |
 | Scrim and shadow | `app/scrim.ts` | Dims the screen behind a menu, question or help; a one-cell shadow right of and below the box, glyphs kept | truecolour: fg 55%, bg 43% toward BgBase, bold off; shadow bg 60% toward black, fg 45% toward BgBase. 256/16: SGR dim, shadow on black. Mono: dim | BgBase, TextPrimary | |
-| Link, pointer | `text/link.ts`, `app/pointer.ts` | OSC 8 links (the address rides in the cells' style through `app/fast-output.ts`), OSC 22 pointer shape (hand over a target, text over selectable text and while a drag selects); the host decides both per terminal and sends them in `Look.hyperlinks`, `Look.pointer` | on, off, detect | | |
+| Link, pointer | `text/link.ts`, `app/pointer.ts` | OSC 8 links (the address rides in the cells' style through `app/fast-output.ts`), OSC 22 pointer shape (hand over a target, text over selectable text and while a drag selects, `col-resize` over a column edge or pane border, `grab` and `grabbing` on a heading); the host decides both per terminal and sends them in `Look.hyperlinks`, `Look.pointer` | on, off, detect | | |
 | Text helpers | `chrome/width.ts`, `text/wrap.ts` | Display-cell string handling: width, take, pad, fit, clip, wrap | | | |
 | Mark | `text/icons.ts` | Run-state symbol and icon | Done, Failed, Running, Waiting, Manual, Stopped, Skipped | via Tone | `✓ ✗ ● ◷ ▷ ⊘ »` |
 
@@ -214,6 +214,7 @@ tails, styles and rectangles from recorded view data.
 |---|---|---|---|---|
 | Banded tree | `nodes/tree.tsx`, `nodes/columns.ts` | Grouped hierarchy with bands and inline input. **The one tree for every part (#45).** | selected, unfocused, folded (`⋯ n`), input row | `+` open selected, `=` open all held groups, `-` close group/parent, `←`/`→` navigate, `space` toggle, `↑` at top to the bar |
 | Columns | `nodes/columns.ts` | Aligned right-hand columns, dropped by rank as width shrinks | | |
+| Column and pane drags | `app/layout-drag.ts`, `nodes/drag.ts`, `crates/radar-core/src/layout.rs` | A heading pressed and moved carries its column: it floats under the pointer, lit down the rows, and the others make room as it passes. The cell between two headings is dragged to size a column (a tree's columns, and a table's after its title, size from their left). The border between two panes is dragged to resize them, the same split on every screen. Ink draws the drag and sends one intent on release; the host keeps it in `[layout]` and applies it to every view. A double click on an edge or border puts the default back. The dock's top edge works the same way. | held (lit slot), moving (floating heading) | mouse only; pointer `col-resize` over an edge or border, `grab` over a heading |
 | Table | `nodes/lists.tsx` `TableNode` | Flat list with headings and cursor | empty, cut with `…` | |
 | Row list | `nodes/lists.tsx` `ListNode` | Selectable rows, headings stepped over | heading, detail dropped whole | `↓ ↑ Home End PgDn PgUp` |
 | Label/value rows | `nodes/detailRows.ts` | Label/value rows; `+ add …` first row | | |

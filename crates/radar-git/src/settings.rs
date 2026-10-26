@@ -1563,7 +1563,7 @@ pub fn intent(p: &mut GitPlugin, section: &str, intent: &v::Intent) -> Outcome {
             click(p, section, target.as_str());
             press(p, section, v::Chord::new(v::Key::Enter))
         }
-        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } | Intent::OpenAll => Outcome::Ignored,
+        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Layout(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } | Intent::OpenAll => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => {
             let Some(chord) = intent.chord() else {
                 return Outcome::Ignored;

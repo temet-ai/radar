@@ -6,6 +6,7 @@ import { textWords } from "../text/TextLine.js";
 import { cellWidth } from "../chrome/width.js";
 import { useScrollReport } from "./index.js";
 import { entriesFirst, entryLines } from "./lists.js";
+import { fitTableColumns, type Placed } from "./columns.js";
 import { WindowContext, firstRow, type Window } from "./window.js";
 import { motion } from "../motion/motion.js";
 import { nodeMarks, treeMark } from "../motion/node-marks.js";
@@ -35,6 +36,26 @@ export function padded(x: number, w: number, within: number): { dx: number; w: n
   return { dx: from, w: right - from };
 }
 
+/** The heading line's targets (app/layout-drag.ts takes them): each heading (`layout:head:<heading>`), pressed and
+ * moved to move its column, and the cell between two headings (`layout:edge:<heading>:<sign>`), dragged to size the
+ * column it names; `sign` 1 when dragging right widens it, -1 when dragging left does. A tree's columns hold to its
+ * right edge, as do a table's after the column that takes what is left, so there the cell before a heading sizes it.
+ * Headings are URI-encoded. */
+export function headingHits(out: HitSpec[], placed: Placed[], x0: number, tree: boolean) {
+  const flex = placed.findIndex((p) => p.column.flex);
+  const name = (p: Placed) => encodeURIComponent(p.column.heading);
+  let x = x0;
+  placed.forEach((p, i) => {
+    out.push({ dx: x, dy: 0, w: Math.max(1, p.width - 1), h: 1, target: `layout:head:${name(p)}` });
+    const edge = x + p.width - 1;
+    if (tree) {
+      if (x > 0) out.push({ dx: x - 1, dy: 0, w: 1, h: 1, target: `layout:edge:${name(p)}:-1` });
+    } else if (flex < 0 || i < flex) out.push({ dx: edge, dy: 0, w: 1, h: 1, target: `layout:edge:${name(p)}:1` });
+    else if (i + 1 < placed.length) out.push({ dx: edge, dy: 0, w: 1, h: 1, target: `layout:edge:${name(placed[i + 1]!)}:-1` });
+    x += p.width;
+  });
+}
+
 /** ui::view's Target::PATH_SEP: a tree row's target is its path's ids joined by it (TreeRow::target_of). */
 export const PATH_SEP = "\u001f";
 
@@ -62,6 +83,7 @@ export function hitSpecs(
     case "table":
       // the heading row is the first line
       node.rows.forEach((r, i) => inWin(i) && row(1 + i - f0, r.target));
+      if (node.rows.length > 0) headingHits(out, fitTableColumns(node.columns, Math.max(1, width - 2)), 1, false);
       break;
     case "entries": {
       // lines, not rows: a head and its body are one target; a window cuts them to the lines that show
@@ -101,6 +123,7 @@ export function hitSpecs(
         );
         out.push({ ...padded(0, w, width), dy: 0, h: 1, target: node.header_target });
       }
+      if (hasHeader) headingHits(out, fitted, namesWidth, true);
       shown.forEach(({ row: r, path }, i) => {
         if (!inWin(i)) return;
         const open = (node.open ?? []).some((p) => p.length === path.length && p.every((id, at) => id === path[at]));

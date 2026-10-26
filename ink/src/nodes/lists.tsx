@@ -11,6 +11,7 @@ import type {
 import type { ColumnSpec } from "./view.js";
 import { InputField } from "../editor/InputField.js";
 import { fitTableColumns, type Placed } from "./columns.js";
+import { markHeadingLine, markRowLine } from "./drag.js";
 import {
   CellBlock,
   CellLine,
@@ -188,10 +189,13 @@ export function TableNode({
     width - 2 - columns.reduce((n, c) => (c.flex ? n : n + c.width), 0),
   );
   const heading: Style = { ...slotStyle("text.muted"), bold: true };
-  const head: Cell[] = [
-    ...cellsOf(" "),
-    ...fitted.flatMap(({ column, width: w }) => headingFor(column, w, heading)),
-  ];
+  const head: Cell[] = markHeadingLine(
+    [...cellsOf(" "), ...fitted.flatMap(({ column, width: w }) => headingFor(column, w, heading))],
+    fitted,
+    1,
+    (p) => headingFor(p.column, p.width, heading),
+    ctx.plainText,
+  );
   // ui::table::cut: nothing at all in no room, not even the `…`
   const cut = (cs: Cell[], w: number) =>
     widthOfCells(cs) <= w
@@ -236,7 +240,7 @@ export function TableNode({
             );
           }
           return rowLine(
-            line,
+            markRowLine(line, fitted, 1, ctx.plainText),
             width,
             i === (selected ?? 0),
             ctx.focused,

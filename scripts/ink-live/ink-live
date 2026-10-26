@@ -11,6 +11,8 @@
 #   ink-live colour NAME                    the screen with its SGR colours (capture-pane -e)
 #   ink-live click NAME X Y [left|right|double|hover]   1-based cells
 #   ink-live wheel NAME X Y [up|down] [N]   N wheel notches at a 1-based cell (default down, 1)
+#   ink-live drag NAME X Y TO_X [TO_Y] [--hold]   a left drag along a row, a cell at a time; --hold
+#                                           leaves the button down (see the drag drawn), drag NAME TO_X Y TO_X releases
 #   ink-live modes NAME                     mouse and alternate-screen modes the program set
 #   ink-live resize NAME WxH
 #   ink-live log NAME                       radar.log and stderr tails
@@ -197,6 +199,30 @@ wheel() {
   sleep 0.4
 }
 
+# A left drag: press at X Y, motion (SGR 32, button held) a cell at a time to TO_X TO_Y, release there. With --hold
+# the release is left out; a drag from and to the same cell is the release alone.
+drag() {
+  local name=${1:-} x=${2:-} y=${3:-} tx=${4:-} ty=${5:-}; need_name "$name"
+  [ -n "$x" ] && [ -n "$y" ] && [ -n "$tx" ] || die "drag NAME X Y TO_X [TO_Y] [--hold]"
+  local hold=""
+  case "$ty" in --hold) hold=1; ty=$y ;; '') ty=$y ;; esac
+  [ "${6:-}" = --hold ] && hold=1
+  local esc=$'\e' seq="" i step
+  if [ "$x" = "$tx" ] && [ "$y" = "$ty" ] && [ -z "$hold" ]; then
+    t "$name" send-keys -t radar -l "${esc}[<0;${x};${y}m"
+    sleep 0.4
+    return
+  fi
+  seq="${esc}[<0;${x};${y}M"
+  step=1; [ "$tx" -lt "$x" ] && step=-1
+  i=$x
+  while [ "$i" != "$tx" ]; do i=$((i + step)); seq="${seq}${esc}[<32;${i};${ty}M"; done
+  [ "$ty" != "$y" ] && seq="${seq}${esc}[<32;${tx};${ty}M"
+  [ -z "$hold" ] && seq="${seq}${esc}[<0;${tx};${ty}m"
+  t "$name" send-keys -t radar -l "$seq"
+  sleep 0.5
+}
+
 stop() {
   local name=${1:-}; need_name "$name"
   local d i; d=$(dir_of "$name")
@@ -228,6 +254,7 @@ case "$cmd" in
   colour|color) need_name "${1:-}"; t "$1" capture-pane -p -e -t radar ;;
   click) click "$@" ;;
   wheel) wheel "$@" ;;
+  drag) drag "$@" ;;
   modes) need_name "${1:-}"; modes "$1" ;;
   resize) need_name "${1:-}"; t "$1" resize-window -t radar -x "${2%x*}" -y "${2#*x}"; sleep 0.5 ;;
   log) need_name "${1:-}"; d=$(dir_of "$1"); tail -n 40 "$d/state/radar/radar.log" 2>/dev/null; echo "-- stderr"; cat "$d/stderr" ;;

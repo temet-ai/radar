@@ -25,6 +25,7 @@ pub mod icons;
 pub mod input;
 pub mod ipc;
 pub mod journal;
+pub mod layout;
 mod journal_runtime;
 pub mod log;
 pub mod menus;

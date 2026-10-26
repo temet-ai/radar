@@ -526,6 +526,9 @@ pub enum Intent {
     /// (show, hide, focus, resize) and hands the rest to the part that
     /// supplies the dock; a screen never sees this one.
     Dock(crate::dock::DockIntent),
+    /// A pane border or a column dragged, or a heading's menu used: the
+    /// host keeps it ([`crate::layout`]); a part never sees this one.
+    Layout(crate::layout::LayoutIntent),
 }
 
 // --- actions ---------------------------------------------------------------------
@@ -1905,6 +1908,10 @@ pub struct ScreenView {
     /// draws it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dock: Option<Box<crate::dock::DockView>>,
+    /// The split between the panes the user dragged ([`crate::layout`]).
+    /// Filled by the host; absent while nothing was dragged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layout: Option<crate::layout::LayoutView>,
 }
 
 impl ScreenView {
@@ -1918,6 +1925,7 @@ impl ScreenView {
             page: None,
             overlay: None,
             dock: None,
+            layout: None,
         }
     }
 

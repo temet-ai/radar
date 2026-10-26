@@ -1221,7 +1221,7 @@ pub fn intent(p: &mut JiraPlugin, pane: Pane, intent: &Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        Intent::OpenAll | Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } => Outcome::Ignored,
+        Intent::OpenAll | Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) | Intent::Layout(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
             Some(chord) => key(p, pane, chord),
             None => Outcome::Ignored,

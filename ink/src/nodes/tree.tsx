@@ -3,6 +3,7 @@ import { Box, Text as InkText } from "ink";
 import type { NodeContext, Text, Tree, TreeRow } from "./view.js";
 import { InputField } from "../editor/InputField.js";
 import { fitTreeColumns, type Placed } from "./columns.js";
+import { markHeadingLine, markRowLine } from "./drag.js";
 import { shrinkRuns } from "./cut.js";
 import { useWindow, windowOf } from "./window.js";
 import { thumbOf } from "./index.js";
@@ -374,7 +375,7 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
     const cols = fitted.flatMap(({ column, width: w }) =>
       headingCells(column, w),
     );
-    return [...padCells(left, room), ...cols];
+    return markHeadingLine([...padCells(left, room), ...cols], fitted, room, (p) => headingCells(p.column, p.width), ctx.plainText);
   };
   return (
     <Box flexDirection="column">
@@ -462,15 +463,20 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
           block.push(
             cached(key, () =>
               withScrollCell(
-                rowCells(
-                  tree,
-                  s,
+                markRowLine(
+                  rowCells(
+                    tree,
+                    s,
+                    fitted,
+                    width,
+                    isOpen,
+                    isSel,
+                    ctx.focused,
+                    counts.get(s.row)!,
+                    ctx.plainText,
+                  ),
                   fitted,
-                  width,
-                  isOpen,
-                  isSel,
-                  ctx.focused,
-                  counts.get(s.row)!,
+                  width - colsWidth,
                   ctx.plainText,
                 ),
                 isSel,

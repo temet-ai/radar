@@ -983,3 +983,25 @@ mod notice_history_tests {
         assert!(!host.notices.has_active()); assert_eq!(host.notices.len(), 1);
     }
 }
+
+#[test]
+fn a_dragged_split_and_the_dock_height_are_saved_and_read_back() {
+    use crate::layout::{LayoutIntent, SplitEdge};
+    let (mut host, _) = host_with(DockView::default(), true);
+    host.load_config(Some("")).unwrap();
+    host.update(Event::Intent(Intent::Layout(LayoutIntent::Split { edge: SplitEdge::Nav, share: Some(200) })));
+    let out = host.update(Event::Intent(Intent::Dock(DockIntent::Resize { rows: 12 })));
+    let text = out
+        .iter()
+        .find_map(|fx| match fx {
+            HostEffect::Save(text) => Some(text.clone()),
+            _ => None,
+        })
+        .expect("saved");
+    assert!(text.contains("[layout]") && text.contains("nav = 200") && text.contains("dock = 12"), "{text}");
+    let (mut again, _) = host_with(DockView::default(), true);
+    again.load_config(Some(&text)).unwrap();
+    assert_eq!(again.dock.rows, Some(12));
+    let view = crate::view::screen_showing(&again, 80, 24).unwrap();
+    assert_eq!(view.layout.and_then(|l| l.nav), Some(200));
+}

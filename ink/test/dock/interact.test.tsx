@@ -133,14 +133,19 @@ describe("dock input", () => {
     m.type(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`);
     await until(() => docks().length > 0);
     expect(docks()[0]).toEqual({ intent: "dock", dock: "switch_tab", id: "s2" });
-    // press on the top edge, move up five rows, release
+    // press on the top edge, move up five rows: the dock is drawn taller, and the host hears the height once, on release
     const edge = y;
+    const before = plain(m.frame()).findIndex((r) => r.includes("agents"));
     m.type(`\x1b[<0;40;${edge}M`);
+    m.type(`\x1b[<32;40;${edge - 3}M`);
     m.type(`\x1b[<32;40;${edge - 5}M`);
-    await until(() => docks().some((d: any) => d.dock === "resize"));
-    const resize = docks().find((d: any) => d.dock === "resize") as any;
-    expect(resize.rows).toBeGreaterThan(7);
+    await until(() => plain(m.frame()).findIndex((r) => r.includes("agents")) < before);
+    expect(docks().some((d: any) => d.dock === "resize")).toBe(false);
     m.type(`\x1b[<0;40;${edge - 5}m`);
+    await until(() => docks().some((d: any) => d.dock === "resize"));
+    const resizes = docks().filter((d: any) => d.dock === "resize") as any[];
+    expect(resizes.length).toBe(1);
+    expect(resizes[0].rows).toBeGreaterThan(7);
   });
 
   describe("closing a tab", () => {

@@ -83,6 +83,6 @@ describe("a long list draws what shows", () => {
     } as never;
     const b = draw(table, 24);
     expect(b.lines.length).toBeLessThanOrEqual(24);
-    expect(b.hits.length).toBe(23); // the heading row takes one
+    expect(b.hits.filter((h: any) => !h.target.startsWith("layout:")).length).toBe(23); // the heading row takes one
   });
 });

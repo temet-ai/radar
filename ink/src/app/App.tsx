@@ -1,6 +1,7 @@
 import "./fast-output.js";
 import { hover } from "./hover.js";
 import { pointerShape } from "./pointer.js";
+import { LayoutDrag, previewSnapshot, type Preview } from "./layout-drag.js";
 import { EditorOverlay, editorOverlayHeight } from "../editor/EditorOverlay.js";
 import { isEditorData } from "../editor/EditorView.js";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -111,6 +112,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   const dockRef = useRef(dockLocal);
   // While the dock's top edge is dragged: the row the dock ends at.
   const dockDrag = useRef<number | null>(null);
+  const dockRowsRef = useRef<number | null>(null);
   const dockMetrics = useRef({ max: 0, total: 0 });
   // A blur or focus of the dock Ink sent since snapshot `base`: the keys after it in the same read go where it sent them.
   const dockFocus = useRef<{ base: any; focused: boolean } | null>(null);
@@ -145,7 +147,24 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     if (state.phase === "refused" || state.phase === "closed") onExit?.(state.exitCode ?? 1, state.message);
   }, [state.phase]);
 
-  const snap = state.snapshot;
+  // A border, a column or the dock's edge being dragged is drawn from a preview until the host's next snapshot has it.
+  const [preview, setPreview] = React.useState<Preview | null>(null);
+  const [dockRows, setDockRows] = React.useState<number | null>(null);
+  const layoutDrag = useMemo(
+    () => new LayoutDrag({
+      send: (i) => session.sendIntent(i),
+      show: setPreview,
+      screen: () => session.state.snapshot?.screen,
+      paneAt: (x, y) => registry.paneAt(x, y),
+      hits: () => registry.all(),
+    }),
+    [session, registry],
+  );
+  useEffect(() => {
+    if (preview && !layoutDrag.holding) setPreview(null);
+    if (dockRows !== null && dockDrag.current === null) setDockRows(null);
+  }, [state.snapshot]);
+  const snap = useMemo(() => previewSnapshot(state.snapshot, preview, dockRows), [state.snapshot, preview, dockRows]);
   // A tab shown for the first time starts from the draft the host kept for it (restored after a restart).
   const dockTab = dockOf(snap)?.active ?? null;
   const dockDraft: string = dockOf(snap)?.composer?.draft ?? "";
@@ -229,15 +248,27 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         if (pending.current) pending.current.working = desynced(pending.current.working);
       },
       screenKeys: () => live.current.snap?.chrome?.screen_keys,
+      layoutMouse: (ev, hit) => {
+        const took = layoutDrag.mouse(ev, hit);
+        pointerShape.hold(layoutDrag.shape());
+        return took;
+      },
       dockMouse: (ev, hit) => {
         const dock = shown();
         if (!dock) return false;
         const target = hit?.target ?? "";
         const send = sendDock;
         if (dockDrag.current !== null) {
-          // The top edge follows the pointer: the dock is as tall as the rows from the pointer to its foot.
-          if (ev.kind === "release") dockDrag.current = null;
-          else if (ev.kind === "motion") send({ dock: "resize", rows: Math.max(3, dockDrag.current - ev.y) });
+          // The top edge follows the pointer: the dock is as tall as the rows from the pointer to its foot. The host
+          // hears the height once, on release, and keeps it.
+          if (ev.kind === "release") {
+            dockDrag.current = null;
+            if (dockRowsRef.current !== null) send({ dock: "resize", rows: dockRowsRef.current });
+            dockRowsRef.current = null;
+          } else if (ev.kind === "motion") {
+            dockRowsRef.current = Math.max(3, dockDrag.current - ev.y);
+            setDockRows(dockRowsRef.current);
+          }
           return true;
         }
         if (ev.kind === "wheel_up" || ev.kind === "wheel_down") {

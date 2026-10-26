@@ -48,7 +48,7 @@ pub fn intent(p: &mut GithubPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             crate::chord_for(&rows, intent).map_or(Outcome::Ignored, |chord| p.press(pane, chord))
         }
         v::Intent::Fold { target, open } if pane == Pane::Middle => super::fold(p, target, *open),
-        v::Intent::OpenAll | v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
+        v::Intent::OpenAll | v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Layout(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
     }
 }
 

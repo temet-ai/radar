@@ -74,7 +74,8 @@ describe.each(files)("%s", (f) => {
   it("right and left clicks on every registered row, and the keys", async () => {
     const { m, view, registry, answer } = await open(f);
     const named = targetsOf(view);
-    const hits = registry.all().filter((h) => h.y >= 2 && h.y < 39 && h.w > 0);
+    // Ink's own drag targets (pane borders, headings: app/layout-drag.ts) send nothing on a click; layout-drag's tests.
+    const hits = registry.all().filter((h) => h.y >= 2 && h.y < 39 && h.w > 0 && !h.target.startsWith("layout:"));
     // The hits that are topmost at their middle cell (a later hit covers an earlier one).
     const tops = hits.filter((h) => hitAt(registry.all(), h.x + Math.floor(h.w / 2), h.y) === h);
     const sample = tops.slice(0, 6);

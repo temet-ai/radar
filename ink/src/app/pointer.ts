@@ -3,7 +3,9 @@
 // the host said so (Look.pointer); put back to the arrow when radar stops.
 import { currentLook } from "../text/look.js";
 
-export type Shape = "default" | "pointer" | "text";
+/** `col-resize` over a pane border or the cell between two headings, `grab` over a heading, `grabbing` while one is
+ * moved (app/layout-drag.ts). */
+export type Shape = "default" | "pointer" | "text" | "col-resize" | "grab" | "grabbing";
 
 /** The sequence that sets the pointer to `shape`. */
 export const shapeSequence = (shape: Shape) => `\x1b]22;${shape}\x1b\\`;
@@ -11,6 +13,7 @@ export const shapeSequence = (shape: Shape) => `\x1b]22;${shape}\x1b\\`;
 export class PointerShape {
   private over: Shape = "default";
   private dragging = false;
+  private held: Shape | null = null;
   private written: Shape = "default";
 
   constructor(
@@ -30,8 +33,14 @@ export class PointerShape {
     this.flush();
   }
 
+  /** A border or a column is held (its shape whatever is under the pointer), or no longer (null). */
+  hold(shape: Shape | null) {
+    this.held = shape;
+    this.flush();
+  }
+
   private flush() {
-    const want: Shape = this.dragging ? "text" : this.over;
+    const want: Shape = this.held ?? (this.dragging ? "text" : this.over);
     if (want === this.written || !this.on()) return;
     this.written = want;
     this.write(shapeSequence(want));

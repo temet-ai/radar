@@ -1722,6 +1722,31 @@ pub fn alerts_view(p: &SlackPlugin, width: u16) -> v::SectionView {
     tree_settings_view(p, "alerts", width, entries, detail, editing)
 }
 
+/// The placeholders a review row takes, one to a line with an example from
+/// the sample merge request; the template's own ones first.
+fn placeholder_list(p: &SlackPlugin, template: bool) -> Vec<v::Text> {
+    let mut rows: Vec<(String, String)> = Vec::new();
+    if template {
+        let group = if p.cfg.review.group.is_empty() {
+            "the group above, mentioned".to_string()
+        } else {
+            format!("@{}, mentioned", crate::page::review_handle(p))
+        };
+        rows.extend([
+            ("{mrs}".into(), "each request; bullets for several".into()),
+            ("{count}".into(), "2".into()),
+            ("{group}".into(), group),
+            ("{@handle}".into(), "a group by its handle, mentioned".into()),
+        ]);
+    }
+    rows.extend(ask::examples(&ask::sample()[0], &p.cfg.review.link));
+    let width = rows.iter().map(|(name, _)| radar_core::ui::width(name)).max().unwrap_or(0) + 2;
+    rows.into_iter()
+        .map(|(name, example)| v::Text::of(radar_core::ui::pad(&name, width), v::Ink::Primary)
+            .push(v::Seg::new(example, v::Ink::Secondary)))
+        .collect()
+}
+
 pub fn review_view(p: &SlackPlugin) -> v::SectionView {
     let mut editing = None;
     let rows = RV_ROWS.iter().copied().enumerate().map(|(i, row)| {
@@ -1737,9 +1762,9 @@ pub fn review_view(p: &SlackPlugin) -> v::SectionView {
     let (about, accepts, key) = match row {
         RvRow::Channel => ("Where review asks go. The user group is mentioned only here.", "a channel in the registry", "[slack.review] channel"),
         RvRow::Group => ("The user group mentioned in the review channel, so its people see the ask. Picked from Slack's groups.", "one of Slack's user groups", "[slack.review] group, handle"),
-        RvRow::Template => ("The message: {mrs} is each merge request as written under each request, or one bullet each for several; {count} is how many. {group} mentions the user group picked above, and {@handle} any of Slack's user groups by its handle. Both are sent as Slack's mention of the group's id, so it pings, and only in the review channel. The placeholders of each request work here too; with several merge requests each is their different values joined by commas. :name: is an emoji.", "text with {mrs} or {link}; {count}, {group}, {@handle}, {link}, {url}, {repo}, {project}, {iid}, {title}, {branch}, {target}, {author}, {tickets} optional", "[slack.review] template"),
+        RvRow::Template => ("The message. {group} and {@handle} are sent as Slack's mention of the group's id, so they ping, and only in the review channel. With several merge requests, a placeholder that names one gives their different values joined by commas. :name: is an emoji.", "text with {mrs} or {link}, and any of:", "[slack.review] template"),
         RvRow::Link => ("The text one merge request is linked with; several are each named by their repo and number.", "a few characters", "[slack.review] link"),
-        RvRow::Line => ("How {mrs} shows each merge request. {link} is its link, {url} the bare address, {repo} and {project} its repo's name and path, {iid} its number, {title} its words (edited in the draft, tickets linked), {branch} and {target} its branches, {author} who opened it, and {tickets} its tickets, linked. Tickets missing from the title are added after it unless {tickets} is used.", "text with {link}", "[slack.review] line"),
+        RvRow::Line => ("How {mrs} shows each merge request. Tickets missing from {title} are added after it unless {tickets} is used.", "text with {link}, and any of:", "[slack.review] line"),
         RvRow::Test => ("A channel to try a review ask in first: change the draft's channel to it; no one is mentioned there.", "a channel in the registry", "[slack.review] test_channel"),
         RvRow::Reask => ("When an ask with no reply is due again, its merge request's slack column turns to a warning and it offers to ask again in the thread (asked first): a reply that mentions the group and links to the ask. Working days are Monday to Friday, in your Slack time zone.", "2d (working days) · 4h (working hours) · 10:00 (that time on the next working day) · never", "[slack.review] reask"),
     };
@@ -1752,6 +1777,9 @@ pub fn review_view(p: &SlackPlugin) -> v::SectionView {
     }
     detail.push(v::Text::plain(about));
     detail_block(&mut detail, "accepts", v::Text::of(accepts, v::Ink::Secondary));
+    if matches!(row, RvRow::Template | RvRow::Line) {
+        detail.extend(placeholder_list(p, row == RvRow::Template));
+    }
     detail_block(&mut detail, "now", v::Text::of(rv_value(p, row), v::Ink::Emphasis));
     let mut blocks: Vec<v::Block> = detail.iter().cloned().map(v::Block::line).collect();
     if row == RvRow::Line && p.edit.is_none() {

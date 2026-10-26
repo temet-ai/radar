@@ -405,6 +405,26 @@ pub fn sample() -> Vec<Item> {
     }]
 }
 
+/// Each placeholder that names a merge request, with what it gives for
+/// `item` linked as `link`, as words to read rather than Slack's markup.
+pub fn examples(item: &Item, link: &str) -> Vec<(String, String)> {
+    let fact = |f: &str| item.facts.get(f).cloned().unwrap_or_default();
+    ITEM_PLACEHOLDERS
+        .iter()
+        .map(|p| {
+            let example = match *p {
+                "link" => format!("{link}, linked; {} for several", item.label),
+                "url" => "its address".to_string(),
+                "repo" => item.repo().to_string(),
+                "title" => item.words.clone(),
+                "tickets" => "its ticket keys, linked".to_string(),
+                f => fact(f),
+            };
+            (format!("{{{p}}}"), example)
+        })
+        .collect()
+}
+
 /// A sample merge request's facts, for the previews in settings.
 pub fn sample_facts(project: &str, iid: &str, branch: &str, author: &str) -> BTreeMap<String, String> {
     [("project", project), ("iid", iid), ("branch", branch), ("target", "main"), ("author", author)]

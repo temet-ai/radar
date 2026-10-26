@@ -14,10 +14,24 @@ expression: text
 AS YOU TYPE
 :run_passed: mentions the group picked under user group (in the review channel); posts: Review please <!subteam^S0REVIEW01>: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard
 
-The message: {mrs} is each merge request as written under each request, or one bullet each for several; {count} is how many. {group} mentions the user group picked above, and {@handle} any of Slack's user groups by its handle. Both are sent as Slack's mention of the group's id, so it pings, and only in the review channel. The placeholders of each request work here too; with several merge requests each is their different values joined by commas. :name: is an emoji.
+The message. {group} and {@handle} are sent as Slack's mention of the group's id, so they ping, and only in the review channel. With several merge requests, a placeholder that names one gives their different values joined by commas. :name: is an emoji.
 
 ACCEPTS
-text with {mrs} or {link}; {count}, {group}, {@handle}, {link}, {url}, {repo}, {project}, {iid}, {title}, {branch}, {target}, {author}, {tickets} optional
+text with {mrs} or {link}, and any of:
+{mrs}      each request; bullets for several
+{count}    2
+{group}    @review-squad, mentioned
+{@handle}  a group by its handle, mentioned
+{link}     mr, linked; api !263 for several
+{url}      its address
+{repo}     api
+{project}  acme/team-a/api
+{iid}      263
+{title}    Add a stats endpoint for the dashboard
+{branch}   stats-endpoint
+{target}   main
+{author}   vimes
+{tickets}  its ticket keys, linked
 
 NOW
 {group} :gitlab: {mrs}

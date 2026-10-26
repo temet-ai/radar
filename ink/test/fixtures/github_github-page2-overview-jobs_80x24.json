@@ -43,7 +43,8 @@
         }
       },
       "label": "refresh these Actions",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "github.actions.previous_tab",
@@ -52,7 +53,8 @@
           "char": "["
         }
       },
-      "label": "previous tab"
+      "label": "previous tab",
+      "pane": true
     },
     {
       "id": "github.actions.next_tab",
@@ -61,7 +63,8 @@
           "char": "]"
         }
       },
-      "label": "next tab"
+      "label": "next tab",
+      "pane": true
     },
     {
       "id": "github.actions.back",

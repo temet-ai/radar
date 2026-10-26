@@ -128,7 +128,7 @@ fn history_menu_captures_selected_subject_before_background_selection_changes() 
         .menu
         .items
         .iter()
-        .position(|row| row.label == "history for selected item")
+        .position(|row| row.label.starts_with("history of "))
         .unwrap();
     state.lock().unwrap().selected = "TWO-2".into();
     host.menu.as_mut().unwrap().row = row;
@@ -174,19 +174,12 @@ fn history_navigation_is_not_recorded_and_background_completions_are_delivered()
 #[test]
 fn history_settings_has_all_activity_without_a_fake_subject() {
     let mut host = Host::new(vec![], 0).unwrap();
+    // Nothing acts on a row here: `x` opens the pane's menu straight away.
     press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
-    assert!(
-        menu.items
-            .iter()
-            .any(|row| row.label == "all activity history")
-    );
-    assert!(
-        !menu
-            .items
-            .iter()
-            .any(|row| row.label == "history for selected item")
-    );
+    assert!(menu.items.iter().any(|row| row.label == "activity history"));
+    assert!(!menu.items.iter().any(|row| row.label.starts_with("history of ")));
+    press(&mut host, Key::Esc);
     let fx = press(&mut host, Key::Char(HISTORY_KEY));
     assert!(request(&fx).filter.subject.is_none());
     host.update(Event::History {
@@ -270,7 +263,9 @@ fn recent_entry_and_refresh_use_host_time_and_all_activity_remains_unbounded() {
         Some((host.now - 86_400) * 1000)
     );
     assert!(request(&refreshed).snapshot.is_none());
+    // All of it, unbounded: `a` in the history the pane's menu opens.
     press(&mut host, Key::Esc);
+    press(&mut host, Key::Char('x'));
     press(&mut host, Key::Char('x'));
     let row = host
         .menu
@@ -279,10 +274,11 @@ fn recent_entry_and_refresh_use_host_time_and_all_activity_remains_unbounded() {
         .menu
         .items
         .iter()
-        .position(|row| row.label == "all activity history")
+        .position(|row| row.label == "activity history")
         .unwrap();
     host.menu.as_mut().unwrap().row = row;
-    let all = press(&mut host, Key::Enter);
+    press(&mut host, Key::Enter);
+    let all = press(&mut host, Key::Char('a'));
     assert_eq!(
         request(&all).filter,
         crate::journal::work_map::EventFilter::default()

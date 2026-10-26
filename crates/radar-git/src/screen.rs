@@ -1757,10 +1757,10 @@ pub fn keys(p: &GitPlugin, pane: Pane) -> Vec<Binding> {
             Some(Sel::Clone(_)) | None => {}
         }
         if crate::agent_context::can_send(p) {
-            out.push(Binding::new("A", "ask an agent about it…"));
+            out.push(Binding::new("A", "ask an agent about it…").group(radar_core::view::ActionGroup::Ask));
         }
     }
-    out.push(Binding::new("r", "read the clones again"));
+    out.push(Binding::new("r", "read the clones again").pane());
     out
 }
 

@@ -32,19 +32,6 @@ open MRs    1
   hide its repos  (space)
   open the group in GitLab  (o)
   copy the group's link  (y)
-  filter the view by words  (/)
-  show only repos with merge requests in the view  (.)
-  refresh now  (r)
-  go to a tenancy, repo or merge request…  (:)
-  show one author's merge requests…  (a)
-  kept comments…  (ctrl-r)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
 ── status · REPOSITORIES ──
 ↑↓ move  ⏎ choose  esc close
 4 open · 1 to review · 1 ready

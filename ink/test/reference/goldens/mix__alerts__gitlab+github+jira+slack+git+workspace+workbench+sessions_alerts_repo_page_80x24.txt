@@ -1,4 +1,4 @@
- radar    R ●   S   B   I   History   Settings (,)     ⠷ not synced yet  ✎ edit
+ radar    R ●   S   B   I   History   Settings (,)       ⠷ not synced yet  edit
  Repositories / a / api
  acme/team-a/api                                       firing · 1   main — none
  checkout  no local checkout known: add the folders you keep code in, in settin

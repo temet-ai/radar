@@ -43,24 +43,15 @@ head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 > open its page  (⏎)
   open on GitHub  (o)
   copy the link  (y)
-  refresh configured repositories  (r)
-  toggle the group  (space)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
   # Jira
   view ABC-12  (v)
   # Slack
   open discussion thread in #team  (t)
   # Git
   open current folder in an editor  (e)
-  open terminal in current folder
+  open terminal in current folder  (p)
   scan configured local folders  (s)
-  link a matching local folder…
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  link a matching local folder…  (i)
+  history of acme/api #42  (H)
 ── status · GITHUB ──
 ↑↓ move  ⏎ choose  esc close

@@ -115,9 +115,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": " edit"
+        "text": "edit"
       },
       "tabs": [
         {

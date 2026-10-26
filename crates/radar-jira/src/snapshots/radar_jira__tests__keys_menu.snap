@@ -53,26 +53,13 @@ labels: :label: #backend
   open it in Jira  (o)
   copy its link  (y)
   copy ABC-12  (Y)
-  filter the view by words  (/)
-  refresh now  (r)
-  # on Jira
-  move ABC-12 to another status…  (t)
-  comment on ABC-12…  (c)
-  assign to me · ABC-12 is already yours  (i)
-  new ticket in ABC…  (n)
-  go to a ticket by its key or words…  (:)
+  # change it
+  move to another status…  (t)
+  comment…  (c)
+  assign it to me  (i)  ABC-12 is already yours
+  # ask someone
   ask an agent about it…  (A)
-  show one assignee's tickets…  (a)
-  kept Jira text…  (ctrl-r)
-  toggle the group  (space)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  history of ABC-12  (H)
 ── status · JIRA ──
 ↑↓ move  ⏎ choose  esc close
 6 tickets · 4 doing

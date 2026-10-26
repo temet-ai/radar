@@ -14,7 +14,7 @@ exports[`chrome at 80x24 > renders an actions menu over the body and settings na
 │                      ││╭ !263 fix the thing ───────╮                         │
 │                      │││ !263                      │                         │
 │                      │╰│ o  open    in the browser │─────────────────────────╯
-│                      │╭│ m  merge   when green     │─────────────────────────╮
+│                      │╭│ m  merge       when green │─────────────────────────╮
 │                      ││╰───────────────────────────╯                         │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -76,7 +76,7 @@ exports[`chrome at 160x40 > renders an actions menu over the body and settings n
 │                      ││                                        ╭ !263 fix the thing ───────╮           ││                                                    │
 │                      ││                                        │ !263                      │           ││                                                    │
 │                      ││                                        │ o  open    in the browser │           ││                                                    │
-│                      ││                                        │ m  merge   when green     │           ││                                                    │
+│                      ││                                        │ m  merge       when green │           ││                                                    │
 │                      ││                                        ╰───────────────────────────╯           ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

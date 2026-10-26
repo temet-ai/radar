@@ -57,28 +57,15 @@ approvals: 1 required · 0 left
 > open its page  (⏎)
   open it in GitLab  (o)
   copy its link  (y)
-  # on GitLab
-  update by rebasing onto main…  (u)
-  merge · needs rebase  (m)
-  approve !410…  (e)
-  filter the view by words  (/)
-  show only repos with merge requests in the view  (.)
-  refresh now  (r)
-  # with an agent
-  ask an agent about it…  (A)
+  # change it
+  rebase…  (u)
+  merge  (m)  needs rebase
+  approve…  (e)
+  # work on it here
   review it locally…  (i)
-  go to a tenancy, repo or merge request…  (:)
-  show one author's merge requests…  (a)
-  kept comments…  (ctrl-r)
-  toggle the group  (space)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  # ask someone
+  ask an agent about it…  (A)
+  history of api !410  (H)
 ── status · REPOSITORIES ──
 ↑↓ move  ⏎ choose  esc close
 6 open · 1 to review · 2 broken · 1 ready

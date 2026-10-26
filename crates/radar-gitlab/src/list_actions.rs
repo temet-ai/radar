@@ -12,9 +12,9 @@
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{ActionGroup, Chord, Key};
 
-use crate::model::{Mr, MrState, Pipeline};
+use crate::model::{Mr, MrState, Pipeline, Role};
 use crate::mr_actions::{self, Acting};
 use crate::pages::{act, mr_key, review};
 use crate::ready::{self, Block};
@@ -101,6 +101,7 @@ impl Row {
     }
 
     /// `update by rebasing onto main`, or the same action followed by its blocker.
+    #[cfg(test)]
     pub(crate) fn words(&self) -> String {
         match &self.why {
             Some(why) => format!("{} · {why}", self.label),
@@ -198,12 +199,15 @@ pub(crate) fn key(p: &mut GitlabPlugin, pane: Pane, key: &Chord) -> Option<Outco
 pub(crate) fn bindings(p: &GitlabPlugin, mr: &Mr) -> Vec<crate::Row> {
     let rows = rows(p, mr);
     let ask = |r: &Row| {
-        let text = match (r.what, &r.why) {
-            (Do::Approve, None) if r.label == "approve" => format!("approve !{}…", mr.iid),
-            (Do::Approve, None) => format!("take back your approval of !{}…", mr.iid),
-            (_, None) => format!("{}…", r.label),
-            _ => r.words(),
+        // The row's title already names the merge request: the label is the
+        // action alone, and what stands in its way is a fact beside it.
+        let verb = match r.what {
+            Do::Rebase => "rebase",
+            Do::Merge => "merge",
+            Do::Approve if r.label == "take back your approval" => "take back your approval",
+            _ => "approve",
         };
+        let text = if r.why.is_none() { format!("{verb}…") } else { verb.to_string() };
         let id = match r.what {
             Do::Rebase => "gitlab.repos.rebase",
             Do::Merge => "gitlab.repos.merge",
@@ -213,11 +217,25 @@ pub(crate) fn bindings(p: &GitlabPlugin, mr: &Mr) -> Vec<crate::Row> {
             Do::Pipeline => "gitlab.repos.open_pipeline",
         };
         // Rebase, merge and approve change what is there.
-        crate::act(id, Binding::new(r.what.key().to_string(), text).edits())
+        let mut row = Binding::new(r.what.key().to_string(), text).edits().group(ActionGroup::Change);
+        if let Some(why) = &r.why {
+            row = row.hint(why.clone());
+        } else if leads(p, mr, r.what) {
+            row = row.lead();
+        }
+        crate::act(id, row)
     };
-    let mut b = vec![crate::head(Binding::heading("on GitLab"))];
-    b.extend(rows.iter().filter(|r| matches!(r.what, Do::Rebase | Do::Merge | Do::Approve)).map(ask));
-    b
+    rows.iter().filter(|r| matches!(r.what, Do::Rebase | Do::Merge | Do::Approve)).map(ask).collect()
+}
+
+/// Whether the merge request's state asks for `what` now: merge when it is
+/// ready to merge, approve when the user's review is asked for.
+fn leads(p: &GitlabPlugin, mr: &Mr, what: Do) -> bool {
+    match what {
+        Do::Merge => state_click(mr) == Some(StateClick::Merge),
+        Do::Approve => mr.state == MrState::Opened && mr.role(&p.me) == Role::Review,
+        _ => false,
+    }
 }
 
 /// The status line's keys for the selected merge request: only those that

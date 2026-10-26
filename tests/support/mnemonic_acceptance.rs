@@ -68,6 +68,13 @@ pub fn chrome_gaps(chrome: &ChromeView) -> Vec<String> {
                 }
                 continue;
             }
+            // A list menu draws every key in its own column, never in the words.
+            if !menu.question {
+                if choice.mnemonic_at.is_some() || choice.mnemonic_shift {
+                    gaps.push(format!("menu {}: {:?} carries its key in the words", menu.id, choice.label));
+                }
+                continue;
+            }
             let words = if menu.question && !choice.hint.is_empty() {
                 &choice.hint
             } else {
@@ -128,10 +135,14 @@ pub fn fixture_gaps(value: &Value) -> Vec<String> {
                         Err(error) => gaps.push(format!("{path}: invalid foot actions: {error}")),
                     }
                 } else if let Some(actions) = object.get("actions").and_then(Value::as_array) {
+                    // A view's actions are its row menus' rows, which draw their
+                    // keys in the key column: valid, but no letter is required.
                     for (index, action) in actions.iter().enumerate() {
                         match serde_json::from_value::<ActionSpec>(action.clone()) {
                             Ok(action) => {
-                                if let Some(gap) = action_gap(&action) {
+                                if action.mnemonic_at.is_some()
+                                    && let Some(gap) = action_gap(&action)
+                                {
                                     gaps.push(format!("{path}/actions/{index}: {gap}"));
                                 }
                             }

@@ -15,7 +15,7 @@ import { applyLook, defaultLook } from "../../src/text/look.js";
  * Ink owns its picture: the goldens are its own recordings
  * (tests/snapshots/mix__<name>.snap bodies) as they stood when tests/mix.rs moved to the view-data text form,
  * frozen here; tests/mix.rs no longer records a painted frame. A golden moves only when Ink's own drawing does:
- * read the diff before rewriting one.
+ * read the diff before rewriting one (`RADAR_GOLDEN_UPDATE=1 npx vitest run test/reference/parity.test.tsx`).
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -107,7 +107,9 @@ describe("Ink draws the recordings", () => {
       .split("\n")
       .map((l) => aged(l.replace(/\s+$/, "")));
     while (got.length && got[got.length - 1] === "") got.pop();
-    expect(got.join("\n")).toBe(want.join("\n"));
+    // RADAR_GOLDEN_UPDATE=1 rewrites the golden from what Ink draws now; read the diff before keeping it.
+    if (process.env.RADAR_GOLDEN_UPDATE === "1") fs.writeFileSync(goldenFile, got.join("\n") + "\n");
+    else expect(got.join("\n")).toBe(want.join("\n"));
   };
   for (const name of names) it(name, run(name));
 });

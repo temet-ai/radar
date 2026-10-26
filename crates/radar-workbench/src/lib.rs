@@ -584,7 +584,7 @@ impl Plugin for WorkbenchPlugin {
         {
             return None;
         }
-        let mut action = Action::new('a', "add to work item…", "work.link").adds();
+        let mut action = Action::new('a', "add to work item…", "work.link").adds().group(radar_core::view::ActionGroup::Ask);
         action.key = None;
         Some(Contribution::Actions(vec![action]))
     }

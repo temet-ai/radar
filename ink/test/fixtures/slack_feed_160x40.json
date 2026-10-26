@@ -44,12 +44,8 @@
       "mnemonic_at": 0
     },
     {
-      "heading": true,
-      "id": "",
-      "label": "on Slack"
-    },
-    {
       "change": "add",
+      "group": "change",
       "id": "slack.feed.reply",
       "key": {
         "key": {
@@ -61,6 +57,7 @@
     },
     {
       "change": "add",
+      "group": "change",
       "id": "slack.feed.react",
       "key": {
         "key": {
@@ -71,12 +68,7 @@
       "mnemonic_at": 1
     },
     {
-      "heading": true,
-      "icon": "bot",
-      "id": "",
-      "label": "with an agent"
-    },
-    {
+      "group": "ask",
       "id": "agent.send",
       "key": {
         "key": {
@@ -88,11 +80,6 @@
       "mnemonic_shift": true
     },
     {
-      "heading": true,
-      "id": "",
-      "label": "list"
-    },
-    {
       "id": "slack.feed.kept_replies",
       "key": {
         "ctrl": true,
@@ -100,7 +87,8 @@
           "char": "r"
         }
       },
-      "label": "kept replies…"
+      "label": "kept replies…",
+      "pane": true
     },
     {
       "id": "slack.feed.refresh",
@@ -110,7 +98,8 @@
         }
       },
       "label": "refresh",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "slack.feed.filter",
@@ -119,7 +108,8 @@
           "char": "/"
         }
       },
-      "label": "filter the list by words"
+      "label": "filter the list by words",
+      "pane": true
     }
   ],
   "dock": {
@@ -872,6 +862,7 @@
           {
             "action": {
               "change": "add",
+              "group": "change",
               "id": "slack.feed.reply",
               "key": {
                 "key": {
@@ -885,6 +876,7 @@
           {
             "action": {
               "change": "add",
+              "group": "change",
               "id": "slack.feed.react",
               "key": {
                 "key": {

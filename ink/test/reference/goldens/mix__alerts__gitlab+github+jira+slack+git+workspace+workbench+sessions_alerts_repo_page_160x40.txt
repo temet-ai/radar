@@ -1,4 +1,4 @@
- radar    Repositories ●   Slack   Branches   Work items   History   Settings (,)                                                      ⠷ not synced yet  ✎ edit
+ radar    Repositories ●   Slack   Branches   Work items   History   Settings (,)                                                        ⠷ not synced yet  edit
  Repositories / a / api
  acme/team-a/api                                                                                                                       firing · 1   main — none
  checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts

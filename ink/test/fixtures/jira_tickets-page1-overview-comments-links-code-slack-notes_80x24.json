@@ -44,44 +44,44 @@
         }
       },
       "label": "refresh this page",
-      "mnemonic_at": 0
-    },
-    {
-      "heading": true,
-      "id": "",
-      "label": "on Jira"
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "change": "edit",
+      "group": "change",
       "id": "jira.tickets.move",
       "key": {
         "key": {
           "char": "t"
         }
       },
-      "label": "move ABC-12 to another status…",
-      "mnemonic_at": 12
+      "label": "move to another status…",
+      "mnemonic_at": 5
     },
     {
       "change": "add",
+      "group": "change",
       "id": "jira.tickets.comment",
       "key": {
         "key": {
           "char": "c"
         }
       },
-      "label": "comment on ABC-12…",
+      "label": "comment…",
       "mnemonic_at": 0
     },
     {
       "change": "edit",
+      "group": "change",
+      "hint": "ABC-12 is already yours",
       "id": "jira.tickets.assign_me",
       "key": {
         "key": {
           "char": "i"
         }
       },
-      "label": "assign to me · ABC-12 is already yours",
+      "label": "assign it to me",
       "mnemonic_at": 3
     },
     {
@@ -93,7 +93,8 @@
         }
       },
       "label": "new ticket in ABC…",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "heading": true,
@@ -107,7 +108,8 @@
           "char": "]"
         }
       },
-      "label": "next tab: Comments"
+      "label": "next tab: Comments",
+      "pane": true
     },
     {
       "id": "jira.tickets.previous_tab",
@@ -116,9 +118,11 @@
           "char": "["
         }
       },
-      "label": "previous tab: Notes"
+      "label": "previous tab: Notes",
+      "pane": true
     },
     {
+      "group": "ask",
       "id": "agent.send",
       "key": {
         "key": {
@@ -144,7 +148,8 @@
           "char": "r"
         }
       },
-      "label": "kept Jira text…"
+      "label": "kept Jira text…",
+      "pane": true
     }
   ],
   "dock": {

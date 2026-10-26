@@ -52,38 +52,23 @@ approvals: 1 required · 1 left
 [update] [merge] [approve] [open] [copy link] [page] [extra actions]
 ── menu · api !263 ──
 > open its page  (⏎)
+  approve…  (e)
   open it in GitLab  (o)
   copy its link  (y)
-  # on GitLab
-  update by rebasing · not behind main  (u)
-  merge · needs 1 approval  (m)
-  approve !263…  (e)
-  filter the view by words  (/)
-  show only repos with merge requests in the view  (.)
-  refresh now  (r)
-  # with an agent
-  ask an agent about it…  (A)
+  # change it
+  rebase  (u)  not behind main
+  merge  (m)  needs 1 approval
+  # work on it here
   review it locally…  (i)
-  go to a tenancy, repo or merge request…  (:)
-  show one author's merge requests…  (a)
-  kept comments…  (ctrl-r)
-  toggle the group  (space)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
+  scan for a checkout  (s)  no folders set yet
+  link to a local folder…  (n)
+  # ask someone
+  ask an agent about it…  (A)
+  add to work item…  (a)
   # Jira
   view ABC-12  (v)
   move ABC-12 to …  (>)
-  # Git
-  scan for a checkout · no folders set yet  (s)
-  link to a local folder…
-  # Work
-  add to work item…
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  history of api !263  (H)
 ── status · REPOSITORIES ──
 ↑↓ move  ⏎ choose  esc close
 3 open · 2 to review

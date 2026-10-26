@@ -1427,7 +1427,8 @@ fn foreign_contribution_actions_use_host_keys_enter_and_mouse_with_owned_identit
         .iter()
         .find(|item| item.label == "conflicting copy")
         .unwrap();
-    assert!(conflicting.keys.is_empty());
+    // Its key is GitHub's `y`: it takes the first free letter of its words, and `y` stays GitHub's.
+    assert!(!conflicting.keys.is_empty() && conflicting.keys != "y", "{:?}", conflicting.keys);
     let effects = host.update(key(Key::Char('y')));
     assert!(
         effects

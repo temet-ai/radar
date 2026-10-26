@@ -1,4 +1,4 @@
- radar    R ●   J   B   I   History   Settings (,)  not synced yet · ev… ✎ edit
+ radar    R ●   J   B   I   History   Settings (,)  not synced yet · ever… edit
 ╭ 2 Our project ───────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
 │acme  acme.atlassian.net                                                      │

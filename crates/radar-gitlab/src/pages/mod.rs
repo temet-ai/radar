@@ -1066,7 +1066,8 @@ pub(crate) fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<crate::Row> {
                 Kind::Job { .. } => "reread its log",
                 _ => "refresh this page and its tenancy",
             },
-        ),
+        )
+        .pane(),
     ));
     let mut own = act::bindings(p, page);
     if let Some((project, iid)) = changes::on_changes(page) {
@@ -1075,10 +1076,7 @@ pub(crate) fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<crate::Row> {
     if let Some(id) = page.kind.job() {
         own.extend(job::bindings(p, page, &id.project, id.id));
     }
-    if !own.is_empty() {
-        b.extend(own);
-        b.push(crate::head(Binding::heading("page")));
-    }
+    b.extend(own);
     let n = tab_count(page);
     if n > 1 {
         let labels = tab_labels(p, page);
@@ -1091,11 +1089,11 @@ pub(crate) fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<crate::Row> {
         };
         b.push(act(
             "gitlab.page.next_tab",
-            Binding::new("]", format!("next tab: {}", word(page.tab + 1))),
+            Binding::new("]", format!("next tab: {}", word(page.tab + 1))).pane(),
         ));
         b.push(act(
             "gitlab.page.previous_tab",
-            Binding::new("[", format!("previous tab: {}", word(page.tab + n - 1))),
+            Binding::new("[", format!("previous tab: {}", word(page.tab + n - 1))).pane(),
         ));
     }
     let back = match p.pages.len() {

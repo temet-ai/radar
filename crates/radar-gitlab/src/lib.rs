@@ -741,7 +741,8 @@ impl GitlabPlugin {
                 Binding::new(
                     GOTO_KEY.to_string(),
                     "go to a tenancy, repo or merge request…",
-                ),
+                )
+                .pane(),
             ));
         }
         if tree {
@@ -753,7 +754,8 @@ impl GitlabPlugin {
                         Some(a) => format!("only {a}'s now: pick another author…"),
                         None => "show one author's merge requests…".into(),
                     },
-                ),
+                )
+                .pane(),
             ));
         }
         b
@@ -803,7 +805,7 @@ impl GitlabPlugin {
         b.splice(at..at, agent_context::rows(self, if self.pages.is_empty() { pane } else { Pane::Middle }));
         b.push(act(
             if self.pages.is_empty() { "gitlab.repos.kept_comments" } else { "gitlab.page.kept_comments" },
-            Binding::new("ctrl-r", "kept comments…"),
+            Binding::new("ctrl-r", "kept comments…").pane(),
         ));
         b
     }
@@ -2422,7 +2424,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn a_right_press_below_the_last_row_offers_nothing() {
+    fn a_right_press_below_the_last_row_opens_the_panes_menu_and_a_left_press_offers_nothing() {
         use radar_core::host::Event;
         use radar_core::view::{Intent, Node, PaneId, Target};
 
@@ -2448,10 +2450,18 @@ pub(crate) mod tests {
                 Intent::Context { target: Target::new("pane:middle") },
                 Intent::Activate { target: Target::new("pane:middle") },
             ] {
+                let context = matches!(intent, Intent::Context { .. });
                 host.update(Event::Intent(intent));
-                let _ = crate::tests::shown(&host, 160, 40);
+                let shown = crate::tests::shown(&host, 160, 40);
                 assert_eq!(host.focus, Pane::Middle);
-                assert!(host.menu.is_none(), "empty space offers no actions; focus={focus:?}");
+                if context {
+                    // The pane's menu: what acts on the pane, nothing of a row.
+                    assert!(host.menu.is_some(), "a right press on empty space opens the pane's menu; focus={focus:?}");
+                    assert!(shown.contains("refresh now"), "{shown}");
+                    assert!(!shown.contains("open its page"), "{shown}");
+                    host.update(crate::key_event(radar_core::view::Chord::new(radar_core::view::Key::Esc)));
+                }
+                assert!(host.menu.is_none(), "a left press on empty space offers no actions; focus={focus:?}");
                 assert_eq!(selected(&host), path, "the selection stays; focus={focus:?}");
                 assert_eq!(host.plugins[0].subject(SCREEN.id, Pane::Middle), subject);
                 host.focus = focus;
@@ -2486,11 +2496,20 @@ pub(crate) mod tests {
         assert!(subject.is("merge-request"));
 
         press(&mut host, Key::Char('x'));
-        let menu = &host.menu.as_ref().expect("MR actions menu").menu;
+        // A merge request is a leaf: its row menu has no fold keys; the
+        // pane's menu (`x` again) has the one that expands every held group.
+        let count = |host: &radar_core::Host, key: char| {
+            host.menu.as_ref().expect("MR actions menu").menu.items.iter().filter(|item| item.key == Some(key)).count()
+        };
         for key in ['+', '-', '='] {
-            assert_eq!(menu.items.iter().filter(|item| item.key == Some(key)).count(), 1,
-                "the shared tree action {key} appears once");
+            assert_eq!(count(&host, key), 0, "the row menu of a leaf has no {key}");
         }
+        press(&mut host, Key::Char('x'));
+        assert_eq!(count(&host, '='), 1, "the shared tree action = appears once, in the pane's menu");
+        for key in ['+', '-'] {
+            assert_eq!(count(&host, key), 0, "{key} folds a row, not the pane");
+        }
+        press(&mut host, Key::Esc);
         // The shared keys apply to this tree, but '+' must not invent MR children
         // or silently retarget the operation to its parent.
         assert!(press(&mut host, Key::Char('+')).is_empty());
@@ -2499,7 +2518,6 @@ pub(crate) mod tests {
         assert_eq!(host.plugins[0].subject(SCREEN.id, Pane::Middle), Some(subject));
         assert_eq!(host.plugins[0].depth(SCREEN.id), 0, "no MR page was opened");
 
-        press(&mut host, Key::Char('x'));
         assert!(press(&mut host, Key::Char('-')).is_empty(), "folding sends no write or request");
         assert!(host.menu.is_none());
         let after = tree(&host);
@@ -2900,6 +2918,8 @@ pub(crate) mod tests {
         let press = |host: &mut radar_core::Host, c| {
             host.update(crate::key_event(Chord::new(c)));
         };
+        press(&mut host, Key::Char('x'));
+        // The filter is the pane's: `x` again, inside the row menu.
         press(&mut host, Key::Char('x'));
         // `/` in the menu runs "filter this view": the filter input opens.
         press(&mut host, Key::Char('/'));

@@ -102,6 +102,7 @@ fn settings_detail_keyboard_and_menu_agree() {
     assert_eq!(selected.load(Ordering::Relaxed), 0);
     press(&mut host, Key::Down);
     assert_eq!(host.settings_detail.at(), 2);
+    // Nothing here acts on a row, so `x` opens the pane's menu, which goes back.
     press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
     assert!(menu.items.iter().all(|i| !i.label.contains("go into")));

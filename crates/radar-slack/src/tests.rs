@@ -207,6 +207,16 @@ fn spawned(fx: &[HostEffect]) -> usize {
     fx.iter().filter(|e| matches!(e, HostEffect::Spawn { .. })).count()
 }
 
+/// The demo's review ask of !263 forgotten, so a draft can be started for it:
+/// an ask that exists is opened with `s`, not drafted again.
+fn forget_the_review_ask(p: &mut SlackPlugin) {
+    p.data.asked.clear();
+    let group = format!("<!subteam^{}>", crate::demo::GROUP);
+    for m in &mut p.data.channels.get_mut(crate::demo::TEAM).expect("the team channel").messages {
+        m.text = m.text.replace(&group, "");
+    }
+}
+
 pub(crate) fn menu_labels(host: &Host) -> Vec<String> {
     host.menu
         .as_ref()
@@ -284,9 +294,10 @@ fn going_back_to_a_channel_shows_its_days_open_again() {
 fn the_draft_names_the_group_as_slack_does_when_settings_have_only_its_id() {
     let mut host = hosted_with_parts();
     let mut p = sample();
+    forget_the_review_ask(&mut p);
     p.cfg.review.handle.clear();
     host.plugins[2] = Box::new(p);
-    press(&mut host, Key::Char('a'));
+    press(&mut host, Key::Char('s'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("mentions @review-squad · the review channel"), "{text}");
 }
@@ -533,10 +544,15 @@ fn the_x_menu_of_a_message_lists_what_works_there() {
     press(&mut host, Key::Char('x'));
     let labels = menu_labels(&host);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "Bob Builder's message");
-    for want in ["⏎ open its thread", "o open it in Slack", "y copy its link", "m mark read up to here", "c comment in its thread", "e react to it", "r refresh"] {
+    for want in ["⏎ open its thread", "o open it in Slack", "y copy its link", "m mark read up to here", "c comment in its thread", "e react to it"] {
         assert!(labels.iter().any(|l| l.starts_with(want)), "{want}: {labels:?}");
     }
     insta::assert_snapshot!("message_keys", menu_shown(&host));
+    // Refreshing is the pane's: `x` again, inside the row menu.
+    press(&mut host, Key::Char('x'));
+    let labels = menu_labels(&host);
+    assert!(labels.iter().any(|l| l.starts_with("r refresh")), "{labels:?}");
+    assert!(!labels.iter().any(|l| l.contains("comment in its thread")), "{labels:?}");
 }
 
 // --- not set up, and set up from the environment --------------------------------------------
@@ -862,7 +878,7 @@ fn a_template_naming_a_group_by_handle_is_checked_and_sends_the_groups_mention()
     });
     host.plugins[2] = Box::new(p);
     press(&mut host, Key::Down);
-    press(&mut host, Key::Char('a'));
+    press(&mut host, Key::Char('s'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("mentions @acme-devs · the review channel"), "{text}");
     assert!(text.contains("@acme-devs :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/270> Tidy the README"), "{text}");
@@ -1360,14 +1376,15 @@ mod review_draft {
         .unwrap();
         host.load_config(Some("")).unwrap();
         let mut p = sample();
+        forget_the_review_ask(&mut p);
         p.via = crate::Via(Some(rec.clone()));
         host.plugins[2] = Box::new(p);
 
         key(&mut host, Key::Char('x'));
         let labels = menu_labels(&host);
         assert!(
-            labels.iter().any(|l| l == " Slack"),
-            "under Slack's name: {labels:?}"
+            labels.iter().any(|l| l == " ask someone"),
+            "under what it is for: {labels:?}"
         );
         assert!(
             labels
@@ -1375,16 +1392,10 @@ mod review_draft {
                 .any(|l| l.ends_with("ask for review in Slack…")),
             "{labels:?}"
         );
-        assert!(
-            labels
-                .iter()
-                .any(|l| l.ends_with("open its review ask's thread")),
-            "{labels:?}"
-        );
         insta::assert_snapshot!("radar_slack__tests__code_keys_with_slack", menu_shown(&host));
         key(&mut host, Key::Esc);
         // The contributed action opens the real Slack draft page.
-        key(&mut host, Key::Char('a'));
+        key(&mut host, Key::Char('s'));
         assert_eq!(host.screen().unwrap().1.name, "slack");
         let text = shown(&host, 160, 40);
         assert!(text.contains("Ask for review in #team"), "{text}");
@@ -1415,7 +1426,7 @@ mod review_draft {
             menu_labels(&host)
         );
         key(&mut host, Key::Esc);
-        key(&mut host, Key::Char('a'));
+        key(&mut host, Key::Char('s'));
         let text = shown(&host, 160, 40);
         assert!(
             text.contains(&format!("• api !263 <{MR_263}> Add a stats endpoint for the dashboard")),
@@ -1454,7 +1465,7 @@ mod review_draft {
         drop_draft(&mut host);
         key(&mut host, Key::Char('C'));
         select_mr(&mut host, "263");
-        key(&mut host, Key::Char('a'));
+        key(&mut host, Key::Char('s'));
         key(&mut host, Key::Char('e'));
         assert!(host.plugins[2].capturing());
         for _ in 0..60 {
@@ -1581,6 +1592,7 @@ mod review_post {
         .unwrap();
         host.load_config(Some("")).unwrap();
         let mut p = sample();
+        forget_the_review_ask(&mut p);
         p.via = crate::Via(Some(rec.clone()));
         host.plugins[2] = Box::new(p);
         let mut s = Scenario::new(host);
@@ -1588,7 +1600,7 @@ mod review_post {
         // The first request has no previous review ask. Keep the exact real
         // confirmation rows, including the payload's 72-cell line break.
         select_mr(&mut s, "270");
-        key(&mut s, Key::Char('a'));
+        key(&mut s, Key::Char('s'));
         key(&mut s, Key::Char('p'));
         assert_eq!(
             s.host().menu.as_ref().unwrap().menu.title,
@@ -1638,7 +1650,7 @@ mod review_post {
         // Success closed the first draft. Start the original refusal subject
         // through the contributed action, preserving the existing golden state.
         select_mr(&mut s, "263");
-        key(&mut s, Key::Char('a'));
+        key(&mut s, Key::Char('s'));
         key(&mut s, Key::Char('p'));
         assert_eq!(
             rec.requests().as_slice(),
@@ -1900,8 +1912,9 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         on_team(&mut host, 4);
         // The x menu marks the writes the mode refuses.
         press(&mut host, Key::Char('x'));
-        let reply_row = menu_labels(&host).into_iter().find(|l| l.contains("comment in its thread")).unwrap();
-        assert_eq!(reply_row.ends_with("· radar is read only"), mode == Mode::ReadOnly, "{mode:?}: {reply_row}");
+        let reply_row = host.menu.as_ref().unwrap().menu.items.iter().find(|i| i.label.contains("comment in its thread")).unwrap().clone();
+        assert!(!reply_row.label.contains("radar is read only"), "the reason is not in the label: {reply_row:?}");
+        assert_eq!(reply_row.hint.contains("radar is read only"), mode == Mode::ReadOnly, "{mode:?}: {reply_row:?}");
         press(&mut host, Key::Esc);
         press(&mut host, Key::Char('c'));
         chars(&mut host, "hi");

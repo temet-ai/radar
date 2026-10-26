@@ -1187,13 +1187,13 @@ pub(crate) fn keys(p: &JiraPlugin) -> Vec<Binding> {
         b.push(Binding::new("y", "copy its link"));
     }
     b.push(Binding::new("Y", format!("copy {}", page.key)));
-    b.push(Binding::new("r", "refresh this page"));
+    b.push(Binding::new("r", "refresh this page").pane());
     b.push(Binding::heading("page"));
     let labels = tabs(page);
     let n = labels.len();
     let word = |i: usize| labels[i % n].split(" · ").next().unwrap_or_default().to_string();
-    b.push(Binding::new("]", format!("next tab: {}", word(page.tab + 1))));
-    b.push(Binding::new("[", format!("previous tab: {}", word(page.tab + n - 1))));
+    b.push(Binding::new("]", format!("next tab: {}", word(page.tab + 1))).pane());
+    b.push(Binding::new("[", format!("previous tab: {}", word(page.tab + n - 1))).pane());
     let back = match p.pages.len() {
         0 | 1 => "the middle pane".to_string(),
         n => p.pages[n - 2].key.clone(),

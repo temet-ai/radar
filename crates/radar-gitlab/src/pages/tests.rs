@@ -1397,19 +1397,19 @@ fn the_actions_menu_is_the_pages_titled_with_the_item() {
     assert_eq!(b[0].what, "api !263");
     assert!(b[0].is_heading());
     let rows: Vec<&str> = b[1..].iter().map(|b| b.keys.as_str()).collect();
-    // ⏎ follows a link on the page; headings ("") group GitLab's actions
-    // and the page's. This machine's are another part's.
-    assert_eq!(
-        rows,
-        ["⏎", "o", "y", "r", "", "u", "m", "a", "", "]", "[", "esc"]
-    );
+    // ⏎ follows a link on the page; the host groups the rows. This machine's
+    // are another part's.
+    assert_eq!(rows, ["⏎", "o", "y", "r", "u", "m", "a", "]", "[", "esc"]);
+    let pane: Vec<&str> = b.iter().filter(|b| b.pane).map(|b| b.keys.as_str()).collect();
+    assert_eq!(pane, ["r", "]", "["], "refresh and the tabs are the pane's");
     assert_eq!(
         b.iter().find(|b| b.keys == "⏎").unwrap().what,
         "follow a link on this page… (1 link)"
     );
     let what = |k: &str| b.iter().find(|b| b.keys == k).unwrap().what.clone();
-    assert_eq!(what("u"), "update by rebasing onto main…");
-    assert_eq!(what("m"), "merge · needs 1 approval");
+    assert_eq!(what("u"), "rebase…");
+    assert_eq!(what("m"), "merge");
+    assert_eq!(b.iter().find(|b| b.keys == "m").unwrap().hint, "needs 1 approval");
     assert_eq!(what("]"), "next tab: Changes");
     assert_eq!(what("["), "previous tab: Commits");
 }
@@ -1624,7 +1624,7 @@ fn a_jobs_actions_open_it_its_pipeline_and_copy_its_link_and_excerpt() {
         .collect();
     assert_eq!(
         rows,
-        ["", "o", "p", "y", "r", "c", "", "/", "space", "", "esc"]
+        ["", "o", "p", "y", "r", "c", "", "/", "space", "esc"]
     );
 }
 
@@ -1945,9 +1945,12 @@ mod mnemonic_tests {
                     p.pages.last().unwrap().file.set(file);
                     for pane in [Pane::Nav, Pane::Middle, Pane::Detail] {
                         for (id, binding) in crate::pages::keys(&p, pane) {
-                            if radar_core::mnemonic::letter(&binding.keys).is_some() {
-                                assert!(radar_core::mnemonic::at(&binding.keys, &binding.what).is_some(),
-                                    "{id}: {} / {}", binding.keys, binding.what);
+                            // Menus draw keys in their own column, so a label need not
+                            // hold its letter (`rebase…` on `u`); one that does keeps
+                            // the shift its key needs.
+                            if radar_core::mnemonic::letter(&binding.keys).is_some()
+                                && radar_core::mnemonic::at(&binding.keys, &binding.what).is_some()
+                            {
                                 let action = radar_core::view::ActionSpec::named(id, &binding);
                                 assert_eq!(action.mnemonic_shift, radar_core::mnemonic::shifted(&binding.keys));
                                 shifted |= binding.keys == "N";
@@ -1965,7 +1968,7 @@ mod mnemonic_tests {
         });
         let bindings = crate::pages::act::bindings(&p, p.pages.last().unwrap());
         let (_, rebase) = bindings.iter().find(|(id, _)| id == "gitlab.mr.rebase").unwrap();
-        assert_eq!((&*rebase.keys, &*rebase.what), ("u", "update by rebasing · asked, waiting for GitLab"));
+        assert_eq!((&*rebase.keys, &*rebase.what, &*rebase.hint), ("u", "rebase", "asked, waiting for GitLab"));
         fixture.assert_finished();
     }
 }

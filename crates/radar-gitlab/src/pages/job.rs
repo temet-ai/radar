@@ -120,16 +120,16 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page, project: &str, id: u64) ->
         return b;
     };
     b.push(head(Binding::heading("log")));
-    b.push(act("gitlab.job.search_log", Binding::new("/", "search the log…")));
+    b.push(act("gitlab.job.search_log", Binding::new("/", "search the log…").pane()));
     if !page.log.query().is_empty() {
-        b.push(act("gitlab.job.next_match", Binding::new("n", format!("next line with {}", page.log.query()))));
-        b.push(act("gitlab.job.previous_match", Binding::new("N", format!("previous line with {}", page.log.query()))));
+        b.push(act("gitlab.job.next_match", Binding::new("n", format!("next line with {}", page.log.query())).pane()));
+        b.push(act("gitlab.job.previous_match", Binding::new("N", format!("previous line with {}", page.log.query())).pane()));
     }
     if !log.text.sections.is_empty() {
         b.push(act("gitlab.job.fold_section", Binding::new("space", "fold or open the section the cursor is in")));
     }
     if log.earlier() {
-        b.push(act("gitlab.job.load_earlier", Binding::new("g", "go to the start, loading the part before")));
+        b.push(act("gitlab.job.load_earlier", Binding::new("g", "go to the start, loading the part before").pane()));
     }
     b
 }

@@ -20,7 +20,7 @@ use radar_core::journal::{
     ActionDescriptor, Origin, Outcome as JournalOutcome, SubjectKey, SubjectRole, SubjectSnapshot,
 };
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome, Pane};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{ActionGroup, Chord, Key};
 use radar_core::ui::composer::{self, Composer, Typed};
 use radar_core::ui::icon::Icon;
 use radar_core::writes::{self, Service};
@@ -382,32 +382,30 @@ pub(crate) fn assign_blocked(p: &JiraPlugin, site: &str, key: &str) -> Option<St
 pub(crate) fn bindings(p: &JiraPlugin, pane: Pane) -> Vec<Binding> {
     let mut b = Vec::new();
     if let Some((site, key)) = target(p, pane) {
-        b.push(Binding::new(MOVE_KEY.to_string(), format!("move {key} to another status…")).edits());
-        b.push(Binding::new(COMMENT_KEY.to_string(), format!("comment on {key}…")).adds());
-        b.push(
-            Binding::new(
-                ASSIGN_KEY.to_string(),
-                match assign_blocked(p, &site, &key) {
-                    Some(why) => format!("assign to me · {why}"),
-                    None => "assign it to me…".into(),
-                },
-            )
-            .edits(),
-        );
+        let change = ActionGroup::Change;
+        b.push(Binding::new(MOVE_KEY.to_string(), "move to another status…").edits().group(change));
+        b.push(Binding::new(COMMENT_KEY.to_string(), "comment…").adds().group(change));
+        let assign = match assign_blocked(p, &site, &key) {
+            Some(why) => Binding::new(ASSIGN_KEY.to_string(), "assign it to me").hint(why),
+            None => Binding::new(ASSIGN_KEY.to_string(), "assign it to me…"),
+        };
+        b.push(assign.edits().group(change));
     }
     if let Some((site, project)) = new_here(p, pane)
         && p.cfg.site(&site).is_some_and(|s| !s.projects.is_empty())
     {
-        b.push(Binding::new(
-            NEW_KEY.to_string(),
-            match project {
-                Some(pr) => format!("new ticket in {pr}…"),
-                None => format!("new ticket on {site}…"),
-            },
-        ).adds());
-    }
-    if !b.is_empty() {
-        b.insert(0, Binding::heading("on Jira"));
+        // A new ticket is not the selected row's: the pane's menu offers it.
+        b.push(
+            Binding::new(
+                NEW_KEY.to_string(),
+                match project {
+                    Some(pr) => format!("new ticket in {pr}…"),
+                    None => format!("new ticket on {site}…"),
+                },
+            )
+            .adds()
+            .pane(),
+        );
     }
     b
 }

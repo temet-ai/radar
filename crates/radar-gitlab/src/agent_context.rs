@@ -13,10 +13,9 @@ use radar_core::agent_context::{
 };
 use radar_core::journal::{SafeUrl, SubjectKey};
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::view::{Chord, Key};
-use radar_core::ui::icon::Icon;
+use radar_core::view::{ActionGroup, Chord, Key};
 
-use crate::{GitlabPlugin, Row, act, head};
+use crate::{GitlabPlugin, Row, act};
 use crate::join::MERGE_REQUEST;
 use crate::model::{Discussion, Mr, MrDetail};
 use crate::pages::mr_key;
@@ -193,12 +192,15 @@ pub(crate) fn rows(p: &GitlabPlugin, pane: Pane) -> Vec<Row> {
     let Some((project, iid)) = target(p, pane) else {
         return vec![];
     };
-    let mut out = vec![
-        head(Binding::heading("with an agent").icon(Some(Icon::Bot))),
-        act(SEND_TO_AGENT_ACTION, Binding::new(SEND_KEY.to_string(), "ask an agent about it…")),
-    ];
+    let mut out = vec![act(
+        SEND_TO_AGENT_ACTION,
+        Binding::new(SEND_KEY.to_string(), "ask an agent about it…").group(ActionGroup::Ask),
+    )];
     if reviewable(p, &project, iid) {
-        out.push(act(REVIEW_LOCALLY_ACTION, Binding::new(REVIEW_KEY.to_string(), "review it locally…")));
+        out.push(act(
+            REVIEW_LOCALLY_ACTION,
+            Binding::new(REVIEW_KEY.to_string(), "review it locally…").group(ActionGroup::Local),
+        ));
     }
     out
 }
@@ -397,10 +399,11 @@ mod tests {
         let rows = rows(&p, Pane::Middle);
         assert_eq!(
             rows.iter().map(|(id, _)| id.as_str()).collect::<Vec<_>>(),
-            ["", SEND_TO_AGENT_ACTION, REVIEW_LOCALLY_ACTION]
+            [SEND_TO_AGENT_ACTION, REVIEW_LOCALLY_ACTION]
         );
-        assert_eq!(rows[1].1.keys, "A");
-        assert_eq!(rows[2].1.keys, "i");
+        assert_eq!(rows[0].1.keys, "A");
+        assert_eq!(rows[1].1.keys, "i");
+        assert_eq!((rows[0].1.group, rows[1].1.group), (ActionGroup::Ask, ActionGroup::Local));
         let pressed = Chord::char('A');
         let Some(Outcome::Handled(fx)) = key_press(&p, Pane::Middle, pressed) else { panic!("not handled") };
         let [Effect::SendToAgent(req)] = fx.as_slice() else { panic!("{fx:?}") };
@@ -447,7 +450,7 @@ mod tests {
                 }
             }
             let ids: Vec<String> = rows(&p, Pane::Middle).into_iter().map(|(id, _)| id).collect();
-            assert_eq!(ids, ["", SEND_TO_AGENT_ACTION].map(String::from), "{state:?}");
+            assert_eq!(ids, [SEND_TO_AGENT_ACTION].map(String::from), "{state:?}");
             let fx = press(&p, Pane::Middle, 'i').unwrap();
             assert!(matches!(fx.as_slice(), [Effect::Notify(m)] if m.contains("not open")), "{fx:?}");
         }

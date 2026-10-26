@@ -8,24 +8,14 @@ expression: menu_shown(&host)
   open it in Slack  (o)
   copy its link  (y)
   mark read up to here, in radar only  (m)
-  # on Slack
+  # change it
   comment in its thread…  (c)
   react to it…  (e)
-  # with an agent
-  ask an agent about it…  (A)
+  # work on it here
   review its merge request locally…  (v)
-  # list
-  kept replies…  (ctrl-r)
-  refresh  (r)
-  filter the list by words  (/)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  # ask someone
+  ask an agent about it…  (A)
+  history of #team thread  (H)
 ── status · SLACK ──
 ↑↓ move  ⏎ choose  esc close
 7 new · 4 for you

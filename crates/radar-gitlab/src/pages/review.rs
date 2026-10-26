@@ -8,6 +8,7 @@
 
 use radar_core::plugin::{Binding, Effect, Outcome};
 use radar_core::ui::diff::{self, Kind as LineKind};
+use radar_core::view::ActionGroup;
 
 use super::changes::{self, detail, file_diff};
 use super::{Kind, Page, find_mr, mr};
@@ -179,8 +180,8 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page) -> Vec<crate::Row> {
             "gitlab.mr.approve",
             Binding::new(
                 "a",
-                if mine { format!("take back your approval of !{iid}…") } else { format!("approve !{iid}…") },
-            ).edits(),
+                if mine { "take back your approval…" } else { "approve…" },
+            ).edits().group(ActionGroup::Change),
         ));
     }
     if !writes_here(page) {
@@ -194,11 +195,11 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page) -> Vec<crate::Row> {
         b.push(act("gitlab.mr.open_thread_in_diff", Binding::new("⏎", format!("open it in the diff of {file}, at its line"))));
     }
     match &here {
-        Some(x) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment in the thread on {}…", place(x, iid))).adds())),
-        None if page.tab == mr::THREADS => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment on !{iid}…")).adds())),
+        Some(x) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment in the thread on {}…", place(x, iid))).adds().group(ActionGroup::Change))),
+        None if page.tab == mr::THREADS => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment on !{iid}…")).adds().group(ActionGroup::Change))),
         None => match line_at(p, page, project, iid) {
-            Ok(at) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment on {}…", at.words())).adds())),
-            Err(why) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment · {why}")))),
+            Ok(at) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment on {}…", at.words())).adds().group(ActionGroup::Change))),
+            Err(why) => b.push(act("gitlab.mr.comment", Binding::new("c", "comment").hint(why.to_string()).group(ActionGroup::Change))),
         },
     }
     if let Some(x) = here.filter(|x| x.resolvable) {
@@ -211,7 +212,7 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page) -> Vec<crate::Row> {
                 } else {
                     format!("resolve the thread on {}…", place(&x, iid))
                 },
-            ).edits(),
+            ).edits().group(ActionGroup::Change),
         ));
     }
     b

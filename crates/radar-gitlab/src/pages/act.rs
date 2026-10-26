@@ -6,6 +6,7 @@
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome};
 use radar_core::ui::icon::Icon;
 use radar_core::ui;
+use radar_core::view::ActionGroup;
 
 use super::{Kind, Page, fetch, find_mr, mr_key};
 use crate::GitlabPlugin;
@@ -32,36 +33,27 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page) -> Vec<crate::Row> {
         _ => None,
     };
     if let Some(mr) = mr {
-        b.push(crate::head(Binding::heading("on GitLab")));
         let busy = |what: &str| {
             p.acting
                 .get(&mr_key(&mr.project_path, mr.iid))
                 .is_some_and(|a| a.state == Acting::Running && a.what == what)
         };
-        b.push(crate::act(
-            "gitlab.mr.rebase",
-            Binding::new(
-                "u",
-                if busy("rebase") {
-                    "update by rebasing · asked, waiting for GitLab".to_string()
-                } else {
-                    format!("update by rebasing onto {}…", mr.target_branch)
-                },
-            )
-            .edits(),
-        ));
-        b.push(crate::act(
-            "gitlab.mr.merge",
-            Binding::new(
-                "m",
-                match mr_actions::blocker(mr) {
-                    _ if busy("merge") => "merge · asked, waiting for GitLab".to_string(),
-                    None => format!("merge into {}…", mr.target_branch),
-                    Some(why) => format!("merge · {why}"),
-                },
-            )
-            .edits(),
-        ));
+        // The page is the merge request's: the label is the action alone, and
+        // what stands in its way is a fact at the row's right edge.
+
+        const WAITING: &str = "asked, waiting for GitLab";
+        let mut rebase = Binding::new("u", "rebase…").edits().group(ActionGroup::Change);
+        if busy("rebase") {
+            rebase = Binding::new("u", "rebase").edits().group(ActionGroup::Change).hint(WAITING);
+        }
+        b.push(crate::act("gitlab.mr.rebase", rebase));
+        let mut merge = Binding::new("m", "merge…").edits().group(ActionGroup::Change);
+        if busy("merge") {
+            merge = Binding::new("m", "merge").edits().group(ActionGroup::Change).hint(WAITING);
+        } else if let Some(why) = mr_actions::blocker(mr) {
+            merge = Binding::new("m", "merge").edits().group(ActionGroup::Change).hint(why);
+        }
+        b.push(crate::act("gitlab.mr.merge", merge));
         b.extend(super::review::bindings(p, page));
     }
     b

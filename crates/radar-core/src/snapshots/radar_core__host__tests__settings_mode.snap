@@ -7,11 +7,12 @@ bar: radar  a :log: history <:settings: settings>  :mode_read: read only {chrome
   General  {chrome:group:general}
     :parts: parts  {chrome:section:0}
 >   :mode_read: mode  {chrome:section:1}
-    :colours: appearance  {chrome:section:2}
-    :colours: colours  {chrome:section:3}
-    :icons: icons  {chrome:section:4}
+    :menu: menus  {chrome:section:2}
+    :colours: appearance  {chrome:section:3}
+    :colours: colours  {chrome:section:4}
+    :icons: icons  {chrome:section:5}
   a  {chrome:group:a}
-    a  {chrome:section:5}
+    a  {chrome:section:6}
 ── section · mode ──
   # WHAT RADAR MAY CHANGE  {mode.what}
   #  {blank:0}

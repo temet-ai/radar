@@ -95,3 +95,85 @@ export const Question: Story = {
   args: argsOf(chrome80, confirm),
   render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />,
 };
+
+const rowItem = (i: number, label: string, key: string, hint = "", extra: Partial<MenuView["items"][number]> = {}): MenuView["items"][number] => ({
+  value: label, label, hint, key, keys: key, mnemonic_at: null, mnemonic_shift: false, target: `chrome:menu:${i}`, ...extra,
+});
+const heading = (label: string): MenuView["items"][number] => ({ value: "", label, hint: "", heading: true, shown_only: true });
+
+/** A row menu as the host sends it: every key in the key column (shift keys as the capital), no heading over the first
+ * rows, facts about the row in `hint` at the right edge. Hand-made sample (Ink's own test data): no recorded view holds
+ * a grouped row menu. */
+const rowMenu = (over: Partial<MenuView> = {}): MenuView => ({
+  id: "actions",
+  title: "watch-rota vimes/night-shift",
+  question: false,
+  gear: true,
+  selected: 1,
+  items: [
+    rowItem(0, "open in the browser", "o"),
+    rowItem(1, "pull", "p", "not behind main"),
+    heading("change it"),
+    rowItem(2, "rename the branch", "r"),
+    rowItem(3, "merge into main", "m", "radar is read only", { muted: true }),
+    heading("work on it here"),
+    rowItem(4, "open a terminal", "t"),
+    rowItem(5, "start a session", "s", "running 4m"),
+    heading("ask someone"),
+    rowItem(6, "ask Sam Vimes to review", "A"),
+    rowItem(7, "ask Carrot about it", "H"),
+  ],
+  ...over,
+});
+
+/** The row menu (`x` or a right click on a row) with its groups, hints at the right and the gear (key `,`) at the
+ * right end of the title edge. 80 wide. */
+export const RowMenu: Story = {
+  args: argsOf(chrome80, rowMenu()),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />,
+};
+
+/** The same row menu at 160 wide. */
+export const RowMenuWide: Story = {
+  args: argsOf(chrome160, rowMenu()),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />,
+};
+
+/** The gear is on (`customising`): its cells sit on the selection background. 80 wide. */
+export const RowMenuCustomising: Story = {
+  args: argsOf(chrome80, rowMenu({ customising: true })),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />,
+};
+
+/** The gear is on, 160 wide. */
+export const RowMenuCustomisingWide: Story = {
+  args: argsOf(chrome160, rowMenu({ customising: true })),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />,
+};
+
+const paneMenu = (): MenuView => ({
+  id: "pane",
+  title: "watch-rota",
+  question: false,
+  selected: 0,
+  items: [
+    rowItem(0, "refresh", "r", "synced 2m ago"),
+    rowItem(1, "new branch", "n"),
+    heading("work on it here"),
+    rowItem(2, "start a session", "s", "running 4m"),
+    heading("ask someone"),
+    rowItem(3, "ask Sam Vimes", "A"),
+  ],
+});
+
+/** A pane's menu (the actions on the pane, not on a row): no gear in the title edge. 80 wide. */
+export const PaneMenu: Story = {
+  args: argsOf(chrome80, paneMenu()),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />,
+};
+
+/** A pane's menu at 160 wide. */
+export const PaneMenuWide: Story = {
+  args: argsOf(chrome160, paneMenu()),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />,
+};

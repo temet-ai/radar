@@ -162,6 +162,10 @@ pub struct Menu {
     pub at: Option<String>,
     /// A field to type into, with this text to start ([`Menu::typed`]).
     pub typed: Option<String>,
+    /// The host's row menus: a gear in the title edge (`,`) customises it.
+    pub(crate) gear: bool,
+    /// The gear is on: the menu is its own editor.
+    pub(crate) customising: bool,
 }
 
 /// What a part says of the text typed into a menu's field
@@ -355,6 +359,8 @@ impl Menu {
             question: false,
             at: None,
             typed: None,
+            gear: false,
+            customising: false,
         }
     }
 
@@ -782,6 +788,19 @@ pub struct Binding {
     /// host mutes the row and says why (`· needs edit mode`); its key
     /// still opens the question.
     pub change: Option<crate::writes::Change>,
+    /// It acts on the pane or the session (filter, refresh, go to): offered
+    /// in the pane's menu, not in a row's.
+    pub pane: bool,
+    /// A fact about the row (`running 4m`): drawn at the right edge of the
+    /// menu row, never joined to the words.
+    pub hint: String,
+    /// What it is for: the row menu's heading it sits under.
+    pub group: crate::view::ActionGroup,
+    /// The row's state asks for it now: it follows the default action.
+    pub lead: bool,
+    /// Its stable id (`<part>.<surface>.<verb>`), when it came from a
+    /// view's actions: what a customised menu names it by.
+    pub id: String,
 }
 
 impl Binding {
@@ -792,18 +811,42 @@ impl Binding {
             what: what.into(),
             icon: None,
             change: None,
+            pane: false,
+            hint: String::new(),
+            group: crate::view::ActionGroup::Open,
+            lead: false,
+            id: String::new(),
         }
     }
 
     /// A heading over the rows that follow. A heading first in the list
     /// names the menu instead: what the actions are for (`!263`).
     pub fn heading(text: impl Into<String>) -> Self {
-        Self {
-            keys: String::new(),
-            what: text.into(),
-            icon: None,
-            change: None,
-        }
+        Self::new(String::new(), text)
+    }
+
+    /// It acts on the pane or the session, not the selected row.
+    pub fn pane(mut self) -> Self {
+        self.pane = true;
+        self
+    }
+
+    /// A fact about the row, at the right edge of its menu row.
+    pub fn hint(mut self, hint: impl Into<String>) -> Self {
+        self.hint = hint.into();
+        self
+    }
+
+    /// The heading it sits under in a row menu.
+    pub fn group(mut self, group: crate::view::ActionGroup) -> Self {
+        self.group = group;
+        self
+    }
+
+    /// The row's state asks for it: it follows the default action.
+    pub fn lead(mut self) -> Self {
+        self.lead = true;
+        self
     }
 
     /// The row's key writes something new to a service.

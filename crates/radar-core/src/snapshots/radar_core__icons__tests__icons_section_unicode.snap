@@ -7,9 +7,10 @@ bar: radar  :log: history <:settings: settings>  :mode_edit: edit {chrome:mode}
   General  {chrome:group:general}
     :parts: parts  {chrome:section:0}
     :mode_edit: mode  {chrome:section:1}
-    :colours: appearance  {chrome:section:2}
-    :colours: colours  {chrome:section:3}
->   :icons: icons  {chrome:section:4}
+    :menu: menus  {chrome:section:2}
+    :colours: appearance  {chrome:section:3}
+    :colours: colours  {chrome:section:4}
+>   :icons: icons  {chrome:section:5}
 ── section · icons ──
   # code  {icon:0}
 > ◆  group  a group of repositories, a tenancy  {icon:1}

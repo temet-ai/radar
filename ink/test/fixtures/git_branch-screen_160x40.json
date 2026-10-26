@@ -21,7 +21,8 @@
         }
       },
       "label": "read the clones again",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     }
   ],
   "dock": {

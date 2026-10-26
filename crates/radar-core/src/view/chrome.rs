@@ -464,6 +464,13 @@ pub struct MenuView {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub change: Option<Change>,
     pub items: Vec<Choice>,
+    /// A row menu that can be customised: a gear at the right end of the
+    /// title edge, with its key `,`; a press on it is [`targets::gear`].
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub gear: bool,
+    /// The gear is on: the menu is its own editor (the gear drawn lit).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub customising: bool,
     /// The highlighted row (an index into `items`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selected: Option<usize>,
@@ -510,6 +517,8 @@ impl MenuView {
             question: false,
             change: None,
             items,
+            gear: false,
+            customising: false,
             selected: None,
             typed: None,
             caret: None,
@@ -678,6 +687,10 @@ pub mod targets {
     /// Row `index` of the open menu.
     pub fn menu_item(index: usize) -> Target {
         Target(format!("chrome:menu:{index}"))
+    }
+    /// The gear in the open menu's title edge: customise the menu.
+    pub fn gear() -> Target {
+        Target::new("chrome:gear")
     }
     pub fn nav_group(id: &str) -> Target {
         Target(format!("chrome:group:{id}"))

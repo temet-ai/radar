@@ -53,7 +53,8 @@
           "char": "r"
         }
       },
-      "label": "kept comments…"
+      "label": "kept comments…",
+      "pane": true
     }
   ],
   "body": {

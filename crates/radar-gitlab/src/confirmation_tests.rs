@@ -469,7 +469,7 @@ query($project: ID!, $iid: String!) {
                 .menu
                 .items
                 .iter()
-                .any(|i| i.label == "merge into main…")
+                .any(|i| i.label == "merge…")
         );
         press(&mut s, Key::Esc);
         press(&mut s, Key::Char('m'));

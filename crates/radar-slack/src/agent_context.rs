@@ -10,13 +10,12 @@ use radar_core::agent_context::{
 };
 use radar_core::journal::SubjectKey;
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::view::{Chord, Key};
-use radar_core::ui::icon::Icon;
+use radar_core::view::{ActionGroup, Chord, Key};
 
 use crate::model::{Namer, Thread};
 use crate::page::Page;
 use crate::screen::{self, Item};
-use crate::{Row, SlackPlugin, act, head, mrkdwn};
+use crate::{Row, SlackPlugin, act, mrkdwn};
 
 /// The kind of a Slack message in a [`SubjectKey`] (the journal's, too).
 pub(crate) const MESSAGE: &str = "message";
@@ -168,14 +167,14 @@ pub(crate) const REVIEW_KEY: char = 'v';
 pub(crate) fn rows(p: &SlackPlugin, pane: Pane) -> Vec<Row> {
     let Some((channel, ts)) = target(p, pane) else { return vec![] };
     // The ids are the host's shared ones (every part's row says the same).
-    let mut out = vec![
-        head(Binding::heading("with an agent").icon(Some(Icon::Bot))),
-        act(SEND_TO_AGENT_ACTION, Binding::new(SEND_KEY.to_string(), "ask an agent about it…")),
-    ];
+    let mut out = vec![act(
+        SEND_TO_AGENT_ACTION,
+        Binding::new(SEND_KEY.to_string(), "ask an agent about it…").group(ActionGroup::Ask),
+    )];
     if !thread_merge_requests(p, &channel, &ts).is_empty() {
         out.push(act(
             REVIEW_LOCALLY_ACTION,
-            Binding::new(REVIEW_KEY.to_string(), "review its merge request locally…"),
+            Binding::new(REVIEW_KEY.to_string(), "review its merge request locally…").group(ActionGroup::Local),
         ));
     }
     out
@@ -357,12 +356,12 @@ mod tests {
         let mut p = demo::sample();
         let lunch = p.data.channels[TEAM].messages[2].ts.clone();
         open_thread(&mut p, &lunch);
-        assert_eq!(ids(&p), ["", "agent.send"].map(String::from));
+        assert_eq!(ids(&p), ["agent.send"].map(String::from));
         let fx = press(&mut p, Pane::Middle, 'v').unwrap();
         assert!(matches!(fx.as_slice(), [Effect::Notify(m)] if m.contains("no merge request")));
         let mut p = demo::sample();
         open_thread(&mut p, &ask_ts());
-        assert_eq!(ids(&p), ["", "agent.send", "agent.review_locally"].map(String::from));
+        assert_eq!(ids(&p), ["agent.send", "agent.review_locally"].map(String::from));
     }
 
     #[test]

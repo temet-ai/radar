@@ -1394,8 +1394,8 @@ pub fn keys(p: &JiraPlugin, pane: Pane) -> Vec<Binding> {
         None => (None, false),
     };
     let view_rows = |b: &mut Vec<Binding>| {
-        b.push(Binding::new("/", "filter the view by words"));
-        b.push(Binding::new("r", "refresh now"));
+        b.push(Binding::new("/", "filter the view by words").pane());
+        b.push(Binding::new("r", "refresh now").pane());
     };
     let links = |b: &mut Vec<Binding>| match &sel {
         Some(Selected::Ticket(it)) => {

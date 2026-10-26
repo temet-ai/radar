@@ -605,7 +605,7 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page, project: &str, iid: u64, p
     }
     let files = act(
         "gitlab.mr.toggle_files",
-        Binding::new("f", if p.cfg.hide_files { "show the files beside the diff" } else { "collapse the files" }),
+        Binding::new("f", if p.cfg.hide_files { "show the files beside the diff" } else { "collapse the files" }).pane(),
     );
     if pane == Pane::Nav && page.tree_shown.get() {
         return vec![
@@ -626,21 +626,22 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page, project: &str, iid: u64, p
         Binding::new(
             "v",
             if p.cfg.side_by_side { "view the diff in one column" } else { "view the diff side by side" },
-        ),
+        )
+        .pane(),
     ));
     if let Some(to) = next {
-        b.push(act("gitlab.mr.next_file", Binding::new("n", format!("next file: {}", name(to)))));
+        b.push(act("gitlab.mr.next_file", Binding::new("n", format!("next file: {}", name(to))).pane()));
     }
     if let Some(to) = neighbour(p, project, iid, at, -1) {
-        b.push(act("gitlab.mr.previous_file", Binding::new("N", format!("open previous file: {}", name(to)))));
+        b.push(act("gitlab.mr.previous_file", Binding::new("N", format!("open previous file: {}", name(to))).pane()));
     }
     let lines = lines(p, page, project, iid);
     let cur = page.diff.cursor();
     if diff::hunks(&lines).iter().any(|&h| h > cur) || next.is_some() {
-        b.push(act("gitlab.mr.next_hunk", Binding::new("}", "next hunk")));
+        b.push(act("gitlab.mr.next_hunk", Binding::new("}", "next hunk").pane()));
     }
     if diff::hunks(&lines).iter().any(|&h| h < cur) {
-        b.push(act("gitlab.mr.previous_hunk", Binding::new("{", "previous hunk")));
+        b.push(act("gitlab.mr.previous_hunk", Binding::new("{", "previous hunk").pane()));
     }
     let here = at_cursor(p, page, project, iid);
     if let Some(x) = here.first() {

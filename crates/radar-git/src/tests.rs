@@ -141,14 +141,9 @@ fn the_actions_are_this_machines_and_checking_out_is_for_a_merge_request() {
         actions(&p, &mr(api, "feature/ABC-263")),
         [
             "c: check out feature/ABC-263…",
-            "e: open in an editor on feature/ABC-263…",
-            "t: open a terminal on feature/ABC-263…",
-            "s: look for checkouts again",
-            "n: new branch…",
-            ": update by rebasing onto its base…",
-            ": push main…",
-            ": park on a worktree…",
-            ": link to another local folder…",
+            "e: open in an editor…",
+            "t: open a terminal…",
+            ": push, worktree, new branch, link…",
         ]
     );
     assert_eq!(
@@ -177,11 +172,50 @@ fn the_actions_are_this_machines_and_checking_out_is_for_a_merge_request() {
     p.cfg.roots.clear();
     assert_eq!(
         actions(&p, &repo("acme/team-a/web")),
+        ["s: scan for a checkout", ": link to a local folder…"]
+    );
+    let Some(Contribution::Actions(a)) = p.contribute(Point::Actions, &repo("acme/team-a/web")) else { panic!() };
+    assert_eq!(a[0].hint, "no folders set yet", "the fact beside the row, not in its words");
+}
+
+/// On a merge request the checkout's states are facts beside the rows, they
+/// belong to "work on it here", and the chores are one row with a menu of
+/// their own, each with its own key.
+#[test]
+fn on_a_merge_request_the_local_rows_carry_facts_and_the_chores_open_their_own_menu() {
+    use radar_core::view::ActionGroup;
+    let mut p = sample();
+    let api = "acme/team-a/api";
+    let s = mr(api, "feature/ABC-263");
+    let Some(Contribution::Actions(a)) = p.contribute(Point::Actions, &s) else { panic!() };
+    assert!(a.iter().all(|a| a.group == Some(ActionGroup::Local)), "{a:?}");
+    let hint = |id: &str| a.iter().find(|a| a.id == id).unwrap().hint.clone();
+    assert_eq!(hint("editor"), "on feature/ABC-263");
+    assert_eq!(hint("terminal"), "on feature/ABC-263");
+    assert!(a.iter().all(|a| !["scan", "rebase", "push", "park", "link", "new", "use"].contains(&a.id.as_str())), "{a:?}");
+
+    let fx = p.act(&s, "chores");
+    let [Effect::Menu(menu)] = &fx[..] else { panic!("{fx:?}") };
+    let keys: Vec<(String, &str)> = menu.items.iter().map(|i| (i.keys.clone(), i.label.as_str())).collect();
+    assert_eq!(
+        keys,
         [
-            "s: scan for a checkout · no folders set yet",
-            ": link to a local folder…"
+            ("p".into(), "push main…"),
+            ("w".into(), "park on a worktree…"),
+            ("n".into(), "new branch…"),
+            ("l".into(), "link to another local folder…"),
         ]
     );
+    // A choice in it is the action itself, on the same merge request.
+    let id = menu.id.clone();
+    let fx = p.on_menu(&id, "new");
+    assert!(!fx.is_empty(), "a branch is named from the ticket in the merge request's branch");
+
+    // Checking out is a state beside the row.
+    p.local.switching.insert("/work/acme/api".into());
+    let Some(Contribution::Actions(a)) = p.contribute(Point::Actions, &s) else { panic!() };
+    let checkout = a.iter().find(|a| a.id == "checkout").unwrap();
+    assert_eq!((checkout.what.as_str(), checkout.hint.as_str()), ("check out feature/ABC-263…", "checking out…"));
 }
 
 #[test]
@@ -231,7 +265,7 @@ fn every_row_and_target_is_taken() {
     let n = check.actions(&mr("acme/team-a/api", "feature/ABC-263"))
         + check.actions(&repo("acme/team-a/api"))
         + check.actions(&repo("acme/team-a/web"));
-    assert_eq!(n, 19);
+    assert_eq!(n, 14);
     assert!(check.gaps.is_empty(), "{:?}", check.gaps);
     assert!(check.checked > 40, "only {} checked", check.checked);
 }

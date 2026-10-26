@@ -502,7 +502,9 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   const longTitle = measure(titleText) > maxW || title.includes("\n");
   const keyW = Math.max(0, ...items.map((i) => measure(separateKey(i))));
   const iconW = (c: (typeof items)[number]) => (lead(c.icon) ? measure(lead(c.icon)!.text) : 0);
-  const labelW = Math.max(0, ...items.filter((i) => !i.heading).map((i) => measure(i.label) + measure(shiftWords(i)) + iconW(i)));
+  // When any row has an icon, every row keeps its slot, so the labels line up.
+  const slotW = Math.max(0, ...items.filter((i) => !i.heading && !i.note).map(iconW));
+  const labelW = Math.max(0, ...items.filter((i) => !i.heading).map((i) => measure(i.label) + measure(shiftWords(i)) + Math.max(iconW(i), i.note ? 0 : slotW)));
   const longest = (text: string) => Math.max(0, ...text.split("\n").map(measure));
   const compactW = (c: (typeof items)[number]) => menu.palette
     ? longest(c.label) + measure(shiftWords(c)) + iconW(c) + (c.sample ? 3 : 0) + (c.hint ? 3 + longest(c.hint) : 0) + (keyW === 0 ? 2 : keyW + 4)
@@ -525,9 +527,23 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     currentButtonsW += (currentButtonsW ? 2 : 0) + bw;
   }
   buttonsW = Math.max(buttonsW, currentButtonsW);
+  // A row menu that can be customised: ` <gear> , ` before the corner (a lit shade when it is on); dropped when the
+  // title and it do not both fit the edge (the `,` key still works).
+  const gearIcon = lead("settings");
+  const gearBg = menu.customising ? bgOf("bg.selection") : overlay;
+  const gearCells: Cell[] = menu.gear
+    ? [
+        { text: " ", style: { backgroundColor: gearBg } },
+        ...(gearIcon ? [{ text: gearIcon.text, style: { ...gearIcon.style, backgroundColor: gearBg } }] : []),
+        { text: ",", style: { ...slotStyle("accent.secondary"), bold: true, backgroundColor: gearBg } },
+        { text: " ", style: { backgroundColor: gearBg } },
+      ]
+    : [];
+  const gearW = gearCells.reduce((n, c) => n + measure(c.text), 0);
   const natural = Math.max(
     1,
     measure(titleText),
+    gearW > 0 && !longTitle ? measure(titleText) + gearW + 1 : 0,
     menu.typed != null ? 58 : 0,
     ...(question ? [] : items.filter((c) => !c.heading).map(compactW)),
     ...items.filter((c) => c.heading).map((c) => 1 + measure(c.label) + iconW(c)),
@@ -611,8 +627,14 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
       cells.push({ text: ic.text, style: { ...ic.style, ...(rowBg ? { backgroundColor: rowBg } : {}) } });
       cells.push(...choiceRuns(c, row));
       cells.push({ text: " ".repeat(Math.max(0, labelW - measure(ic.text) - measure(c.label) - measure(shiftWords(c)))), style: row });
-    } else cells.push({ text: " ", style: row }, ...choiceRuns(c, row), { text: " ".repeat(Math.max(0, labelW - measure(c.label) - measure(shiftWords(c)))), style: row });
-    cells.push({ text: `   ${c.hint} `, style: { ...slotStyle("text.muted"), ...(rowBg ? { backgroundColor: rowBg } : {}) } });
+    } else cells.push({ text: " ".repeat(1 + slotW), style: row }, ...choiceRuns(c, row), { text: " ".repeat(Math.max(0, labelW - slotW - measure(c.label) - measure(shiftWords(c)))), style: row });
+    // The hint (a fact about the row) ends one cell before the right border, muted, the selection shade across the gap.
+    if (c.hint) {
+      const used = cells.reduce((n, x) => n + measure(x.text), 0);
+      cells.push({ text: " ".repeat(Math.max(0, innerW - used - measure(c.hint) - 1)), style: row });
+      cells.push({ text: c.hint, style: { ...slotStyle("text.muted"), ...(rowBg ? { backgroundColor: rowBg } : {}) } });
+      cells.push({ text: " ", style: row });
+    }
     body.push({ cells: fillTo(cells, rowBg), target: c.target ?? undefined, sel: on });
   });
 
@@ -714,7 +736,12 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   const edgeCell = (text: string): Cell => ({ text, style: border });
   const shownTitle = longTitle ? narrowCount ?? [] : titleCells;
   const titleW = shownTitle.reduce((n, c) => n + measure(c.text), 0);
-  lines.push([edgeCell("╭"), ...shownTitle, edgeCell(`${"─".repeat(Math.max(0, w - 2 - titleW))}╮`)]);
+  const gearFits = gearW > 0 && 1 + titleW + gearW + 2 <= w;
+  const topFill = Math.max(0, w - 2 - titleW - (gearFits ? gearW + 1 : 0));
+  if (gearFits) {
+    lines.push([edgeCell("╭"), ...shownTitle, edgeCell("─".repeat(topFill)), ...gearCells, edgeCell("─╮")]);
+    hits.push({ x: x + w - 2 - gearW, y, w: gearW, h: 1, target: GEAR });
+  } else lines.push([edgeCell("╭"), ...shownTitle, edgeCell(`${"─".repeat(Math.max(0, w - 2 - titleW))}╮`)]);
   const put = (cells: Cell[], inner?: number) => {
     cells = clipSegments(cells, innerW);
     const used = cells.reduce((n, c) => n + measure(c.text), 0);
@@ -803,6 +830,8 @@ export function layoutNav(nav: SettingsNav, x0: number, y0: number, w: number, m
 
 /** The target of an open menu's whole frame (host.rs Hit::MenuBox): pressed, it does nothing. */
 export const MENU_BOX = "chrome:menu:box";
+/** The gear at the right end of a row menu's title edge (host targets::gear): pressed, it turns the menu's editing on or off. */
+export const GEAR = "chrome:gear";
 
 export function hitAt(hits: Hit[], x: number, y: number): Hit | undefined {
   for (let i = hits.length - 1; i >= 0; i--) {

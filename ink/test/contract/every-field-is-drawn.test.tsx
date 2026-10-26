@@ -285,6 +285,8 @@ const CASES: Record<string, Case> = {
   "MenuView.lines": menu((m, on) => ((m.lines = on ? 30 : 2), (m.shown = 2))),
   "MenuView.shown": menu((m, on) => ((m.lines = 30), (m.shown = on ? 2 : 30))),
   "MenuView.usable": menu((m, on) => (m.usable = on)),
+  "MenuView.gear": menu((m, on) => (m.gear = on)),
+  "MenuView.customising": menu((m, on) => ((m.gear = true), (m.customising = on))),
   "MenuView.refused": menu((m, on) => ((m.typed = "x"), (m.refused = on ? "ZZREFUSED" : null))),
   // Choice
   "Choice.label": choice((c, on) => (c.label = pick(on, "beta", "ZZLABEL"))),

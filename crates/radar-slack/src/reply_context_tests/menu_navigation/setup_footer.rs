@@ -54,15 +54,9 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
                 .iter()
                 .map(|item| (item.label.as_str(), item.keys.as_str()))
                 .collect::<Vec<_>>(),
-            [
-                ("set up Slack in settings", "⏎"),
-                ("recent notices (this session)", "~"),
-                ("History", ""),
-                ("recent activity (last 24 hours)", "H"),
-                ("all activity history", ""),
-            ]
+            [("set up Slack in settings", "⏎")],
+            "the row menu: notices and history are the pane's"
         );
-        assert!(items[2].heading);
         shown(&host, width, height);
         press(&mut host, Key::Esc, Mods::NONE);
         assert_eq!(state(&host), before);

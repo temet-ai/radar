@@ -27,6 +27,7 @@ pub mod ipc;
 pub mod journal;
 mod journal_runtime;
 pub mod log;
+pub mod menus;
 pub mod mode;
 pub mod mnemonic;
 pub mod motion;
@@ -72,6 +73,7 @@ pub use plugin::{
     SectionSpec, SetupFinds, SetupGroup, SetupStep, Task, Tone, Typing, Verdict,
 };
 pub use theme::Theme;
+pub use view::ActionGroup;
 
 // Re-exported so plugins build against the host's exact versions.
 pub use opaline;

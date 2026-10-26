@@ -327,6 +327,8 @@ fn host_menu_press_retry_and_keyboard_repeat_dispatch_once_then_recover() {
     select_worktree(&p);
     let mut h = host(p);
     press(&mut h, KeyCode::Char('x'));
+    // "read the clones again" is the pane's: `x` again, inside the row menu.
+    press(&mut h, KeyCode::Char('x'));
     crate::tests::shown(&h, 160, 40);
     // A press on the menu's row sends Invoke with the row's value.
     let menu = &h.menu.as_ref().unwrap().menu;

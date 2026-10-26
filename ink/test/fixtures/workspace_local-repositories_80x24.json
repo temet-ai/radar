@@ -20,7 +20,8 @@
         }
       },
       "label": "look for repositories again",
-      "mnemonic_at": 7
+      "mnemonic_at": 7,
+      "pane": true
     }
   ],
   "dock": {

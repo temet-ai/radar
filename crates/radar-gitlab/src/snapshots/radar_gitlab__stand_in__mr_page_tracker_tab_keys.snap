@@ -12,27 +12,18 @@ tracked as ABC-12
 > open ABC-12  (⏎)
   open ABC-12's link  (o)
   copy ABC-12's link  (y)
-  refresh this page  (r)
-  # on GitLab
-  update by rebasing onto main…  (u)
-  merge · needs 1 approval  (m)
-  approve !263…  (a)
-  # page
-  next tab: Overview  (])
-  previous tab: Commits  ([)
-  # with an agent
-  ask an agent about it…  (A)
+  # change it
+  rebase…  (u)
+  merge  (m)  needs 1 approval
+  approve…  (a)
+  # work on it here
   review it locally…  (i)
-  back to the middle pane  (esc)
-  kept comments…  (ctrl-r)
+  # ask someone
+  ask an agent about it…  (A)
   # Tracker
   start work on ABC-12…  (s)
-  open ABC-12 in the tracker
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  open ABC-12 in the tracker  (p)
+  history of api !263  (H)
 ── status · REPOSITORIES ──
 ↑↓ move  ⏎ choose  esc close
 4 open · 1 to review · 1 ready

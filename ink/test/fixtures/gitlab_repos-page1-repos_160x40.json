@@ -34,7 +34,8 @@
         }
       },
       "label": "refresh this page and its tenancy",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "gitlab.page.back",
@@ -51,7 +52,8 @@
           "char": "r"
         }
       },
-      "label": "kept comments…"
+      "label": "kept comments…",
+      "pane": true
     }
   ],
   "dock": {

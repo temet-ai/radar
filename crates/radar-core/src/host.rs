@@ -26,7 +26,8 @@ use std::cell::Cell;
 use std::collections::HashMap;
 
 use anyhow::{Result, bail};
-use crate::view::{Chord, Key};
+use crate::view::{ActionGroup, Chord, Key};
+use crate::menus::Place;
 use serde_json::Value;
 
 use crate::colours::{Colours, Reply};
@@ -116,6 +117,58 @@ pub(crate) fn host_key(c: char) -> bool {
     "qx?bwzhljkgG[]/: +=-".contains(c) || c.is_ascii_digit() || c.is_ascii_uppercase()
 }
 
+/// Which actions a keys menu offers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) enum MenuOf {
+    /// What acts on the selected row (`x`, a right-click on a row).
+    #[default]
+    Row,
+    /// What acts on the pane or the session (a right-click on empty space,
+    /// `x` again in a row's menu).
+    Pane,
+    /// Both: the palette's actions.
+    All,
+}
+
+/// One line of a keys menu before it is a [`MenuItem`].
+enum Entry {
+    Heading(String, Option<crate::ui::icon::Icon>),
+    Own(Binding),
+    Act(usize, compose::Action, Subject),
+    /// One of the host's, with its id.
+    Item(String, MenuItem, Press),
+    /// One row that opens these (a name, or empty to name them by their words).
+    More(String, Vec<Entry>),
+}
+
+/// It acts on the pane, not the row: marked so, or moving about (back,
+/// scrolling, the panes either side).
+fn reaches_pane(b: &Binding) -> bool {
+    b.pane
+        || matches!(
+            b.keys.as_str(),
+            "esc" | "pgup" | "pgdn" | "home" | "end" | "tab" | "↑" | "↓" | "←" | "→" | "↑↓" | "←→"
+        )
+}
+
+/// The first letter of `words` nobody here uses and a part may take.
+fn free_letter(words: &str, taken: &[char]) -> Option<char> {
+    words
+        .chars()
+        .filter(char::is_ascii_lowercase)
+        .find(|c| !taken.contains(c) && !host_key(*c))
+}
+
+/// A heading with nothing under it before the next heading or the end goes.
+fn drop_empty_headings(entries: &mut Vec<Entry>) {
+    let heading = |e: &Entry| matches!(e, Entry::Heading(..));
+    let keep: Vec<bool> = (0..entries.len())
+        .map(|i| !heading(&entries[i]) || entries.get(i + 1).is_some_and(|n| !heading(n)))
+        .collect();
+    let mut keep = keep.into_iter();
+    entries.retain(|_| keep.next().unwrap_or(true));
+}
+
 /// The plain keys a part's own `x` rows press.
 fn own_keys(rows: &[Binding]) -> Vec<char> {
     rows.iter()
@@ -137,6 +190,8 @@ pub enum Owner {
     Mode,
     /// The look: icons, theme and motion, as setup's look step shows them.
     Look,
+    /// The row menus: how each kind of place's is customised.
+    Menus,
     Plugin(usize),
 }
 
@@ -197,6 +252,8 @@ enum Press {
     /// Captured, validated subject scope; reading never follows a later selection.
     History(Option<crate::journal::SubjectKey>),
     RecentHistory,
+    /// Open these rows as a menu of their own, under this title.
+    Sub(String, Vec<MenuItem>, Vec<Option<Press>>),
 }
 
 impl std::fmt::Debug for Press {
@@ -207,6 +264,7 @@ impl std::fmt::Debug for Press {
             Self::Act(..) => f.write_str("Act(..)"),
             Self::History(..) => f.write_str("History(..)"),
             Self::RecentHistory => f.write_str("RecentHistory"),
+            Self::Sub(title, ..) => f.debug_tuple("Sub").field(title).finish(),
         }
     }
 }
@@ -346,6 +404,10 @@ pub enum View {
 /// many terminal apps use for preferences. Shift+H is history; other
 /// Shift+letters remain available for the parts' screens.
 pub const SETTINGS_KEY: char = ',';
+/// The config table of the row menus' customisation.
+pub const MENUS_TABLE: &str = "menus";
+/// In a row menu: its gear, the menu as its own editor.
+pub const GEAR_KEY: char = ',';
 /// Read-only activity history; text editors retain this key while capturing.
 pub const HISTORY_KEY: char = 'H';
 /// The id of the host's keys menu (`x`).
@@ -434,6 +496,8 @@ pub enum Hit {
     Pane(Pane),
     MenuBox,
     MenuItem(usize),
+    /// The gear in a row menu's title edge.
+    MenuGear,
     /// A key shown on the status line: a click presses it. The number is
     /// the hint it is part of (`PgUp/PgDn scroll` is one hint, two keys).
     Key(Chord, usize),
@@ -567,6 +631,8 @@ pub struct Host {
     pub menu: Option<OpenMenu>,
     /// While the keys menu is open: what each of its items does.
     menu_keys: Vec<Option<Press>>,
+    /// Whether the open keys menu is a row's or the pane's.
+    keys_menu_of: MenuOf,
     palette: Option<palette::State>,
     palette_generation: u64,
     palette_visits: HashMap<palette::Place, u64>,
@@ -606,6 +672,18 @@ pub struct Host {
     interaction_motion: interaction_motion::State,
     /// `[general] mode`: which writes radar may send ([`crate::mode`]).
     pub mode_cfg: crate::writes::Mode,
+    /// `[menus]`: how the row menus are customised.
+    pub menus: crate::menus::MenusConfig,
+    /// The selected row of Settings › Menus.
+    pub(crate) menus_row: usize,
+    /// The open keys menu is its own editor (the gear is on).
+    menu_customising: bool,
+    /// The editor waits for the key to give this action (its id, its words).
+    menu_rekey: Option<(String, String)>,
+    /// The kind of place the open row menu is for (its subject's kind).
+    menu_place: Option<String>,
+    /// The open keys menu's items' action ids, by item.
+    menu_ids: Vec<Option<String>>,
     /// The mode the environment sets for this run, and the variable.
     pub mode_env: Option<(crate::writes::Mode, String)>,
     /// The pause every part shares ([`crate::mode::PauseState`]).
@@ -645,6 +723,7 @@ impl Host {
         let mut sections = vec![
             (Owner::Parts, PARTS_SECTION),
             (Owner::Mode, crate::mode::MODE_SECTION),
+            (Owner::Menus, crate::menus::MENUS_SECTION),
             (Owner::Look, LOOK_SECTION),
             (Owner::Host, COLOURS_SECTION),
             (Owner::Host, ICONS_SECTION),
@@ -664,6 +743,7 @@ impl Host {
                 "theme",
                 crate::mode::MODE_SECTION.id,
                 crate::mode::GENERAL_TABLE,
+                MENUS_TABLE,
                 "terminal",
                 "setup",
             ]
@@ -769,6 +849,7 @@ impl Host {
             colours,
             menu: None,
             menu_keys: Vec::new(),
+            keys_menu_of: MenuOf::Row,
             palette: None,
             palette_generation: 0,
             palette_visits: HashMap::new(),
@@ -788,6 +869,12 @@ impl Host {
             cues: Vec::new(),
             interaction_motion: Default::default(),
             mode_cfg: crate::writes::Mode::default(),
+            menus: crate::menus::MenusConfig::default(),
+            menus_row: 0,
+            menu_customising: false,
+            menu_rekey: None,
+            menu_place: None,
+            menu_ids: Vec::new(),
             mode_env: None,
             pause: crate::mode::PauseState {
                 last_input: now,
@@ -991,6 +1078,10 @@ impl Host {
         if self.menu.as_ref().is_some_and(|m| m.input.is_some()) {
             return self.typed_key(key);
         }
+        // A row menu's gear, and the keys of the menu as its own editor.
+        if let Some(fx) = self.customise_key(key) {
+            return fx;
+        }
         let Some(open) = self.menu.as_mut() else {
             return vec![];
         };
@@ -1012,6 +1103,13 @@ impl Host {
                 Key::Esc | Key::Char('q') => {
                     self.cancel_menu_trace(true);
                     self.menu = None;
+                    return vec![];
+                }
+                // `x` in a row's menu turns it into the pane's.
+                Key::Char('x') if keys_menu && self.keys_menu_of == MenuOf::Row && !self.bar && !self.sources && !self.tabs => {
+                    self.cancel_menu_trace(true);
+                    self.menu = None;
+                    self.open_actions_menu(MenuOf::Pane);
                     return vec![];
                 }
                 // The keys that open the keys menu close it again.
@@ -1079,6 +1177,12 @@ impl Host {
             Owner::Host if keys_menu => match press {
                 Some(Press::History(subject)) => self.open_history(subject),
                 Some(Press::RecentHistory) => self.open_recent_history(),
+                Some(Press::Sub(title, items, presses)) => {
+                    self.menu_ids = vec![None; items.len()];
+                    self.menu_keys = presses;
+                    self.menu = Some(OpenMenu::open(Owner::Host, Menu::new(KEYS_MENU, title, items)));
+                    vec![]
+                }
                 Some(Press::Key(k, _) | Press::TreeKey(k, _)) => self.on_key(k),
                 Some(Press::Act(p, subject, id, _)) => self.contributed_act(p, &subject, &id, 0),
                 None => vec![],
@@ -1118,7 +1222,7 @@ impl Host {
                 }
                 vec![]
             }
-            Owner::Parts | Owner::Mode | Owner::Look => vec![],
+            Owner::Parts | Owner::Mode | Owner::Look | Owner::Menus => vec![],
             Owner::Plugin(p) => {
                 let fx = self.plugins[p].on_menu(&open.menu.id, &item.value);
                 self.route(p, fx, 0)
@@ -1151,6 +1255,13 @@ impl Host {
             None => ThemeConfig::default(),
         };
         self.colours.cfg.icon_overrides = crate::ui::icon::overrides(table.get(ICONS_TABLE));
+        self.menus = match table.get(MENUS_TABLE) {
+            Some(v) => v
+                .clone()
+                .try_into()
+                .map_err(|e| anyhow::anyhow!("[{MENUS_TABLE}]: {e}"))?,
+            None => crate::menus::MenusConfig::default(),
+        };
         self.mode_cfg = match table
             .get(crate::mode::GENERAL_TABLE)
             .and_then(|g| g.get("mode"))
@@ -1199,7 +1310,7 @@ impl Host {
     pub(crate) fn save(&mut self, asked: bool) -> HostEffect {
         let table = self.config_table();
         let mut owned: Vec<&str> = self.plugins.iter().map(|p| p.id()).collect();
-        owned.extend(["theme", ICONS_TABLE, crate::mode::GENERAL_TABLE]);
+        owned.extend(["theme", ICONS_TABLE, crate::mode::GENERAL_TABLE, MENUS_TABLE]);
         let text = merged_config(&self.file, &table, &owned);
         self.file = text.clone();
         self.saving.push_back((table, asked));
@@ -1240,6 +1351,11 @@ impl Host {
             && let Ok(icons) = toml::Value::try_from(&self.colours.cfg.icon_overrides)
         {
             table.insert(ICONS_TABLE.into(), icons);
+        }
+        if !self.menus.is_default()
+            && let Ok(menus) = toml::Value::try_from(&self.menus)
+        {
+            table.insert(MENUS_TABLE.into(), menus);
         }
         // Edit, the default, is not written.
         let mut general = toml::Table::new();
@@ -3014,9 +3130,9 @@ impl Host {
         }
         // `pane:<id>` from a renderer that lays the panes out itself (Ink): a
         // press on a pane's empty space, or the wheel over it, focuses that
-        // pane and nothing else, as a click on the pane does. Every
-        // intent that names such a target is the host's: no part sees it and
-        // no menu opens (a right-press on empty space offers nothing).
+        // pane, as a click on the pane does. Every intent that names such a
+        // target is the host's: no part sees it. A right-press there opens
+        // the pane's menu.
         if let Intent::Select { target }
         | Intent::Activate { target }
         | Intent::Context { target }
@@ -3029,6 +3145,9 @@ impl Host {
                 self.bar = false;
                 self.sources = false;
                 self.tabs = false;
+                if matches!(intent, Intent::Context { .. }) {
+                    self.open_actions_menu(MenuOf::Pane);
+                }
             }
             return vec![];
         }
@@ -3816,6 +3935,12 @@ impl Host {
             }
             return out;
         }
+        if self.view == View::Settings
+            && self.focus == Pane::Middle
+            && self.current_section().is_some_and(|(o, _)| o == Owner::Menus)
+        {
+            return self.menus_key(key);
+        }
         // A part not set up yet: its screen is the set-up page; ⏎ goes to
         // its settings.
         if let Some(p) = self.setting_up() {
@@ -3831,6 +3956,9 @@ impl Host {
                 self.above_body();
             }
             return vec![];
+        }
+        if let Some(fx) = self.remapped_key(key) {
+            return fx;
         }
         if let Some(fx) = self.deliver(key) {
             if key.key == Key::Esc {
@@ -3898,7 +4026,7 @@ impl Host {
             View::Screen(_) => self.screen().map(|(p, s)| (p, s.id))?,
             View::Settings => match self.current_section()? {
                 (Owner::Plugin(p), s) => (p, s.id),
-                (Owner::Host | Owner::Parts | Owner::Mode | Owner::Look, _) => return None,
+                (Owner::Host | Owner::Parts | Owner::Mode | Owner::Look | Owner::Menus, _) => return None,
             },
         };
         if !self.ready(p) && self.view != View::Settings {
@@ -4005,9 +4133,187 @@ impl Host {
             Some(Contribution::Actions(actions)) if actions.iter().any(|a| a.id == action))
     }
 
-    /// The focused pane's keys, then the host's, as a menu: choosing a row
-    /// presses its key.
+    /// The selected row's actions (`x`, a right-click on a row).
     fn open_keys_menu(&mut self) {
+        self.menu_customising = false;
+        self.menu_rekey = None;
+        self.open_actions_menu(MenuOf::Row);
+    }
+
+    /// Open the row's menu again after a change to how it is arranged, with
+    /// the highlight on the action `select` names.
+    fn reopen_row_menu(&mut self, select: Option<&str>) {
+        self.menu = None;
+        self.open_actions_menu(MenuOf::Row);
+        if let (Some(id), Some(open)) = (select, self.menu.as_mut())
+            && let Some(row) = self.menu_ids.iter().position(|i| i.as_deref() == Some(id))
+        {
+            open.row = row;
+        }
+    }
+
+    /// `,` in a row's menu turns it into its own editor; in the editor:
+    /// `⇧↑`/`⇧↓` (`K`/`J`) move the action among its heading's, `space` shows
+    /// or hides it, `*` pins it first, `f` puts it behind the group row at
+    /// the end, `=` asks for its key, `d` puts the place back as the parts
+    /// have it, `,` or `esc` is done. Each change is kept in `[menus]` at once.
+    /// `None`: the key is the menu's as usual.
+    fn customise_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        let open = self.menu.as_ref()?;
+        if open.owner != Owner::Host || open.menu.id != KEYS_MENU || self.keys_menu_of != MenuOf::Row {
+            return None;
+        }
+        let kind = self.menu_place.clone()?;
+        let row = open.row;
+        let id = self.menu_ids.get(row).cloned().flatten();
+        let label = open.menu.items.get(row).map(|i| i.label.clone()).unwrap_or_default();
+        if let Some((rekey, _)) = self.menu_rekey.take() {
+            if let (Key::Char(c), true) = (key.key, key.plain())
+                && let Err(why) = self.give_key(&kind, &rekey, c)
+            {
+                self.notify_error(why);
+            }
+            self.reopen_row_menu(Some(&rekey));
+            return Some(vec![]);
+        }
+        if !self.menu_customising {
+            if key.key == Key::Char(GEAR_KEY) && key.plain() {
+                self.menu_customising = true;
+                self.reopen_row_menu(id.as_deref());
+                return Some(vec![]);
+            }
+            return None;
+        }
+        let mut place = self.menus.place(&kind);
+        match (key.key, key.shift) {
+            (Key::Char(GEAR_KEY) | Key::Esc, _) => {
+                self.menu_customising = false;
+                self.reopen_row_menu(id.as_deref());
+                return Some(vec![]);
+            }
+            (Key::Char('q'), _) => return None,
+            (Key::Up | Key::Down, true) | (Key::Char('K' | 'J'), _) => {
+                let down = matches!(key.key, Key::Down | Key::Char('J'));
+                let Some(order) = self.moved(row, down) else { return Some(vec![]) };
+                place.order.retain(|o| !order.contains(o));
+                place.order.extend(order);
+            }
+            (Key::Char(' '), _) => Place::toggle(&mut place.hidden, id.as_deref()?),
+            (Key::Char('*'), _) => Place::toggle(&mut place.pinned, id.as_deref()?),
+            (Key::Char('f'), _) => Place::toggle(&mut place.grouped, id.as_deref()?),
+            (Key::Char('='), _) => {
+                self.menu_rekey = Some((id.clone()?, label));
+                self.reopen_row_menu(id.as_deref());
+                return Some(vec![]);
+            }
+            (Key::Char('d'), _) => place = Place::default(),
+            // Moving the highlight and scrolling are the menu's as usual;
+            // nothing else runs an action while the menu is its editor.
+            (Key::Char('j' | 'k') | Key::Up | Key::Down | Key::PageUp | Key::PageDown | Key::Home | Key::End, _) => {
+                return None;
+            }
+            _ => return Some(vec![]),
+        }
+        self.menus.set_place(&kind, place);
+        self.reopen_row_menu(id.as_deref());
+        Some(vec![])
+    }
+
+    /// The ids of the open menu's heading `row` sits under, in order, with
+    /// `row` swapped with its neighbour; `None` at either end.
+    fn moved(&self, row: usize, down: bool) -> Option<Vec<String>> {
+        let items = &self.menu.as_ref()?.menu.items;
+        let border = |i: usize| items[i].heading || items[i].note || self.menu_ids.get(i).is_none_or(Option::is_none);
+        let start = (0..row).rev().find(|i| border(*i)).map_or(0, |i| i + 1);
+        let end = (row + 1..items.len()).find(|i| border(*i)).unwrap_or(items.len());
+        let mut ids: Vec<String> = (start..end).filter_map(|i| self.menu_ids[i].clone()).collect();
+        let at = row - start;
+        let to = if down { at + 1 } else { at.checked_sub(1)? };
+        if to >= ids.len() {
+            return None;
+        }
+        ids.swap(at, to);
+        Some(ids)
+    }
+
+    /// Give action `id` key `c` in place `kind`. A key another action of the
+    /// menu shows is swapped with it; a key that moves in menus, closes them
+    /// or the host keeps is refused.
+    fn give_key(&mut self, kind: &str, id: &str, c: char) -> Result<(), String> {
+        if matches!(c, 'j' | 'k' | 'q' | 'x' | '?' | ' ' | '=' | GEAR_KEY) {
+            return Err(format!("{c} moves in, closes or edits menus; pick another"));
+        }
+        let items = self.menu.as_ref().map(|m| m.menu.items.clone()).unwrap_or_default();
+        let at = |id: &str| self.menu_ids.iter().position(|i| i.as_deref() == Some(id));
+        let current = at(id).and_then(|i| items[i].key);
+        let other = items.iter().position(|i| i.key == Some(c)).and_then(|i| self.menu_ids[i].clone());
+        if other.is_none() && host_key(c) && !c.is_ascii_uppercase() {
+            return Err(format!("{c} is radar's own key; pick another"));
+        }
+        let mut place = self.menus.place(kind);
+        if let Some(other) = other.filter(|o| o != id) {
+            match current {
+                Some(k) => place.keys.insert(other, k.to_string()),
+                None => place.keys.remove(&other),
+            };
+        }
+        place.keys.insert(id.to_string(), c.to_string());
+        self.menus.set_place(kind, place);
+        Ok(())
+    }
+
+    /// A key the user gave an action of the selected row's kind of place
+    /// presses that action: the part's own key for it, or another part's
+    /// action. `None` when the key is not one of theirs.
+    fn remapped_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        let Key::Char(c) = key.key else { return None };
+        if self.menus.places.is_empty() || !key.plain() || self.capturing() || self.menu.is_some() {
+            return None;
+        }
+        let (owner, subject) = self.subject_here()?;
+        let place = self.menus.places.get(&subject.kind)?;
+        let id = place.keys.iter().find(|(_, k)| k.chars().eq([c]))?.0.clone();
+        let (_, spec) = self.screen()?;
+        if let Some(b) = self.screen_keys(owner, spec.id, self.focus).into_iter().find(|b| b.id == id) {
+            let chord = crate::plugin::parse_chord(&b.keys)?;
+            return if chord == key { None } else { self.deliver(chord) };
+        }
+        let (part, action) = id.split_once('.')?;
+        let p = self.plugins.iter().position(|x| x.id() == part)?;
+        Some(self.contributed_act(p, &subject, action, 0))
+    }
+
+    /// Fold keys as `of` offers them: a row's menu folds only a row that has
+    /// rows under it, by `space`, named for the way it will go; expanding
+    /// every group is the pane's.
+    fn fold_keys_for(&self, of: MenuOf, keys: Vec<Binding>) -> Vec<Binding> {
+        match of {
+            MenuOf::All => keys,
+            MenuOf::Pane => keys.into_iter().filter(|b| b.keys == "=").map(Binding::pane).collect(),
+            MenuOf::Row => {
+                let Some(tree) = self.focused_tree() else {
+                    return keys.into_iter().filter(|b| b.keys != "=").collect();
+                };
+                let Some(row) = tree.row(&tree.selected).filter(|r| !r.children.is_empty()) else {
+                    return vec![];
+                };
+                let open = tree.open.contains(&tree.selected);
+                let what = match (open, row.children.len()) {
+                    (true, n) => format!("collapse it ({n} under it)"),
+                    (false, n) => format!("expand it ({n} under it)"),
+                };
+                keys.into_iter()
+                    .filter(|b| b.keys == "space")
+                    .map(|b| Binding { what: what.clone(), ..b })
+                    .collect()
+            }
+        }
+    }
+
+    /// The focused pane's keys, then the host's, as a menu: choosing a row
+    /// presses its key. `of` picks the row's actions, the pane's, or both
+    /// (the palette).
+    fn open_actions_menu(&mut self, of: MenuOf) {
         // Only what can be done here, to what is selected; moving about is
         // on the status line. The first heading, if any, names the menu.
         let setting_up = self.setting_up();
@@ -4031,6 +4337,7 @@ impl Host {
             (View::Settings, Pane::Middle) => match self.current_section() {
                 Some((Owner::Parts, _)) => crate::parts::keys(self),
                 Some((Owner::Mode, _)) => crate::mode::keys(self),
+                Some((Owner::Menus, _)) => self.menus_bindings(),
                 Some((Owner::Look, _)) => vec![
                     crate::Binding::new("space", "choose"),
                     crate::Binding::new("↑↓", "move"),
@@ -4121,6 +4428,7 @@ impl Host {
             ],
             View::Settings => Vec::new(),
         });
+        let fold_keys = self.fold_keys_for(of, fold_keys);
         if !fold_keys.is_empty() && !self.bar && !self.sources && !self.tabs {
             let at = rows
                 .iter()
@@ -4146,110 +4454,327 @@ impl Host {
             }
             _ => ("actions".into(), None),
         };
+        // The pane's menu is named for the screen it acts on.
+        let (title, title_icon) = match (of, self.screen()) {
+            (MenuOf::Pane, Some((_, s))) => (s.name.to_string(), None),
+            _ => (title, title_icon),
+        };
         // A row that cannot be pressed is not shown.
         rows.retain(|b| b.is_heading() || crate::plugin::parse_chord(&b.keys).is_some());
-        // What the other parts add, under their names.
-        let contributed = match self.subject_here().filter(|_| !self.bar && !self.sources && !self.tabs) {
-            Some((owner, subject)) => self
-                .contributed_actions(owner, &subject, own_keys(&rows))
-                .into_iter()
-                .map(|(p, name, actions)| (p, name, actions, subject.clone()))
-                .collect(),
-            None => vec![],
-        };
-        let mut items = Vec::new();
-        let mut presses = Vec::new();
-        for b in &rows {
-            if b.is_heading() {
-                let mut heading = MenuItem::heading(&b.what);
-                heading.icon = b.icon;
-                items.push(heading);
-                presses.push(None);
-                continue;
+        // The row's menu holds what acts on the row; the pane's the rest.
+        let chrome_keys = self.bar || self.sources || self.tabs;
+        if !chrome_keys {
+            match of {
+                MenuOf::Row => rows.retain(|b| b.is_heading() || !reaches_pane(b)),
+                MenuOf::Pane => rows.retain(|b| b.is_heading() || reaches_pane(b)),
+                MenuOf::All => {}
             }
-            let mut item = MenuItem::pick(&b.what, "", items.len().to_string()).shown_as(&b.keys);
-            item.icon = b.icon;
-            // A write the mode refuses: listed, muted, saying why; its key
-            // still opens the question, which says so too.
-            if let Some(why) = b.change.and_then(crate::writes::row_note) {
-                item.label = format!("{} · {why}", b.what);
-                item.muted = true;
-            }
-            // Typing the key in the menu runs it too, except the keys
-            // that move in the menu or close it.
-            if let Some(Chord { key: Key::Char(c), ctrl: false, alt: false, .. }) =
-                crate::plugin::parse_chord(&b.keys)
-                && !matches!(c, 'j' | 'k' | 'q' | 'x' | '?')
-            {
-                item.key = Some(c);
-            }
-            items.push(item);
-            presses.push(
-                crate::plugin::parse_chord(&b.keys)
-                    .map(|key| match self.tree_menu_context(key) {
-                        Some(context) => Press::TreeKey(key, context),
-                        None => Press::Key(key, self.menu_key_context(&b.keys)),
-                    }),
-            );
         }
-        for (p, name, actions, subject) in contributed {
-            items.push(MenuItem::heading(name));
-            presses.push(None);
-            for a in actions {
-                let keys = a.key.map(crate::plugin::key_text).unwrap_or_default();
-                let mut item = MenuItem::pick(&a.what, "", items.len().to_string())
-                    .shown_as(keys)
-                    .icon(Some(a.icon.unwrap_or(crate::ui::icon::Icon::Action)));
-                item.key = a.key;
-                if let Some(why) = a.change.and_then(crate::writes::row_note) {
-                    item.label = format!("{} · {why}", a.what);
-                    item.muted = true;
+        // What the other parts add to the row. Every one gets a key: one
+        // without, or whose key is taken here, takes a free letter of its words.
+        let contributed: Vec<(usize, &'static str, Vec<compose::Action>, Subject)> =
+            match self.subject_here().filter(|_| !chrome_keys && of != MenuOf::Pane) {
+                Some((owner, subject)) => {
+                    let mut contributed = self.contributed_actions(owner, &subject, own_keys(&rows));
+                    let mut taken = own_keys(&rows);
+                    taken.extend(contributed.iter().flat_map(|(_, _, a)| a.iter().filter_map(|a| a.key)));
+                    for a in contributed.iter_mut().flat_map(|(_, _, a)| a.iter_mut()) {
+                        if a.key.is_none() {
+                            a.key = free_letter(&a.what, &taken);
+                            taken.extend(a.key);
+                        }
+                    }
+                    contributed
+                        .into_iter()
+                        .map(|(p, name, actions)| (p, name, actions, subject.clone()))
+                        .collect()
                 }
-                items.push(item);
-                presses.push(Some(Press::Act(
-                    p,
-                    subject.clone(),
-                    a.id,
-                    self.menu_subject_context(),
-                )));
+                None => vec![],
+            };
+        // Grouped by what doing it is for when the owner or another part says:
+        // the row's own first (what its state asks for straight after the
+        // default), then change it, work on it here, ask someone; actions
+        // with no group stay under their part's name.
+        let grouped = of != MenuOf::Pane
+            && (rows.iter().any(|b| !b.is_heading() && !b.group.is_open())
+                || contributed.iter().any(|(_, _, a, _)| a.iter().any(|a| a.group.is_some())));
+        let mut entries: Vec<Entry> = Vec::new();
+        // `[menus] state_first = false`: the parts' order, nothing lifted.
+        let lead = |b: &Binding| b.lead && self.menus.state_first;
+        let rest: Vec<(usize, &'static str, Vec<compose::Action>, Subject)> = if grouped {
+            let own: Vec<&Binding> = rows.iter().filter(|b| !b.is_heading()).collect();
+            let mut first: Vec<&Binding> =
+                own.iter().copied().filter(|b| b.group.is_open() && !lead(b)).collect();
+            let at = first.iter().position(|b| b.keys == "⏎").map_or(first.len().min(1), |i| i + 1);
+            // What the row's state asks for leaves its group for the top.
+            let leads: Vec<&Binding> = own.iter().copied().filter(|b| lead(b)).collect();
+            first.splice(at..at, leads);
+            entries.extend(first.into_iter().cloned().map(Entry::Own));
+            let mut by_group = contributed;
+            for g in [ActionGroup::Change, ActionGroup::Local, ActionGroup::Ask] {
+                let mut these: Vec<Entry> = own
+                    .iter()
+                    .filter(|b| b.group == g && !lead(b))
+                    .map(|b| Entry::Own((*b).clone()))
+                    .collect();
+                for (p, _, actions, subject) in &mut by_group {
+                    let (mine, others): (Vec<_>, Vec<_>) =
+                        actions.drain(..).partition(|a| a.group == Some(g));
+                    *actions = others;
+                    these.extend(mine.into_iter().map(|a| Entry::Act(*p, a, subject.clone())));
+                }
+                if !these.is_empty() {
+                    entries.push(Entry::Heading(g.heading().unwrap_or_default().into(), None));
+                    entries.extend(these);
+                }
             }
+            by_group.into_iter().filter(|(_, _, a, _)| !a.is_empty()).collect()
+        } else {
+            entries.extend(rows.iter().map(|b| match b.is_heading() {
+                true => Entry::Heading(b.what.clone(), b.icon),
+                false => Entry::Own(b.clone()),
+            }));
+            contributed
+        };
+        for (p, name, actions, subject) in rest {
+            entries.push(Entry::Heading(name.into(), None));
+            entries.extend(actions.into_iter().map(|a| Entry::Act(p, a, subject.clone())));
         }
-        items.push(MenuItem::new('~', "recent notices (this session)", "", items.len().to_string()));
-        presses.push(Some(Press::Key(Chord::new(Key::Char('~')), self.menu_key_context("~"))));
-        items.push(MenuItem::heading("History"));
-        presses.push(None);
-        items.push(MenuItem::new(
-            HISTORY_KEY,
-            "recent activity (last 24 hours)",
-            "",
-            items.len().to_string(),
-        ));
-        presses.push(Some(Press::RecentHistory));
-        items.push(MenuItem::pick(
-            "all activity history",
-            "",
-            items.len().to_string(),
-        ));
-        presses.push(Some(Press::History(None)));
-        if let Some((_, subject)) = self.subject_here()
+        // A row's own history closes its menu; the session's notices and
+        // history belong to the pane's.
+        let place = (of == MenuOf::Row && !chrome_keys)
+            .then(|| self.subject_here())
+            .flatten();
+        if let Some((_, subject)) = &place
             && let Some(snapshot) =
-                self.journal_snapshot(&subject, crate::journal::SubjectRole::Primary)
+                self.journal_snapshot(subject, crate::journal::SubjectRole::Primary)
         {
-            items.push(MenuItem::pick(
-                "history for selected item",
-                "",
-                items.len().to_string(),
-            ));
-            presses.push(Some(Press::History(Some(snapshot.key))));
+            let item = MenuItem::new(HISTORY_KEY, format!("history of {}", subject.label), "", "")
+                .icon(Some(crate::ui::icon::Icon::Time));
+            entries.push(Entry::Item("host.history".into(), item, Press::History(Some(snapshot.key))));
         }
+        let place = place.map(|(_, s)| s.kind);
+        let customising = self.menu_customising && place.is_some();
+        if let Some(kind) = &place {
+            self.arrange(kind, customising, &mut entries);
+        }
+        drop_empty_headings(&mut entries);
+        let (mut items, mut presses, mut ids) = self.menu_lines(entries, place.as_deref(), customising);
+        // Nothing acts on this row: the pane's menu instead of an empty one.
+        if of == MenuOf::Row && !chrome_keys && !customising && items.iter().all(|i| i.heading || i.note) {
+            self.open_actions_menu(MenuOf::Pane);
+            return;
+        }
+        if of != MenuOf::Row || chrome_keys {
+            items.push(MenuItem::heading("this session"));
+            items.push(MenuItem::new('~', "recent notices", "", (items.len()).to_string()));
+            items.push(MenuItem::new(HISTORY_KEY, "activity history", "last 24 hours first", (items.len()).to_string()));
+            presses.extend([
+                None,
+                Some(Press::Key(Chord::new(Key::Char('~')), self.menu_key_context("~"))),
+                Some(Press::RecentHistory),
+            ]);
+            ids.extend([None, None, None]);
+        }
+        if customising {
+            let line = if let Some((_, what)) = &self.menu_rekey {
+                format!("press the key for {what} · esc keeps it")
+            } else {
+                "⇧↑↓ move · space show/hide · * pin · = key · f group · d default · , done".into()
+            };
+            items.push(MenuItem::note(line));
+            presses.push(None);
+            ids.push(None);
+        }
+        let title = match (&place, customising) {
+            (Some(kind), true) => format!("customise · {} rows", kind.replace('_', " ")),
+            _ => title,
+        };
+        self.keys_menu_of = of;
         self.menu_keys = presses;
+        self.menu_ids = ids;
+        self.menu_place = place.clone();
         self.menu = Some(OpenMenu::open(
             Owner::Host,
             Menu {
                 icon: title_icon,
+                gear: place.is_some() && (self.menus.gear || customising),
+                customising,
                 ..Menu::new(KEYS_MENU, title, items)
             },
         ));
+    }
+
+    /// The id a customised menu names an entry by.
+    fn entry_id(&self, e: &Entry) -> Option<String> {
+        match e {
+            Entry::Heading(..) => None,
+            Entry::Own(b) if b.id.is_empty() => Some(format!("key:{}", b.keys)),
+            Entry::Own(b) => Some(b.id.clone()),
+            Entry::Act(p, a, _) => Some(format!("{}.{}", self.plugins[*p].id(), a.id)),
+            Entry::Item(id, ..) => Some(id.clone()),
+            Entry::More(..) => None,
+        }
+    }
+
+    /// Apply `[menus.<kind>]` to a row menu's entries: other parts as the
+    /// switch says, pinned first, the user's order under each heading,
+    /// hidden ones out and grouped ones behind one row at the end. While
+    /// customising, hidden and grouped ones stay where they are, marked.
+    fn arrange(&self, kind: &str, customising: bool, entries: &mut Vec<Entry>) {
+        use crate::menus::OtherParts;
+        let place = self.menus.place(kind);
+        let mut others = Vec::new();
+        match self.menus.other_parts {
+            OtherParts::InMenu => {}
+            OtherParts::Off => entries.retain(|e| !matches!(e, Entry::Act(..))),
+            OtherParts::Folded => {
+                let (acts, rest): (Vec<Entry>, Vec<Entry>) =
+                    std::mem::take(entries).into_iter().partition(|e| matches!(e, Entry::Act(..)));
+                *entries = rest;
+                others = acts;
+            }
+        }
+        // The user's order, among the entries they moved, heading by heading.
+        let mut start = 0;
+        while start < entries.len() {
+            let end = (start + 1..entries.len())
+                .find(|i| matches!(entries[*i], Entry::Heading(..)))
+                .unwrap_or(entries.len());
+            let at = |e: &Entry| self.entry_id(e).and_then(|id| place.order.iter().position(|o| *o == id));
+            let slots: Vec<usize> = (start..end).filter(|i| at(&entries[*i]).is_some()).collect();
+            let mut moved: Vec<Entry> = Vec::new();
+            for i in slots.iter().rev() {
+                moved.push(entries.remove(*i));
+            }
+            moved.sort_by_key(|e| at(e).unwrap_or(usize::MAX));
+            for (slot, e) in slots.iter().zip(moved) {
+                entries.insert(*slot, e);
+            }
+            start = end.max(start + 1);
+        }
+        // Pinned: first, in the order pinned.
+        let mut pinned: Vec<Entry> = Vec::new();
+        for id in &place.pinned {
+            if let Some(i) = entries.iter().position(|e| self.entry_id(e).as_deref() == Some(id)) {
+                pinned.push(entries.remove(i));
+            }
+        }
+        entries.splice(0..0, pinned);
+        if customising {
+            return;
+        }
+        entries.retain(|e| !self.entry_id(e).is_some_and(|id| place.hidden.contains(&id)));
+        let (grouped, rest): (Vec<Entry>, Vec<Entry>) = std::mem::take(entries)
+            .into_iter()
+            .partition(|e| self.entry_id(e).is_some_and(|id| place.grouped.contains(&id)));
+        *entries = rest;
+        if !grouped.is_empty() {
+            entries.push(Entry::More(String::new(), grouped));
+        }
+        if !others.is_empty() {
+            entries.push(Entry::More("other parts".into(), others));
+        }
+    }
+
+    /// Entries as menu items, what each does, and each one's id. A user's key
+    /// for an action replaces the one shown and typed; what it presses stays.
+    fn menu_lines(
+        &self,
+        entries: Vec<Entry>,
+        kind: Option<&str>,
+        customising: bool,
+    ) -> (Vec<MenuItem>, Vec<Option<Press>>, Vec<Option<String>>) {
+        let place = kind.map(|k| self.menus.place(k)).unwrap_or_default();
+        let mut items = Vec::new();
+        let mut presses = Vec::new();
+        let mut ids = Vec::new();
+        // Keys the menu's own rows use, so a group's row takes a free one.
+        let mut taken: Vec<char> = Vec::new();
+        for entry in entries {
+            let id = self.entry_id(&entry);
+            let mine = id.as_deref().and_then(|id| place.key(id));
+            let (mut item, press) = match entry {
+                Entry::Heading(text, icon) => {
+                    let mut heading = MenuItem::heading(text);
+                    heading.icon = icon;
+                    (heading, None)
+                }
+                Entry::Own(b) => {
+                    let mut item = MenuItem::pick(&b.what, &b.hint, "").shown_as(&b.keys);
+                    item.icon = b.icon;
+                    // A write the mode refuses: listed, muted, saying why at the
+                    // right; its key still opens the question, which says so too.
+                    if let Some(why) = b.change.and_then(crate::writes::row_note) {
+                        item.hint = why.into();
+                        item.muted = true;
+                    }
+                    // Typing the key in the menu runs it too, except the keys
+                    // that move in the menu, close it or turn its gear.
+                    if let Some(Chord { key: Key::Char(c), ctrl: false, alt: false, .. }) =
+                        crate::plugin::parse_chord(&b.keys)
+                        && !matches!(c, 'j' | 'k' | 'q' | 'x' | '?' | GEAR_KEY)
+                    {
+                        item.key = Some(c);
+                    }
+                    let press = crate::plugin::parse_chord(&b.keys).map(|key| match self.tree_menu_context(key) {
+                        Some(context) => Press::TreeKey(key, context),
+                        None => Press::Key(key, self.menu_key_context(&b.keys)),
+                    });
+                    (item, press)
+                }
+                Entry::Act(p, a, subject) => {
+                    let keys = a.key.map(crate::plugin::key_text).unwrap_or_default();
+                    let mut item = MenuItem::pick(&a.what, &a.hint, "")
+                        .shown_as(keys)
+                        .icon(Some(a.icon.unwrap_or(crate::ui::icon::Icon::Action)));
+                    item.key = a.key;
+                    if let Some(why) = a.change.and_then(crate::writes::row_note) {
+                        item.hint = why.into();
+                        item.muted = true;
+                    }
+                    (item, Some(Press::Act(p, subject, a.id, self.menu_subject_context())))
+                }
+                Entry::Item(_, item, press) => (item, Some(press)),
+                Entry::More(name, inner) => {
+                    let (sub, sub_presses, _) = self.menu_lines(inner, None, false);
+                    let words: Vec<&str> = sub.iter().filter(|i| !i.heading && !i.note).map(|i| i.label.as_str()).collect();
+                    let label = match name.is_empty() {
+                        true => format!("{}…", words.iter().take(3).map(|w| w.trim_end_matches('…')).collect::<Vec<_>>().join(", ")),
+                        false => format!("{name}…"),
+                    };
+                    let title = if name.is_empty() { "more".to_string() } else { name };
+                    let item = MenuItem::pick(&label, "", "").icon(Some(crate::ui::icon::Icon::Menu));
+                    (item, Some(Press::Sub(title, sub, sub_presses)))
+                }
+            };
+            if let Some(c) = mine {
+                item.keys = crate::plugin::key_text(c);
+                item.key = Some(c);
+            }
+            if matches!(press, Some(Press::Sub(..))) && item.key.is_none() {
+                item.key = free_letter(&item.label, &taken);
+                item.keys = item.key.map(crate::plugin::key_text).unwrap_or_default();
+            }
+            taken.extend(item.key);
+            if customising && let Some(id) = &id {
+                let mut marks = Vec::new();
+                if place.pinned.contains(id) { marks.push("pinned"); }
+                if place.grouped.contains(id) { marks.push("grouped"); }
+                if place.hidden.contains(id) {
+                    marks.push("hidden");
+                    item.muted = true;
+                }
+                if !marks.is_empty() {
+                    item.hint = marks.join(" · ");
+                }
+            }
+            item.value = items.len().to_string();
+            items.push(item);
+            presses.push(press);
+            ids.push(id);
+        }
+        (items, presses, ids)
     }
 
     fn open_recent_history(&mut self) -> Vec<HostEffect> {
@@ -5195,6 +5720,8 @@ pub(crate) fn menu_view_of(open: &OpenMenu) -> crate::view::MenuView {
     {
         c::MenuView {
             palette: None,
+            gear: m.gear,
+            customising: m.customising,
             id: m.id.clone(),
             title: m.title.clone(),
             icon: m.icon,
@@ -5205,9 +5732,11 @@ pub(crate) fn menu_view_of(open: &OpenMenu) -> crate::view::MenuView {
                 .iter()
                 .take(c::MOST)
                 .enumerate()
+                // A list menu draws every key in its column on the left; only
+                // a question's buttons carry the key inside their word.
                 .map(|(i, it)| c::Choice {
-                    mnemonic_at: (!it.heading && !it.note).then(|| crate::mnemonic::at(&it.keys, crate::mnemonic::choice_words(m.question, &it.label, &it.hint))).flatten(),
-                    mnemonic_shift: !it.heading && !it.note && crate::mnemonic::at(&it.keys, crate::mnemonic::choice_words(m.question, &it.label, &it.hint)).is_some() && crate::mnemonic::shifted(&it.keys),
+                    mnemonic_at: (m.question && !it.heading && !it.note).then(|| crate::mnemonic::at(&it.keys, crate::mnemonic::choice_words(m.question, &it.label, &it.hint))).flatten(),
+                    mnemonic_shift: m.question && !it.heading && !it.note && crate::mnemonic::at(&it.keys, crate::mnemonic::choice_words(m.question, &it.label, &it.hint)).is_some() && crate::mnemonic::shifted(&it.keys),
                     value: it.value.clone(),
                     label: it.label.clone(),
                     hint: it.hint.clone(),
@@ -5251,13 +5780,13 @@ mod mnemonic_projection_tests {
             MenuItem::heading("read"),
             MenuItem::note("recorded text"),
         ];
+        // A list menu keeps every key in its column: no letter in the words.
         let menu = menu_view_of(&OpenMenu::open(Owner::Host, Menu::new("watch", "actions", rows)));
         assert_eq!(menu.items[0].key, None);
-        assert_eq!(menu.items[0].mnemonic_at, Some(0));
+        assert_eq!(menu.items[0].keys, "r");
         assert_eq!(menu.items[0].value, "refresh-id");
-        assert_eq!(menu.items[1].mnemonic_at, Some(3));
-        assert!(menu.items[1].mnemonic_shift);
-        assert!(menu.items[2..].iter().all(|i| i.mnemonic_at.is_none()));
+        assert_eq!(menu.items[1].keys, "Y");
+        assert!(menu.items.iter().all(|i| i.mnemonic_at.is_none() && !i.mnemonic_shift));
         let question = menu_view_of(&OpenMenu::open(Owner::Host, Menu::confirm("confirm", "post?", "post it", "keep it")));
         assert_eq!(question.items[0].hint, "yes, post it");
         assert_eq!(question.items[1].hint, "no, keep it");
@@ -5292,6 +5821,7 @@ impl Host {
                             Owner::Parts => Some(Icon::Parts),
                             Owner::Mode => Some(self.mode().icon()),
                             Owner::Look => Some(Icon::Colours),
+                            Owner::Menus => Some(Icon::Menu),
                             Owner::Host if spec.id == crate::icons::ICONS_SECTION.id => {
                                 Some(Icon::Icons)
                             }
@@ -5324,6 +5854,7 @@ impl Host {
             Some((Owner::Host, s)) => (s.name.to_string(), self.colours.detail_title()),
             Some((Owner::Parts, s)) => (s.name.to_string(), crate::parts::detail_title(self)),
             Some((Owner::Mode, s)) => (s.name.to_string(), "the modes".into()),
+            Some((Owner::Menus, s)) => (s.name.to_string(), "the row menus".into()),
             Some((Owner::Look, s)) => (s.name.to_string(), self.look_settings_view().detail_title),
             None => ("nothing to set".into(), "about".into()),
         };
@@ -5352,6 +5883,7 @@ impl Host {
             "source" => Hit::SourceTab(View::Screen(index().filter(|i| *i < self.screens.len())?)),
             "menu" if arg.starts_with("palette:") => Hit::MenuItem(self.palette_row(arg)?),
             "menu" if self.palette.is_none() => Hit::MenuItem(index()?),
+            "gear" if self.menu.as_ref().is_some_and(|m| m.menu.gear) => Hit::MenuGear,
             "section" => Hit::Section(index().filter(|i| *i < self.sections.len())?),
             "group" => Hit::Group(self.nav_groups().into_iter().find(|(g, _)| *g == arg)?.0),
             "setup" if self.setup.is_some() => Hit::SetupStop(index()?),
@@ -5410,6 +5942,9 @@ impl Host {
         }
         if let Hit::Key(k, _) = hit {
             return if activate { self.on_key(k) } else { vec![] };
+        }
+        if hit == Hit::MenuGear {
+            return if activate { self.menu_key(Chord::new(Key::Char(','))) } else { vec![] };
         }
         if let Some(open) = self.menu.as_mut() {
             let Hit::MenuItem(i) = hit else { return vec![] };
@@ -6625,38 +7160,25 @@ pub(crate) mod tests {
                 "{mode:?}"
             );
             press(&mut host, Key::Esc);
-            // The x menu: each action is listed, muted with why while refused.
+            // The x menu: each action is listed, muted with why at the right
+            // while refused; the words stay the action's.
             press(&mut host, Key::Char('x'));
             let rows = labels(&host);
-            let muted: Vec<bool> = host
-                .menu
-                .as_ref()
-                .unwrap()
-                .menu
-                .items
-                .iter()
-                .map(|i| i.muted)
-                .collect();
+            let items = &host.menu.as_ref().unwrap().menu.items;
+            let muted: Vec<bool> = items.iter().map(|i| i.muted).collect();
+            let why: Vec<&str> = items.iter().map(|i| i.hint.as_str()).collect();
+            assert_eq!(rows[..2], ["post a note on #12…", "approve #12…"]);
             match mode {
                 Mode::ReadOnly => {
-                    assert_eq!(
-                        rows[..2],
-                        [
-                            "post a note on #12… · radar is read only",
-                            "approve #12… · radar is read only"
-                        ]
-                    );
+                    assert_eq!(why[..2], ["radar is read only", "radar is read only"]);
                     assert_eq!(muted[..2], [true, true]);
                 }
                 Mode::Write => {
-                    assert_eq!(
-                        rows[..2],
-                        ["post a note on #12…", "approve #12… · needs edit mode"]
-                    );
+                    assert_eq!(why[..2], ["", "needs edit mode"]);
                     assert_eq!(muted[..2], [false, true]);
                 }
                 Mode::Edit => {
-                    assert_eq!(rows[..2], ["post a note on #12…", "approve #12…"]);
+                    assert_eq!(why[..2], ["", ""]);
                     assert_eq!(muted[..2], [false, false]);
                 }
             }
@@ -7078,19 +7600,19 @@ pub(crate) mod tests {
         let labels: Vec<&str> = open.menu.items.iter().map(|i| i.label.as_str()).collect();
         assert_eq!(
             labels,
-            vec![
-                "go into alpha",
-                "toggle the group",
-                "expand the group",
-                "collapse the group, or the one this row is in",
-                "expand every held group",
-                "recent notices (this session)",
-                "History",
-                "recent activity (last 24 hours)",
-                "all activity history"
-            ],
-            "nothing from elsewhere; the nav's groups fold"
+            vec!["go into alpha"],
+            "nothing from elsewhere; a section row has nothing to fold"
         );
+        // `x` again: the pane's menu, its folds and the session's history.
+        press(&mut host, Key::Char('x'));
+        let open = host.menu.as_ref().expect("the pane's menu");
+        let labels: Vec<&str> = open.menu.items.iter().map(|i| i.label.as_str()).collect();
+        assert_eq!(
+            labels,
+            vec!["expand every held group", "this session", "recent notices", "activity history"]
+        );
+        press(&mut host, Key::Char('x'));
+        assert!(host.menu.is_none(), "x closes the pane's menu");
     }
 
     #[test]

@@ -47,7 +47,7 @@ impl Host {
             return;
         }
         let history = self.history.take();
-        self.open_keys_menu();
+        self.open_actions_menu(super::MenuOf::All);
         let actions = self.menu.take().expect("keys menu was opened");
         let mut entries = Vec::new();
         if history.is_none() {

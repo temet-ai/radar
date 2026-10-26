@@ -1,4 +1,4 @@
- radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                              not synced yet · every 2m  ✎ edit
+ radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                                not synced yet · every 2m  edit
 ╭ 1 views ───────────────╮╭ 2 Our project ─────────────────────────────────────────────────────────────────────╮╭ 3 acme ──────────────────────────────────────╮
 │ Our project            ││ ASSIGNED TO everyone                TYPE      STATUS          CODE        UPDATED  ││ acme  acme.atlassian.net                     │
 │                        ││acme  acme.atlassian.net                                                            ││                                              │

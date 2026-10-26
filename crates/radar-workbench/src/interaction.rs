@@ -757,7 +757,7 @@ impl WorkbenchPlugin {
                     .map(|i| self.item_title(i))
                     .unwrap_or_else(|| "Local work".into()),
             ),
-            Binding::new("n", "new local task…").adds(),
+            Binding::new("n", "new local task…").adds().pane(),
             Binding::new(
                 "r",
                 if self.prepared.is_some() {
@@ -765,14 +765,14 @@ impl WorkbenchPlugin {
                 } else {
                     "refresh local work"
                 },
-            ),
-            Binding::new("/", "filter this item page…"),
+            ).pane(),
+            Binding::new("/", "filter this item page…").pane(),
         ];
         if self.prepared.is_some() {
             rows.push(Binding::new(
                 "y",
                 "copy retained local batch for inspection",
-            ));
+            ).pane());
         }
         if self
             .prepared
@@ -797,17 +797,17 @@ impl WorkbenchPlugin {
                 .as_ref()
                 .is_some_and(|page| page.next.is_some())
             {
-                rows.push(Binding::new("]", "next group page"));
+                rows.push(Binding::new("]", "next group page").pane());
             }
             if self.group_page > 0 {
-                rows.push(Binding::new("[", "previous group page"));
+                rows.push(Binding::new("[", "previous group page").pane());
             }
         } else {
             if self.items.as_ref().is_some_and(|i| i.page.next.is_some()) {
-                rows.push(Binding::new("]", "next item page"));
+                rows.push(Binding::new("]", "next item page").pane());
             }
             if self.page > 0 {
-                rows.push(Binding::new("[", "previous item page"));
+                rows.push(Binding::new("[", "previous item page").pane());
             }
         }
         rows

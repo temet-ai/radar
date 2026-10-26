@@ -53,6 +53,9 @@ From GUIDE.md and the operator's design decisions (October 2026).
 | **No pill shapes** | Chips, counts, keys, buttons and tags are square: a ground and one space each side. No round caps. | operator |
 | **No left-edge stripes** | No coloured bar down the left of rows or cards. Groups are marked by the heading shade. | operator |
 | **Keys live inside their word** | Hint, button and tab keys are the word's letter, underlined (b̲ulk, q̲uit). A key with no letter (↑↓ ⏎ esc) is a glyph before the word. No "b bulk". | operator, #44 |
+| **Menus keep keys on the left** | A list menu draws every key in its key column, shift as the capital (`A`, `H`), never underlined in the label. Every row has a key: an action another part adds with none, or whose key is taken, gets the first free letter of its words. | operator, 2026-10-26 |
+| **Facts at the right, labels are the action** | A menu row's label says what it does (`rebase…`). What is true of the row now (`running 4m`, `not behind main`, `asked 2h ago`, a mode's refusal) is its hint, drawn muted at the right edge. No ` · ` facts joined to a label. | operator, 2026-10-26 |
+| **A row's menu is for that row** | `x` or a right-click on a row offers what acts on it, grouped by what it is for (`ActionGroup`: open first, then change it, work on it here, ask someone), what its state asks for (`lead`) straight after `⏎`. Pane and session actions (`Binding::pane()`, moving about, notices, history) are the pane's menu: a right-click on empty space, or `x` again. Folding shows only on a row with rows under it. | operator, 2026-10-26 |
 | **Breadcrumbs join with /** | `acme / api / !263`, not `›`. | operator, #46 |
 | **Tabs show names, not counts** | One attention dot when something there waits for you. | operator, #33 |
 | **Icons where they mean something** | Several icons to a row is fine when each says something. No rule of one icon per row. | operator |
@@ -240,7 +243,7 @@ tails, styles and rectangles from recorded view data.
 | Tab attention | `BarTab.attention`, `TabView.attention` | One dot after the name in `status.warning`; no count. The host derives top-bar attention from ready parts' warn/bad badges and unsaved settings. Item-page owners set attention from actionable state. Counts remain in their page/status content. | |
 | Source tabs | `chrome/layout.ts` | Second row: a part's sources | |
 | Status line | `chrome/layout.ts` `layoutStatus` | Mode chip, key hints or a message, counts at the right | notices planned (#41) |
-| Menu and question | `chrome/layout.ts` `layoutMenu`, `Chrome.tsx` `MenuBox` | Menus with key, label, line; questions as dialogs with buttons | over a scrim with a one-cell shadow (#29); nothing behind is lit; Ctrl-P palette with scalar-indexed match highlights, right-side keys and match/total count (`MenuView.palette`); cached targets, no query-time requests |
+| Menu and question | `chrome/layout.ts` `layoutMenu`, `Chrome.tsx` `MenuBox` | Menus with the key column, icon, label and the hint at the right edge; questions as dialogs with buttons. A row's menu (`MenuView.gear`) has a gear and `,` at the right of its title edge (`chrome:gear`); `customising` lights it while the menu is its own editor (`[menus]`, Settings › Menus) | over a scrim with a one-cell shadow (#29); nothing behind is lit; Ctrl-P palette with scalar-indexed match highlights, right-side keys and match/total count (`MenuView.palette`); cached targets, no query-time requests |
 | Field bar | `chrome/filter.tsx` | Filter (`/`) and go-to (`:`) at the top of a pane | |
 | Panes and frames | `app/Panes.tsx` | Nav, middle, detail; focused frame | Truecolor ramp on the keyboard-owning pane, including active inline fields; background panes stay flat under menus, overlays and visible focused docks (#31). Host-owned jump numbers match the active logical pane mapping, including responsive layouts and setup exclusions (#46). The focus perimeter follows the shared motion policy (#32) |
 | Settings | `chrome/layout.ts` `layoutNav`, `app/App.tsx` `SectionBody` | Settings nav and sections | Agents folder rows offer repository overrides (`p`): shared menus add/select a repository and edit checkout, working and review folders, or drop overrides. Git link menus offer a per-repository worktree template (`o`). Empty overrides inherit global settings. |
@@ -293,7 +296,8 @@ mean the same thing in every part.
 | Any tree | `→` / `←` | open or go in / close or go up | focused trees own unmodified horizontal arrows; h/l, Tab and digits retain pane movement |
 | A group row (tenancy, site, status, heading) | `⏎` | **to decide**: open its page, or toggle the fold | GitLab opens a page; Jira and Slack fold; GitHub opens a page; Git means "use it" |
 | An item row | `⏎` | open its page | consistent |
-| Any row | `x` | actions menu | consistent |
+| Any row | `x` | the row's menu; `x` again the pane's; `,` in it customises it | consistent |
+| Empty space, a pane | right-click | the pane's menu | consistent |
 | Any page | `[` `]` | previous / next tab | the Workbench pages through groups instead |
 | Any screen | `/` filter, `:` go to, `r` refresh, `o` open in browser, `y` copy link | | Workbench `y` copies a batch |
 | A discussion | `c` | comment or reply | GitLab job uses `c` for excerpt, Workbench for copy locator |

@@ -69,6 +69,7 @@ impl Plugin for Probe {
                 heading: false,
                 icon: None,
                 change: None,
+                ..Default::default()
             },
             ActionSpec {
                 mnemonic_at: None,
@@ -78,6 +79,7 @@ impl Plugin for Probe {
                 heading: false,
                 icon: None,
                 change: None,
+                ..Default::default()
             },
             ActionSpec {
                 mnemonic_at: None,
@@ -87,6 +89,7 @@ impl Plugin for Probe {
                 heading: false,
                 icon: None,
                 change: None,
+                ..Default::default()
             },
         ];
         Some(view)

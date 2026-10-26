@@ -163,9 +163,10 @@
       "brand": "radar",
       "busy": true,
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -260,7 +261,8 @@
           }
         },
         "label": "refresh this page and its tenancy",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       },
       {
         "id": "gitlab.page.next_tab",
@@ -269,7 +271,8 @@
             "char": "]"
           }
         },
-        "label": "next tab: Merge requests"
+        "label": "next tab: Merge requests",
+        "pane": true
       },
       {
         "id": "gitlab.page.previous_tab",
@@ -278,7 +281,8 @@
             "char": "["
           }
         },
-        "label": "previous tab: Pipelines on main"
+        "label": "previous tab: Pipelines on main",
+        "pane": true
       },
       {
         "id": "gitlab.page.back",
@@ -295,7 +299,8 @@
             "char": "r"
           }
         },
-        "label": "kept comments…"
+        "label": "kept comments…",
+        "pane": true
       }
     ],
     "page": {

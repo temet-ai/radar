@@ -34,50 +34,44 @@
         }
       },
       "label": "refresh this page",
-      "mnemonic_at": 0
-    },
-    {
-      "heading": true,
-      "id": "",
-      "label": "on GitLab"
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "change": "edit",
+      "group": "change",
       "id": "gitlab.mr.rebase",
       "key": {
         "key": {
           "char": "u"
         }
       },
-      "label": "update by rebasing onto main…",
-      "mnemonic_at": 0
+      "label": "rebase…"
     },
     {
       "change": "edit",
+      "group": "change",
+      "hint": "needs 1 approval",
       "id": "gitlab.mr.merge",
       "key": {
         "key": {
           "char": "m"
         }
       },
-      "label": "merge · needs 1 approval",
+      "label": "merge",
       "mnemonic_at": 0
     },
     {
       "change": "edit",
+      "group": "change",
       "id": "gitlab.mr.approve",
       "key": {
         "key": {
           "char": "a"
         }
       },
-      "label": "approve !198…",
+      "label": "approve…",
       "mnemonic_at": 0
-    },
-    {
-      "heading": true,
-      "id": "",
-      "label": "page"
     },
     {
       "id": "gitlab.page.next_tab",
@@ -86,7 +80,8 @@
           "char": "]"
         }
       },
-      "label": "next tab: Changes"
+      "label": "next tab: Changes",
+      "pane": true
     },
     {
       "id": "gitlab.page.previous_tab",
@@ -95,15 +90,11 @@
           "char": "["
         }
       },
-      "label": "previous tab: Ticket"
+      "label": "previous tab: Ticket",
+      "pane": true
     },
     {
-      "heading": true,
-      "icon": "bot",
-      "id": "",
-      "label": "with an agent"
-    },
-    {
+      "group": "ask",
       "id": "agent.send",
       "key": {
         "key": {
@@ -115,6 +106,7 @@
       "mnemonic_shift": true
     },
     {
+      "group": "local",
       "id": "agent.review_locally",
       "key": {
         "key": {
@@ -139,7 +131,8 @@
           "char": "r"
         }
       },
-      "label": "kept comments…"
+      "label": "kept comments…",
+      "pane": true
     }
   ],
   "dock": {

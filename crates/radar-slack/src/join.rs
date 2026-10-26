@@ -24,7 +24,7 @@ mod pull_request_tests;
 use std::ops::Range;
 
 use radar_core::plugin::{Effect, Pane, Tone};
-use radar_core::view::{Ink, Seg, Text};
+use radar_core::view::{ActionGroup, Ink, Seg, Text};
 use radar_core::ui::icon::Icon;
 use radar_core::{Action, Adds, Cell, Chip, Contribution, Owned, Point, Row, Showing, Subject};
 
@@ -629,23 +629,42 @@ pub(crate) fn contribute(p: &SlackPlugin, point: Point, s: &Subject) -> Option<C
         }
         Point::Actions if s.is(MERGE_REQUEST) => {
             let mut out = Vec::new();
-            if s.url.is_some() {
-                out.push(Action::new(
-                    'a',
-                    match &p.draft {
-                        Some(d) if d.items.iter().any(|i| i.id == s.id) => {
-                            "show the review ask being written".to_string()
-                        }
-                        Some(d) => format!("add to the review ask ({} in it)…", d.items.len()),
-                        None => "ask for review in Slack…".to_string(),
-                    },
-                    "ask",
-                ).icon(Icon::NeedsApproval));
+            let asked = ask_about(p, s);
+            // Asked already (and no ask being written): the thread is what
+            // `s` opens; the fact about it is the row's hint.
+            let thread_key = if asked.is_some() && p.draft.is_none() { 's' } else { 't' };
+            if s.url.is_some() && (asked.is_none() || p.draft.is_some()) {
+                out.push(
+                    Action::new(
+                        's',
+                        match &p.draft {
+                            Some(d) if d.items.iter().any(|i| i.id == s.id) => {
+                                "show the review ask being written".to_string()
+                            }
+                            Some(d) => format!("add to the review ask ({} in it)…", d.items.len()),
+                            None => "ask for review in Slack…".to_string(),
+                        },
+                        "ask",
+                    )
+                    .icon(Icon::NeedsApproval)
+                    .group(ActionGroup::Ask),
+                );
             }
-            if let Some(a) = ask_about(p, s) {
-                out.push(Action::new('t', "open its review ask's thread", "thread").icon(Icon::Thread));
+            if let Some(a) = asked {
+                let fact = if a.replies == 0 { "no reply yet".to_string() } else { view::replies(a.replies) };
+                out.push(
+                    Action::new(thread_key, "open its Slack review thread", "thread")
+                        .icon(Icon::Thread)
+                        .hint(format!("asked {} ago · {fact}", view::age(&a.ts, p.now)))
+                        .group(ActionGroup::Ask),
+                );
                 if due(p, &a) {
-                    out.push(Action::new('n', "ask again in the thread…", "reask").icon(Icon::Reply).adds());
+                    out.push(
+                        Action::new('n', "ask again in the thread…", "reask")
+                            .icon(Icon::Reply)
+                            .adds()
+                            .group(ActionGroup::Ask),
+                    );
                 }
             }
             (!out.is_empty()).then_some(Contribution::Actions(out))

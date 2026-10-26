@@ -321,8 +321,8 @@ fn another_parts_line_sits_under_the_title_and_its_actions_in_the_preview_act_on
     assert_eq!(menu.items[start].keys, "s");
     assert!(menu.items.iter().any(|item| item.label == "Tracker" && item.heading));
     let collision = menu.items.iter().find(|item| item.label == "open ABC-12 in the tracker").unwrap();
-    assert_eq!(collision.keys, "", "the contribution does not displace GitLab's o");
-    assert_eq!(collision.key, None);
+    assert_eq!(collision.keys, "p", "the contribution does not displace GitLab's o: it takes a free letter");
+    assert_eq!(collision.key, Some('p'));
     assert!(menu.items.iter().any(|item| item.keys == "o" && item.label == "open it in GitLab"));
     // The contributed row is in the menu the host shows, and a press on it
     // is its value chosen.
@@ -427,6 +427,8 @@ fn the_tracker_shows_a_merge_request_and_esc_returns_to_it() {
     let text = to_text(&host, 160, 40);
     assert!(text.contains("Repositories / a / api / !263"), "{text}");
     press(&mut host, Key::Char('x'));
+    // The way back is the pane's: `x` again, inside the row menu.
+    press(&mut host, Key::Char('x'));
     let menu = to_text(&host, 160, 40);
     assert!(menu.contains("back to tickets"), "{menu}");
     press(&mut host, Key::Esc);
@@ -445,8 +447,8 @@ fn a_contributed_action_with_gitlabs_key_is_chosen_from_the_menu_only() {
     assert_eq!(row("start work on ABC-12…").unwrap().keys, "s");
     assert_eq!(
         row("open ABC-12 in the tracker").unwrap().keys,
-        "",
-        "o is GitLab's"
+        "p",
+        "o is GitLab's: the contribution takes the first free letter of its words"
     );
     assert!(row("Tracker").unwrap().heading);
     // o still opens the merge request in GitLab.

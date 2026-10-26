@@ -3,28 +3,17 @@ source: crates/radar-slack/src/tests.rs
 expression: menu_shown(&host)
 ---
 ── menu · Bob Builder's thread in #team ──
-  # a link
 > open it in the browser  (⏎)
   copy it  (y)
-  # the thread
   mark read up to its newest reply, in radar only  (m)
-  # on Slack
+  # change it
   comment in its thread…  (c)
   react to its first message…  (e)
-  # page
-  next tab: Thread  (])
-  previous tab: Thread  ([)
-  # with an agent
-  ask an agent about it…  (A)
+  # work on it here
   review its merge request locally…  (v)
-  kept replies…  (ctrl-r)
-  refresh this page  (r)
-  back to #team  (esc)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  # ask someone
+  ask an agent about it…  (A)
+  history of #team thread  (H)
 ── status · SLACK ──
 ↑↓ move  ⏎ choose  esc close
 4 new · 3 for you

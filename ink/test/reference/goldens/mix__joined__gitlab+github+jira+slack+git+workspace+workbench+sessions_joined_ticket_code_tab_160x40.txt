@@ -1,4 +1,4 @@
- radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                            ⠷ not synced yet · every 2m  ✎ edit
+ radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                              ⠷ not synced yet · every 2m  edit
  Jira / acme / ABC / ABC-12
  Add a stats endpoint for the dashboard                                                                                                 In Review · Story · you
  Acme ABC · updated 1h ago

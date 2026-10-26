@@ -750,7 +750,7 @@ pub fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<Row> {
     // The view's own actions: the nav pane and the tree act on the view.
     let view = |b: &mut Vec<Row>| {
         b.extend([
-            act("gitlab.repos.filter", Binding::new("/", "filter the view by words")),
+            act("gitlab.repos.filter", Binding::new("/", "filter the view by words").pane()),
             // Says what pressing it will switch to.
             act(
                 "gitlab.repos.toggle_empty_repos",
@@ -761,9 +761,10 @@ pub fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<Row> {
                     } else {
                         "show only repos with merge requests in the view"
                     },
-                ),
+                )
+                .pane(),
             ),
-            act("gitlab.repos.refresh", Binding::new("r", "refresh now")),
+            act("gitlab.repos.refresh", Binding::new("r", "refresh now").pane()),
         ]);
     };
     let sel = selected(p, p.visible());
@@ -789,7 +790,18 @@ pub fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<Row> {
         };
         b.push(act("gitlab.repos.open_link", Binding::new("o", open)));
         if link(p, true).is_some() {
-            b.push(act("gitlab.repos.open_pipeline", Binding::new("p", pipeline)));
+            let mut row = Binding::new("p", pipeline);
+            // A merge request's pipeline: its state is the fact, and a
+            // running or failed one is what the row asks about now.
+            if let Some(Selected::Mr(it)) = &sel
+                && let Some(state) = it.mr.pipeline
+            {
+                row = row.hint(state.word());
+                if matches!(state, Pipeline::Running | Pipeline::Failed) {
+                    row = row.lead();
+                }
+            }
+            b.push(act("gitlab.repos.open_pipeline", row));
         }
         b.push(act("gitlab.repos.copy_link", Binding::new("y", copy)));
     };

@@ -15,6 +15,7 @@ pub fn section_view(host: &Host, tier: crate::design::theme::Tier) -> Option<Sec
     match host.current_section()? {
         (Owner::Parts, s) => Some(parts(host, s.id)),
         (Owner::Mode, s) => Some(mode(host, s.id)),
+        (Owner::Menus, s) => Some(menus(host, s.id)),
         (Owner::Look, _) => Some(host.look_settings_view()),
         (Owner::Host, s) if host.on_icons() => Some(icons(host, s.id)),
         (Owner::Host, s) => Some(colours(host, s.id, tier)),
@@ -144,6 +145,76 @@ fn parts_detail(host: &Host) -> Vec<Text> {
         }
     }
     lines
+}
+
+/// Settings › Menus: each kind of place with what was changed in its menu,
+/// then the switches every row menu follows.
+fn menus(host: &Host, scope: &str) -> SectionView {
+    use crate::menus::Row;
+    let rows_of = host.menus_rows();
+    let name_w = rows_of
+        .iter()
+        .map(|r| match r {
+            Row::Place(_, name) => crate::ui::width(name) + 6,
+            _ => 0,
+        })
+        .max()
+        .unwrap_or(0)
+        .max(40);
+    let line = |icon: Icon, words: String, value: String, ink: Ink| {
+        let mut lead = Seg::icon(icon);
+        lead.icon_lead = true;
+        Text::new()
+            .push(lead)
+            .push(Seg::new(crate::ui::pad(&words, name_w), Ink::Primary))
+            .push(Seg::new(value, ink))
+    };
+    let mut rows = vec![ListRow::heading("menus.places", heading("kinds of place")), blank(0)];
+    let mut at = Vec::new();
+    for (i, r) in rows_of.iter().enumerate() {
+        if *r == Row::StateFirst {
+            rows.push(blank(1));
+            rows.push(ListRow::heading("menus.every", heading("every row menu")));
+            rows.push(blank(2));
+        }
+        at.push(rows.len());
+        let text = match r {
+            Row::Place(kind, name) => {
+                let place = host.menus.place(kind);
+                let ink = if place == crate::menus::Place::default() { Ink::Muted } else { Ink::Warn };
+                line(Icon::Menu, format!("{name} rows"), place.changes(), ink)
+            }
+            Row::StateFirst => line(
+                Icon::Settings,
+                "the row's state picks the first action".into(),
+                if host.menus.state_first { "on" } else { "off" }.into(),
+                Ink::Accent,
+            ),
+            Row::OtherParts => line(
+                Icon::Settings,
+                "other parts' actions".into(),
+                host.menus.other_parts.words().into(),
+                Ink::Accent,
+            ),
+            Row::Gear => line(
+                Icon::Settings,
+                "gear in the title edge".into(),
+                if host.menus.gear { "on" } else { "off" }.into(),
+                Ink::Accent,
+            ),
+        };
+        rows.push(ListRow::new(format!("menus.{i}"), text));
+    }
+    let selected = at.get(host.menus_row.min(at.len().saturating_sub(1))).copied();
+    let detail = vec![
+        Text::of(
+            "A row's menu (x, or a right-click on a row) holds what acts on that row. Its gear, or , in it, turns it into its own editor: move an action, hide it, pin it first, group it behind one row, or give it another key. What you change applies to every row of that kind, and the key works on the row too.",
+            Ink::Primary,
+        ),
+        Text::new(),
+        Text::of("[menus] in config.toml · d puts a kind of place back", Ink::Muted),
+    ];
+    section(scope, Node::List { rows, selected, editing: None }, "the row menus".into(), detail)
 }
 
 fn mode(host: &Host, scope: &str) -> SectionView {

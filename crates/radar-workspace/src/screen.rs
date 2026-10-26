@@ -217,7 +217,7 @@ pub fn keys(p: &WorkspacePlugin, pane: Pane) -> Vec<Binding> {
         if selected(p, &rows(p)).is_some() {
             bindings.push(Binding::new("⏎", "open the selected folder"));
         }
-        bindings.push(Binding::new("r", "look for repositories again"));
+        bindings.push(Binding::new("r", "look for repositories again").pane());
         bindings
     } else {
         vec![]

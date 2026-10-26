@@ -1337,12 +1337,12 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         press(&mut host, Key::Char('x'));
         let row = menu_text(&host).into_iter().find(|l| l.contains("another status")).unwrap();
         match mode {
-            Mode::ReadOnly => assert!(row.ends_with("· radar is read only"), "{row}"),
-            Mode::Write => assert!(row.ends_with("· needs edit mode"), "{row}"),
+            Mode::ReadOnly => assert!(row.ends_with("radar is read only"), "{row}"),
+            Mode::Write => assert!(row.ends_with("needs edit mode"), "{row}"),
             Mode::Edit => assert!(row.ends_with("another status…"), "{row}"),
         }
-        let comment = menu_text(&host).into_iter().find(|l| l.contains("comment on")).unwrap();
-        assert_eq!(comment.contains("·"), mode == Mode::ReadOnly, "{mode:?}: {comment}");
+        let comment = menu_text(&host).into_iter().find(|l| l.starts_with("c comment")).unwrap();
+        assert_eq!(comment.ends_with("radar is read only"), mode == Mode::ReadOnly, "{mode:?}: {comment}");
         press(&mut host, Key::Esc);
         press(&mut host, Key::Char('t'));
         let read = jira(&host).dialogs.current_read();

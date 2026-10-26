@@ -193,9 +193,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -276,50 +277,43 @@
         "mnemonic_at": 3
       },
       {
-        "heading": true,
-        "id": "",
-        "label": "on GitLab"
-      },
-      {
         "change": "edit",
+        "group": "change",
         "id": "gitlab.repos.rebase",
         "key": {
           "key": {
             "char": "u"
           }
         },
-        "label": "update by rebasing onto main…",
-        "mnemonic_at": 0
+        "label": "rebase…"
       },
       {
         "change": "edit",
+        "group": "change",
+        "hint": "needs rebase",
         "id": "gitlab.repos.merge",
         "key": {
           "key": {
             "char": "m"
           }
         },
-        "label": "merge · needs rebase",
+        "label": "merge",
         "mnemonic_at": 0
       },
       {
         "change": "edit",
+        "group": "change",
         "id": "gitlab.repos.approve",
         "key": {
           "key": {
             "char": "e"
           }
         },
-        "label": "approve !263…",
+        "label": "approve…",
         "mnemonic_at": 6
       },
       {
-        "heading": true,
-        "icon": "bot",
-        "id": "",
-        "label": "with an agent"
-      },
-      {
+        "group": "ask",
         "id": "agent.send",
         "key": {
           "key": {
@@ -331,6 +325,7 @@
         "mnemonic_shift": true
       },
       {
+        "group": "local",
         "id": "agent.review_locally",
         "key": {
           "key": {
@@ -355,7 +350,8 @@
             "char": "r"
           }
         },
-        "label": "kept comments…"
+        "label": "kept comments…",
+        "pane": true
       }
     ],
     "medium_from": 70,
@@ -1154,6 +1150,7 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
                 "id": "gitlab.repos.rebase",
                 "key": {
                   "key": {
@@ -1168,6 +1165,8 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
+                "hint": "needs rebase",
                 "id": "gitlab.repos.merge",
                 "key": {
                   "key": {
@@ -1182,6 +1181,7 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
                 "id": "gitlab.repos.approve",
                 "key": {
                   "key": {

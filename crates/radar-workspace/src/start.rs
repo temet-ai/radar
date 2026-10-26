@@ -394,7 +394,9 @@ pub(crate) fn payload(
 
 /// The action `s` adds to a ticket.
 pub(crate) fn action(key: &str) -> Action {
-    Action::new('s', format!("start work on {key}…"), ACTION).icon(Icon::Branch)
+    Action::new('s', format!("start work on {key}…"), ACTION)
+        .icon(Icon::Branch)
+        .group(radar_core::view::ActionGroup::Local)
 }
 
 impl WorkspacePlugin {

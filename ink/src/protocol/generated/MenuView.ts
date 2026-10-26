@@ -28,6 +28,15 @@ question: boolean,
  */
 change?: Change | null, items: Array<Choice>, 
 /**
+ * A row menu that can be customised: a gear at the right end of the
+ * title edge, with its key `,`; a press on it is [`targets::gear`].
+ */
+gear?: boolean, 
+/**
+ * The gear is on: the menu is its own editor (the gear drawn lit).
+ */
+customising?: boolean, 
+/**
  * The highlighted row (an index into `items`).
  */
 selected?: number | null, 

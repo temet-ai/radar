@@ -281,6 +281,11 @@ pub struct Action {
     /// What it is about, before its words where it is drawn (a menu row,
     /// an owner's list of actions); nothing with icons off.
     pub icon: Option<crate::ui::icon::Icon>,
+    /// A fact about the subject, at the right edge of the menu row.
+    pub hint: String,
+    /// What it is for: it joins the owner's row under that heading. `None`
+    /// keeps it under the contributing part's name.
+    pub group: Option<crate::view::ActionGroup>,
 }
 
 impl Action {
@@ -291,7 +296,21 @@ impl Action {
             id: id.into(),
             change: None,
             icon: None,
+            hint: String::new(),
+            group: None,
         }
+    }
+
+    /// A fact about the subject, at the right edge of its menu row.
+    pub fn hint(mut self, hint: impl Into<String>) -> Self {
+        self.hint = hint.into();
+        self
+    }
+
+    /// The owner's heading it joins in a row menu.
+    pub fn group(mut self, group: crate::view::ActionGroup) -> Self {
+        self.group = Some(group);
+        self
     }
 
     /// An icon before its words.

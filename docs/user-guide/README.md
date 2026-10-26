@@ -189,8 +189,13 @@ These notices disappear when radar closes. Press `H` for the persistent
 ### The mouse
 
 The mouse does what the keys do. What a click would act on is lit under the pointer. A click
-selects, two clicks open, right-click on a row opens its `x` menu, and the wheel scrolls the
-pane under the pointer. Right-click needs a terminal that passes right-clicks through;
+selects, two clicks open, right-click on a row opens its `x` menu (right-click on empty
+space opens the pane's), and the wheel scrolls the pane under the pointer.
+
+A row's menu holds what you can do to that row, its key on the left and what is true of
+it now on the right. Press `,` in it, or click its gear, to arrange it: move, hide, pin,
+group or re-key actions for every row of that kind. Settings, General, menus lists what
+you changed. Right-click needs a terminal that passes right-clicks through;
 `radar terminal`, and Settings, General, parts, show what radar detected.
 
 Dragging selects text inside the pane it started in, and letting go copies it. The status

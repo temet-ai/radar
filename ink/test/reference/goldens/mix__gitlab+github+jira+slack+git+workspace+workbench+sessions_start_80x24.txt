@@ -1,4 +1,4 @@
- radar    Branches   Work items   History   Settings (,)                 ✎ edit
+ radar    Branches   Work items   History   Settings (,)                   edit
 ╭ 1 set up GitLab ─────────────────────────────────────────────────────────────╮
 │ GitLab is not set up yet.                                                    │
 │                                                                              │

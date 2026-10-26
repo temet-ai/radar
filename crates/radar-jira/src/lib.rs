@@ -875,20 +875,26 @@ impl JiraPlugin {
         let mut b = Vec::new();
         let tree = self.pages.is_empty() && matches!(pane, Pane::Nav | Pane::Middle);
         if tree && pane == Pane::Middle && !self.cfg.sites.is_empty() {
-            b.push(Binding::new(GOTO_KEY.to_string(), "go to a ticket by its key or words…"));
+            b.push(Binding::new(GOTO_KEY.to_string(), "go to a ticket by its key or words…").pane());
         }
         if agent_context::can_send(self) && pane != Pane::Nav {
-            b.push(Binding::new(agent_context::KEY.to_string(), "ask an agent about it…"));
+            b.push(
+                Binding::new(agent_context::KEY.to_string(), "ask an agent about it…")
+                    .group(radar_core::view::ActionGroup::Ask),
+            );
         }
         if tree {
-            b.push(Binding::new(
-                ASSIGNEE_KEY.to_string(),
-                match self.assignee.as_deref() {
-                    Some(NOBODY) => "only unassigned now: pick an assignee…".to_string(),
-                    Some(a) => format!("only {a}'s now: pick an assignee…"),
-                    None => "show one assignee's tickets…".into(),
-                },
-            ));
+            b.push(
+                Binding::new(
+                    ASSIGNEE_KEY.to_string(),
+                    match self.assignee.as_deref() {
+                        Some(NOBODY) => "only unassigned now: pick an assignee…".to_string(),
+                        Some(a) => format!("only {a}'s now: pick an assignee…"),
+                        None => "show one assignee's tickets…".into(),
+                    },
+                )
+                .pane(),
+            );
         }
         b
     }
@@ -1015,7 +1021,7 @@ impl JiraPlugin {
                 .into_iter()
                 .chain(std::iter::once((
                     format!("jira.{}.kept_text", canon(scope)),
-                    Binding::new("ctrl-r", "kept Jira text…"),
+                    Binding::new("ctrl-r", "kept Jira text…").pane(),
                 )))
                 .collect::<Vec<_>>()
         } else if scope == SCREEN.id {
@@ -1056,7 +1062,7 @@ impl JiraPlugin {
             Pane::Middle
         });
         b.splice(at..at, shared);
-        b.push(Binding::new("ctrl-r", "kept Jira text…"));
+        b.push(Binding::new("ctrl-r", "kept Jira text…").pane());
         b
     }
 

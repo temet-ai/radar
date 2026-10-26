@@ -1360,6 +1360,48 @@
           "snippet": "const Question = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />;",
           "description": "A question before a write: a note, then two buttons. The data is Ink's hand-made test sample\n(ink/test/chrome/fixture.ts `confirm`): no recorded view holds a question.",
           "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome80, confirm)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--row-menu",
+          "name": "Row Menu",
+          "snippet": "const RowMenu = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />;",
+          "description": "The row menu (`x` or a right click on a row) with its groups, hints at the right and the gear (key `,`) at the\nright end of the title edge. 80 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome80, rowMenu())` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--row-menu-wide",
+          "name": "Row Menu Wide",
+          "snippet": "const RowMenuWide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />;",
+          "description": "The same row menu at 160 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, rowMenu())` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--row-menu-customising",
+          "name": "Row Menu Customising",
+          "snippet": "const RowMenuCustomising = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />;",
+          "description": "The gear is on (`customising`): its cells sit on the selection background. 80 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome80, rowMenu({ customising: true }))` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--row-menu-customising-wide",
+          "name": "Row Menu Customising Wide",
+          "snippet": "const RowMenuCustomisingWide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />;",
+          "description": "The gear is on, 160 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, rowMenu({ customising: true }))` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--pane-menu",
+          "name": "Pane Menu",
+          "snippet": "const PaneMenu = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />;",
+          "description": "A pane's menu (the actions on the pane, not on a row): no gear in the title edge. 80 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome80, paneMenu())` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--pane-menu-wide",
+          "name": "Pane Menu Wide",
+          "snippet": "const PaneMenuWide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />;",
+          "description": "A pane's menu at 160 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, paneMenu())` could not be resolved statically."
         }
       ],
       "import": "import { BodyWithMenu, Compare, MenuBox } from 'radar-ink';"
@@ -3259,6 +3301,6 @@
   },
   "meta": {
     "docgen": "react-docgen-typescript",
-    "durationMs": 8244
+    "durationMs": 1195
   }
 }

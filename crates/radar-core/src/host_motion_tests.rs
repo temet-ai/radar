@@ -239,6 +239,7 @@ impl Plugin for Probe {
             heading: false,
             icon: None,
             change: None,
+            ..Default::default()
         });
         Some(view)
     }

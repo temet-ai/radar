@@ -510,6 +510,9 @@ fn changing_a_link_does_not_disable_the_popup_refresh_or_back_rows() {
         let (mut host, recorded) = fixture(&format!("<{A}|first>"), None);
         popup(&mut host);
         refresh(&mut host, &format!("<{B}|second>"));
+        // Refresh and the way back are the pane's: `x` again, inside the row menu.
+        press(&mut host, Key::Char('x'));
+        assert!(host.menu.is_some());
         match action {
             "refresh" => {
                 let effects = press(&mut host, Key::Char('r'));

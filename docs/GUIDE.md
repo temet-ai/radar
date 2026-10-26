@@ -234,7 +234,7 @@ and cannot activate the covered control.
 5. **Host keys**, never seen by a plugin: `q` quit (settings save themselves, so it asks
    only after a save failed: try saving again and quit, quit without saving, or stay;
    save-and-quit quits only after the save succeeded: `QUIT_MENU`, `quit_after_save` in
-   `host.rs`); `x` and `?` the actions menu; `b` the
+   `host.rs`); `x` and `?` the selected row's menu (`x` in it the pane's); `b` the
    bulk menu; `w` write the config now (harmless; it is saved after each change anyway); `z`
    pause or resume every part's refreshing; `` ` `` the agent dock (`dock::KEY`), when a part
    has one; `H` read-only activity history (`HISTORY_KEY`); `~` session notices; `,` settings (`SETTINGS_KEY`); a Shift+letter that is a screen's key;
@@ -333,8 +333,9 @@ mouse reporting. Foot also forwards it; radar identifies Foot by its default `TE
 or `foot-direct`, since Foot clears `TERM_PROGRAM` and provides no separate identity
 variable. A custom `TERM` can make Foot appear unidentified. Other terminal hosts
 decide whether to pass the button through.
-Another right-click replaces the open `x` menu with the clicked row's actions (or
-dismisses it over empty space). Other menus remain modal. With a menu open the left
+A right-click on a pane's empty space (`pane:<id>`) opens that pane's menu. Another
+right-click replaces the open `x` menu with the clicked row's actions, or the pane's
+over empty space. Other menus remain modal. With a menu open the left
 mouse button belongs to the menu. Ink keeps the left button: a press
 reaches the host as an intent when it is let go without moving; a drag selects text as a
 terminal would (the cells shown reversed) and letting go copies it, through
@@ -494,6 +495,28 @@ table of their own, `[icons]`, edited in `General › icons`.
   `PgUp`/`PgDn` and the wheel read overflowing content without choosing an action.
   An action list opens with its selected action visible, so paging up may reveal an
   earlier long title. Typed menus keep their field visible above their offers.
+  Every list menu draws its keys in the key column (shift as the capital), never
+  underlined in the label; the item's hint is drawn at the right edge.
+- **A row's menu** (`x`, a right-click on a row): the part's bindings that act on the
+  row, then what other parts add to its subject. A `Binding` (or `ActionSpec`) says
+  where it belongs: `.pane()` for what acts on the pane or session (filter, refresh, go
+  to, kept comments; moving keys count as pane too), `.group(ActionGroup::…)` for the
+  heading it sits under (`Change` "change it", `Local` "work on it here", `Ask` "ask
+  someone"; `Open` first, unheaded), `.lead()` when the row's state asks for it now
+  (it follows `⏎`), `.hint(..)` for a fact about the row. A contributed `Action` takes
+  `.group(..)` and `.hint(..)` too, and joins the owner's headings; one without a
+  group stays under its part's name. Folding is offered only on a row with rows under
+  it, named for the way it will go; the row's history is `H`. The pane's menu (a
+  right-click on empty space, `x` again) holds the pane bindings, expanding every
+  group, notices and activity history.
+- **Customising a row's menu** (`crate::menus`): `,` or the gear in its title edge
+  turns the menu into its own editor (`⇧↑↓`/`K`/`J` move among its heading's rows,
+  `space` show or hide, `*` pin first, `f` group behind one row at the end, `=` a key,
+  `d` the parts' arrangement, `,`/`esc` done). It is kept per subject kind in
+  `[menus.<kind>]` (`pinned`, `hidden`, `grouped`, `order`, `keys` by action id), with
+  `[menus] state_first`, `other_parts` (`in-menu`, `folded`, `off`) and `gear`. A key
+  given there works on the row too (`Host::remapped_key`). Settings › Menus lists the
+  kinds of place.
   A part can opt a target-sensitive own key into `Plugin::menu_key_context`: return
   a cheap opaque token for its exact target and connection revision. The host checks
   its original route and token before replay; a changed or missing context asks the

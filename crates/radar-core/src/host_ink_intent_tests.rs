@@ -124,9 +124,10 @@ fn a_select_on_a_panes_own_target_only_focuses_that_pane() {
 
 /// Ink sends every intent for a hit, so a right-press or a double click on a
 /// pane's empty space arrives as `Context` or `Activate` on `pane:<id>`: the
-/// host focuses the pane, opens no menu and the part never hears of it.
+/// host focuses the pane and the part never hears of it. A right-press opens
+/// the pane's menu; nothing else opens one.
 #[test]
-fn a_context_or_activate_on_a_panes_own_target_only_focuses_that_pane() {
+fn a_context_or_activate_on_a_panes_own_target_focuses_that_pane() {
     for pane in ["pane:middle", "pane:detail"] {
         let (mut host, seen) = fixture();
         let want = if pane == "pane:middle" { Pane::Middle } else { Pane::Detail };
@@ -136,12 +137,18 @@ fn a_context_or_activate_on_a_panes_own_target_only_focuses_that_pane() {
             Intent::Activate { target: Target::new(pane) },
             Intent::Fold { target: Target::new(pane), open: true },
         ] {
+            host.menu = None;
             host.focus = Pane::Nav;
             host.bar = true;
             host.on_intent(intent.clone());
             assert_eq!(host.focus, want, "{intent:?} focuses {pane}");
             assert!(!host.bar, "{intent:?} takes the keys from the top bar");
-            assert!(host.menu.is_none(), "{intent:?} on empty space opens no menu");
+            let context = matches!(intent, Intent::Context { .. });
+            assert_eq!(host.menu.is_some(), context, "{intent:?} on empty space");
+            if context {
+                let items = &host.menu.as_ref().unwrap().menu.items;
+                assert!(items.iter().any(|i| i.label == "activity history"), "the pane's menu");
+            }
             assert_eq!(seen.lock().unwrap().len(), before, "no part hears of {intent:?}");
         }
     }

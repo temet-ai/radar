@@ -13,7 +13,8 @@
 
 use std::path::Path;
 
-use radar_core::plugin::{Effect, Menu, Tone};
+use radar_core::plugin::{Effect, Menu, MenuItem, Tone};
+use radar_core::view::ActionGroup;
 use radar_core::ui::icon::Icon;
 use radar_core::{Action, Adds, Chip, Contribution, Point, Subject};
 
@@ -129,27 +130,28 @@ fn line(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Chip> {
 
 /// What can be done here to the checkout of `project`.
 fn actions(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Action> {
+    let local = |a: Action| a.group(ActionGroup::Local);
     let Some(c) = checkout(p, project) else {
-        let what = if p.cfg.roots.is_empty() {
-            "scan for a checkout · no folders set yet"
+        let scan = if p.cfg.roots.is_empty() {
+            Action::new('s', "scan for a checkout", "scan").hint("no folders set yet")
         } else {
-            "scan for a checkout again"
+            Action::new('s', "scan for a checkout again", "scan")
         };
         return vec![
-            Action::new('s', what, "scan").icon(Icon::Search),
-            keyless("link to a local folder…", "link", Icon::Link),
+            local(scan.icon(Icon::Search)),
+            local(keyless("link to a local folder…", "link", Icon::Link)),
         ];
     };
     let mut out = Vec::new();
     if let Some(b) = branch {
-        let what = if p.local.switching.contains(&c.dir) {
-            format!("check out {b} · checking out…")
+        let (what, hint) = if p.local.switching.contains(&c.dir) {
+            (format!("check out {b}…"), "checking out…")
         } else if c.branch == b {
-            format!("update checkout {b} from origin…")
+            (format!("update checkout {b} from origin…"), "")
         } else {
-            format!("check out {b}…")
+            (format!("check out {b}…"), "")
         };
-        out.push(Action::new('c', what, "checkout").icon(Icon::Branch));
+        out.push(local(Action::new('c', what, "checkout").icon(Icon::Branch).hint(hint)));
     }
     let editor = p
         .cfg
@@ -157,41 +159,74 @@ fn actions(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Action> {
         .map(|k| k.editor.clone())
         .unwrap_or_default();
     // On a merge request whose branch the checkout is not on, they open on
-    // that branch (asked where), and say so.
-    let on = branch.filter(|b| *b != c.branch).map(|b| format!(" on {b}…")).unwrap_or_default();
-    let editor_words = match (editor.is_empty(), on.is_empty()) {
-        (true, true) => "open in an editor…".to_string(),
-        (true, false) => format!("open in an editor{on}"),
-        (false, _) => format!("open in {editor}{on}"),
+    // that branch (asked where), and the row says which.
+    let on = branch.filter(|b| *b != c.branch);
+    let ask = if on.is_some() { "…" } else { "" };
+    let editor_words = if editor.is_empty() {
+        "open in an editor…".to_string()
+    } else {
+        format!("open in {editor}{ask}")
     };
-    out.push(Action::new('e', editor_words, "editor").icon(Icon::Editor));
-    let terminal_words = if on.is_empty() { "open a terminal there".to_string() } else { format!("open a terminal{on}") };
-    out.push(Action::new('t', terminal_words, "terminal").icon(Icon::Terminal));
-    out.push(Action::new('s', "look for checkouts again", "scan").icon(Icon::Search));
-    out.push(Action::new('n', "new branch…", "new").icon(Icon::Branch));
-    // GitLab's `u` on a merge request page is its own rebase: here the row has no key.
+    let on_hint = on.map(|b| format!("on {b}")).unwrap_or_default();
+    out.push(local(Action::new('e', editor_words, "editor").icon(Icon::Editor).hint(on_hint.clone())));
+    let terminal_words = if on.is_some() { "open a terminal…" } else { "open a terminal there" };
+    out.push(local(Action::new('t', terminal_words, "terminal").icon(Icon::Terminal).hint(on_hint)));
+    if branch.is_some() {
+        // A merge request: the chores on a checkout are one row, which opens
+        // its own small menu. The owner's rebase is the one rebase.
+        out.push(local(keyless(CHORES_WORDS, "chores", Icon::Local)));
+        return out;
+    }
+    out.push(local(Action::new('s', "look for checkouts again", "scan").icon(Icon::Search)));
+    out.push(local(Action::new('n', "new branch…", "new").icon(Icon::Branch)));
     let base = act::base_for(p, project);
     let onto = if base.is_empty() {
         "its base".to_string()
     } else {
         base
     };
-    let rebase = format!("update by rebasing onto {onto}…");
-    out.push(if branch.is_some() {
-        keyless(rebase, "rebase", Icon::Branch)
-    } else {
-        Action::new('u', rebase, "rebase").icon(Icon::Branch)
-    });
+    out.push(local(Action::new('u', format!("update by rebasing onto {onto}…"), "rebase").icon(Icon::Branch)));
     if !c.branch.is_empty() && !c.branch.starts_with("detached") {
         // Not `U`: a capital is a screen's, and an action a part adds to another's menu is never one (GUIDE 2.26).
-        out.push(keyless(format!("push {}…", c.branch), "push", Icon::Branch));
+        out.push(local(keyless(format!("push {}…", c.branch), "push", Icon::Branch)));
     }
-    out.push(keyless("park on a worktree…", "park", Icon::Branch));
-    out.push(keyless("link to another local folder…", "link", Icon::Link));
+    out.push(local(keyless("park on a worktree…", "park", Icon::Branch)));
+    out.push(local(keyless("link to another local folder…", "link", Icon::Link)));
     if local::checkouts_for(p, project).len() > 1 {
-        out.push(keyless("use another worktree…", "use", Icon::Local));
+        out.push(local(keyless("use another worktree…", "use", Icon::Local)));
     }
     out
+}
+
+/// The one row for the chores on a merge request's checkout.
+const CHORES_WORDS: &str = "push, worktree, new branch, link…";
+
+/// The menu the chores row opens: `git-chores:project\tbranch\ttitle\tkey\ttype`,
+/// enough to name a branch from the same ticket as the page does.
+const CHORES_MENU: &str = "git-chores";
+
+/// The small menu of the chores, each with its own key.
+fn chores_menu(p: &GitPlugin, s: &Subject, project: &str, branch: &str, c: &Checkout) -> Menu {
+    let flat = |t: &str| t.replace(['\t', '\n'], " ");
+    let id = format!(
+        "{CHORES_MENU}:{}\t{}\t{}\t{}\t{}",
+        flat(project),
+        flat(branch),
+        flat(s.field("title").unwrap_or(&s.label)),
+        flat(s.field("key").unwrap_or_default()),
+        flat(s.field("type").unwrap_or_default()),
+    );
+    let mut items = Vec::new();
+    if !c.branch.is_empty() && !c.branch.starts_with("detached") {
+        items.push(MenuItem::new('p', format!("push {}…", c.branch), "", "push").icon(Icon::Branch));
+    }
+    items.push(MenuItem::new('w', "park on a worktree…", "", "park").icon(Icon::Branch));
+    items.push(MenuItem::new('n', "new branch…", "", "new").icon(Icon::Branch));
+    items.push(MenuItem::new('l', "link to another local folder…", "", "link").icon(Icon::Link));
+    if local::checkouts_for(p, project).len() > 1 {
+        items.push(MenuItem::new('u', "use another worktree…", "", "use").icon(Icon::Local));
+    }
+    Menu::new(id, "push, worktree, new branch, link", items).icon(Icon::Local)
 }
 
 pub(crate) fn contribute(p: &GitPlugin, point: Point, s: &Subject) -> Option<Contribution> {
@@ -224,6 +259,7 @@ pub(crate) fn act(p: &mut GitPlugin, s: &Subject, action: &str) -> Vec<Effect> {
         return vec![Effect::Notify(no_checkout(p))];
     };
     match action {
+        "chores" => branch.map_or_else(Vec::new, |b| vec![Effect::Menu(chores_menu(p, s, project, b, &c))]),
         "new" | "park" => {
             // A branch is named from a ticket: its key is in the page's branch or title.
             let Some((key, title, kind)) = ticket_of(s) else {
@@ -293,6 +329,18 @@ pub(crate) fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<
     match kind {
         local::PICK_EDITOR => Some(local::on_pick(p, arg, value)),
         act::OPEN_MENU => Some(act::on_open(p, arg, value)),
+        CHORES_MENU => {
+            let mut at = arg.split('\t');
+            let (project, branch, title) = (at.next()?, at.next()?, at.next()?);
+            let (key, kind) = (at.next()?, at.next()?);
+            let s = Subject::new(MERGE_REQUEST, project, title)
+                .with("project", project)
+                .with("branch", branch)
+                .with("title", title)
+                .with("key", key)
+                .with("type", kind);
+            Some(act(p, &s, value))
+        }
         CHECKOUT_MENU => {
             if value != "yes" {
                 return Some(vec![]);

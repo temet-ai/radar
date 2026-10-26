@@ -40,7 +40,8 @@
         }
       },
       "label": "refresh this page",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "github.page.previous_tab",
@@ -49,7 +50,8 @@
           "char": "["
         }
       },
-      "label": "previous tab"
+      "label": "previous tab",
+      "pane": true
     },
     {
       "id": "github.page.next_tab",
@@ -58,7 +60,8 @@
           "char": "]"
         }
       },
-      "label": "next tab"
+      "label": "next tab",
+      "pane": true
     },
     {
       "id": "github.page.back",

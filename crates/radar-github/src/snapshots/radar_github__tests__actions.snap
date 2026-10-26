@@ -30,15 +30,6 @@ head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 > open its page  (⏎)
   open on GitHub  (o)
   copy the link  (y)
-  refresh configured repositories  (r)
-  toggle the group  (space)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  history of acme/api #42  (H)
 ── status · GITHUB ──
 ↑↓ move  ⏎ choose  esc close

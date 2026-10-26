@@ -16,7 +16,7 @@ and the status line shows the main ones. How keys are chosen is in
 | `⏎` | go in; open the row's page |
 | `esc` | back one level; close a menu; stop typing; clear a filter |
 | `PgUp` `PgDn` | scroll the detail pane |
-| `x` or `?` | the menu for where you are |
+| `x` or `?` | the selected row's menu; `x` again the pane's menu; `,` in a row's menu customises it |
 | `ctrl-p` | command palette: find a screen, setting, action or cached item |
 | `~` | recent notices from this session |
 | `b` | bulk actions on everything shown |
@@ -283,7 +283,9 @@ Notices last only for the current session; [History](history.md) is the persiste
 |---|---|
 | click | select; on a tab, a menu row or a status line key, act |
 | click twice | open (same as `⏎`) |
-| right-click a row | open its `x` menu; right-click another row to move it, or empty space to close it |
+| right-click a row | open its `x` menu; right-click another row to move it |
+| right-click empty space | the pane's menu: filter, refresh, go to, folds, notices, history |
+| click the gear in a row's menu | customise that kind of row's menu (same as `,`) |
 | wheel | scroll the pane under the pointer |
 | drag | select text inside the pane the drag started in; letting go copies it |
 | double-click in text | select the word under the pointer (a path or a link whole) and copy it |

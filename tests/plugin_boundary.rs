@@ -627,3 +627,45 @@ mod setup_steps {
         assert!(h.host().plugins[at].capturing(), "typing a command");
     }
 }
+
+/// Git's chores on a merge request are one row of its `x` menu, "push,
+/// worktree, new branch, link…": choosing it by its value opens git's own small menu,
+/// whose rows run by their values, and a value nobody lists does nothing.
+#[test]
+fn the_chores_row_of_a_merge_request_opens_gits_menu_and_an_unlisted_value_does_nothing() {
+    let mut h = all_parts(160, 40);
+    let repos = (0..h.screen_count()).find(|i| h.show_screen(*i) == "repos").expect("the GitLab screen");
+    h.show_screen(repos);
+    h.focus(PaneId::Middle);
+    let rows = radar_core::headless::node_targets(&h.screen().unwrap().pane(PaneId::Middle).unwrap().body);
+    let chores = |h: &Headless| h.menu().and_then(|m| m.items.iter().find(|i| i.label.starts_with("push, worktree")).map(|i| i.value.clone()));
+    let mut found = None;
+    for t in &rows {
+        h.send(Intent::Select { target: t.clone() });
+        h.send(Intent::Context { target: t.clone() });
+        if let Some(value) = chores(&h) {
+            found = Some(value);
+            break;
+        }
+        h.send(Intent::Key { chord: radar_core::view::Chord::parse("esc").unwrap() });
+    }
+    let value = found.expect("a merge request whose repo is checked out here offers the chores");
+    let keys = h.menu().unwrap().id.clone();
+    let ran = |h: &Headless| shape(h.records()).iter().filter(|l| l.contains("plugin.action")).count();
+    // A value nobody lists: the menu stays as it was and nothing is asked.
+    h.send(Intent::Invoke { action: "git.unlisted".into() });
+    assert_eq!(h.menu().unwrap().id, keys);
+    let before = ran(&h);
+    h.send(Intent::Invoke { action: value });
+    assert!(ran(&h) > before, "the row ran git's action: {:#?}", shape(h.records()));
+    let menu = h.menu().expect("the chores menu");
+    assert!(menu.id.starts_with("git-chores:"), "{}", menu.id);
+    let labels: Vec<&str> = menu.items.iter().map(|i| i.label.as_str()).collect();
+    assert!(labels.iter().any(|l| l.starts_with("push ")) && labels.contains(&"new branch…"), "{labels:?}");
+    let before = ran(&h);
+    h.send(Intent::Invoke { action: "git.unlisted".into() });
+    assert_eq!(h.menu().unwrap().id, menu.id, "an unlisted value changes nothing");
+    assert_eq!(ran(&h), before, "and runs no action");
+    h.send(Intent::Invoke { action: "link".into() });
+    assert!(h.menu().is_none_or(|m| !m.id.starts_with("git-chores:")), "a row of the chores menu was chosen by its value");
+}

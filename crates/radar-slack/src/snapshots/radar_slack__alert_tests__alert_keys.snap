@@ -6,19 +6,7 @@ expression: menu_shown(&host)
 > open its thread  (⏎)
   open its console link  (o)
   copy its console link  (y)
-  # list
-  kept replies…  (ctrl-r)
-  refresh  (r)
-  filter the list by words  (/)
-  toggle the group  (space)
-  expand the group  (+)
-  collapse the group, or the one this row is in  (-)
-  expand every held group  (=)
-  recent notices (this session)  (~)
-  # History
-  recent activity (last 24 hours)  (H)
-  all activity history
-  history for selected item
+  history of #team-alerts thread  (H)
 ── status · SLACK ──
 ↑↓ move  ⏎ choose  esc close
 7 new · 5 for you · 2 firing

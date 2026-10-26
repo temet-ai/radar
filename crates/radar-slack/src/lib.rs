@@ -834,14 +834,15 @@ impl SlackPlugin {
     /// The `x` rows for keys every place on the screen shares.
     fn shared_keys(&self) -> Vec<Row> {
         let surface = surface(self);
-        let mut b = vec![(format!("slack.{surface}.kept_replies"), Binding::new("ctrl-r", "kept replies…"))];
+        // Each of these is the pane's or the session's, whatever row is selected.
+        let mut b = vec![(format!("slack.{surface}.kept_replies"), Binding::new("ctrl-r", "kept replies…").pane())];
         if self.session_credential().is_ok() {
             b.push((format!("slack.{surface}.refresh"), Binding::new(
                 FETCH_KEY.to_string(),
                 if self.pages.is_empty() { "refresh" } else { "refresh this page" },
-            )));
+            ).pane()));
             if self.pages.is_empty() {
-                b.push(("slack.feed.filter".into(), Binding::new("/", "filter the list by words")));
+                b.push(("slack.feed.filter".into(), Binding::new("/", "filter the list by words").pane()));
             }
         }
         b
@@ -958,12 +959,8 @@ impl SlackPlugin {
             .rposition(|(_, r)| r.keys == "esc")
             .filter(|i| i + 1 == b.len())
             .unwrap_or(b.len());
-        let mut shared = self.shared_keys();
-        // On a list the keys of the whole screen are their own group, apart
-        // from the writes above them; a page's sit under its `page` heading.
-        if self.pages.is_empty() && !shared.is_empty() {
-            shared.insert(0, head(Binding::heading("list")));
-        }
+        // The screen's own keys are the pane's: its menu offers them.
+        let shared = self.shared_keys();
         b.splice(at..at, shared);
         b.splice(at..at, agent_context::rows(self, pane));
         b

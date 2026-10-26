@@ -37,12 +37,8 @@
       "mnemonic_at": 0
     },
     {
-      "heading": true,
-      "id": "",
-      "label": "on Slack"
-    },
-    {
       "change": "add",
+      "group": "change",
       "id": "slack.page.reply",
       "key": {
         "key": {
@@ -54,6 +50,7 @@
     },
     {
       "change": "add",
+      "group": "change",
       "id": "slack.page.react",
       "key": {
         "key": {
@@ -64,18 +61,14 @@
       "mnemonic_at": 1
     },
     {
-      "heading": true,
-      "id": "",
-      "label": "page"
-    },
-    {
       "id": "slack.page.next_tab",
       "key": {
         "key": {
           "char": "]"
         }
       },
-      "label": "next tab: Links"
+      "label": "next tab: Links",
+      "pane": true
     },
     {
       "id": "slack.page.previous_tab",
@@ -84,15 +77,11 @@
           "char": "["
         }
       },
-      "label": "previous tab: Links"
+      "label": "previous tab: Links",
+      "pane": true
     },
     {
-      "heading": true,
-      "icon": "bot",
-      "id": "",
-      "label": "with an agent"
-    },
-    {
+      "group": "ask",
       "id": "agent.send",
       "key": {
         "key": {
@@ -111,7 +100,8 @@
           "char": "r"
         }
       },
-      "label": "kept replies…"
+      "label": "kept replies…",
+      "pane": true
     },
     {
       "id": "slack.page.refresh",
@@ -121,7 +111,8 @@
         }
       },
       "label": "refresh this page",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "slack.page.back",

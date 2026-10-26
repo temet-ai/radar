@@ -4,7 +4,7 @@
 
 
 use radar_core::plugin::{Binding, Effect, MenuItem, Outcome, Pane, Tone};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{ActionGroup, Chord, Key};
 use radar_core::ui::icon::Icon;
 use radar_core::view::TreeNav;
 use radar_core::ui::{self, rich};
@@ -681,9 +681,8 @@ pub(crate) fn message_keys(p: &SlackPlugin, item: &Item, b: &mut Vec<Row>) {
         if p.cfg.by_id(&channel).is_some() {
             b.push(act("slack.feed.mark_read", Binding::new("m", "mark read up to here, in radar only")));
         }
-        b.push(head(Binding::heading("on Slack")));
-        b.push(act("slack.feed.reply", Binding::new("c", "comment in its thread…").adds()));
-        b.push(act("slack.feed.react", Binding::new("e", "react to it…").adds()));
+        b.push(act("slack.feed.reply", Binding::new("c", "comment in its thread…").adds().group(ActionGroup::Change)));
+        b.push(act("slack.feed.react", Binding::new("e", "react to it…").adds().group(ActionGroup::Change)));
     }
 }
 
@@ -785,7 +784,6 @@ pub fn rows(p: &SlackPlugin, pane: Pane) -> Vec<Row> {
                 _ => {}
             }
             if pane == Pane::Detail {
-                b.push(head(Binding::heading("detail pane")));
                 if p.detail_scroll.at() < p.detail_scroll.max() {
                     b.push(act("slack.feed.scroll_preview_down", Binding::new("pgdn", "scroll down a page")));
                 }

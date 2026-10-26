@@ -99,6 +99,11 @@ pub fn bindings(actions: &[ActionSpec]) -> Vec<Binding> {
                 Binding::new(keys, a.label.clone())
             };
             b.icon = a.icon;
+            b.pane = a.pane;
+            b.hint = a.hint.clone();
+            b.group = a.group;
+            b.lead = a.lead;
+            b.id = a.id.clone();
             b.change = a.change.map(|c| match c {
                 crate::view::Change::Add => crate::writes::Change::Add,
                 crate::view::Change::Edit => crate::writes::Change::Edit,

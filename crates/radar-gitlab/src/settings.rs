@@ -1999,7 +1999,7 @@ pub(crate) fn action_specs(p: &GitlabPlugin, section: &str) -> Vec<v::ActionSpec
     let mut rows = key_rows(p, section);
     rows.push(crate::act(
         &format!("gitlab.{section}.kept_comments"),
-        Binding::new("ctrl-r", "kept comments…"),
+        Binding::new("ctrl-r", "kept comments…").pane(),
     ));
     crate::actions(&rows)
 }

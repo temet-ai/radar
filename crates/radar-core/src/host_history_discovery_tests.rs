@@ -35,14 +35,16 @@ impl Plugin for Item {
 #[test]
 fn all_activity_is_discoverable_from_a_screen_without_plugin_actions() {
     let mut host = Host::new(vec![Box::new(Item)], 0).unwrap();
+    // `x` again turns the row's menu into the pane's, which holds the session's history.
+    host.update(crate::host::chord_event(Chord::new(Key::Char('x'))));
     host.update(crate::host::chord_event(Chord::new(Key::Char('x'))));
     assert!(
         host.menu.as_ref().is_some_and(|menu| menu
             .menu
             .items
             .iter()
-            .any(|row| row.label == "all activity history")),
-        "x must offer read-only history even when a part has no actions"
+            .any(|row| row.label == "activity history")),
+        "the pane's menu must offer read-only history even when a part has no actions"
     );
 }
 #[test]
@@ -54,7 +56,7 @@ fn selected_subject_history_is_discoverable_in_the_context_menu() {
             .menu
             .items
             .iter()
-            .any(|row| row.label == "history for selected item")),
+            .any(|row| row.label == "history of One" && row.key == Some('H'))),
         "a validated scoped subject must have a history entry"
     );
 }

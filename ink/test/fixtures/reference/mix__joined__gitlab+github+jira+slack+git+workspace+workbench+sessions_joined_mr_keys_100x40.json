@@ -3,6 +3,7 @@
     "height": 40,
     "keys_at": "body",
     "menu": {
+      "gear": true,
       "icon": "change",
       "id": "keys",
       "items": [
@@ -15,170 +16,114 @@
         },
         {
           "hint": "",
+          "key": "e",
+          "keys": "e",
+          "label": "approve…",
+          "target": "chrome:menu:1",
+          "value": "1"
+        },
+        {
+          "hint": "",
           "key": "o",
           "keys": "o",
           "label": "open it in GitLab",
-          "mnemonic_at": 0,
-          "target": "chrome:menu:1",
-          "value": "1"
+          "target": "chrome:menu:2",
+          "value": "2"
         },
         {
           "hint": "",
           "key": "y",
           "keys": "y",
           "label": "copy its link",
-          "mnemonic_at": 3,
-          "target": "chrome:menu:2",
-          "value": "2"
+          "target": "chrome:menu:3",
+          "value": "3"
         },
         {
           "heading": true,
           "hint": "",
-          "label": "on GitLab",
+          "label": "change it",
           "shown_only": true,
-          "value": ""
-        },
-        {
-          "hint": "",
-          "key": "u",
-          "keys": "u",
-          "label": "update by rebasing · not behind main",
-          "mnemonic_at": 0,
-          "target": "chrome:menu:4",
           "value": "4"
         },
         {
-          "hint": "",
-          "key": "m",
-          "keys": "m",
-          "label": "merge · needs 1 approval",
-          "mnemonic_at": 0,
+          "hint": "not behind main",
+          "key": "u",
+          "keys": "u",
+          "label": "rebase",
           "target": "chrome:menu:5",
           "value": "5"
         },
         {
-          "hint": "",
-          "key": "e",
-          "keys": "e",
-          "label": "approve !263…",
-          "mnemonic_at": 6,
+          "hint": "needs 1 approval",
+          "key": "m",
+          "keys": "m",
+          "label": "merge",
           "target": "chrome:menu:6",
           "value": "6"
         },
         {
-          "hint": "",
-          "key": "/",
-          "keys": "/",
-          "label": "filter the view by words",
-          "target": "chrome:menu:7",
-          "value": "7"
-        },
-        {
-          "hint": "",
-          "key": ".",
-          "keys": ".",
-          "label": "show only repos with merge requests in the view",
-          "target": "chrome:menu:8",
-          "value": "8"
-        },
-        {
-          "hint": "",
-          "key": "r",
-          "keys": "r",
-          "label": "refresh now",
-          "mnemonic_at": 0,
-          "target": "chrome:menu:9",
-          "value": "9"
-        },
-        {
           "heading": true,
           "hint": "",
-          "icon": "bot",
-          "label": "with an agent",
+          "label": "work on it here",
           "shown_only": true,
-          "value": ""
-        },
-        {
-          "hint": "",
-          "key": "A",
-          "keys": "A",
-          "label": "ask an agent about it…",
-          "mnemonic_at": 0,
-          "mnemonic_shift": true,
-          "target": "chrome:menu:11",
-          "value": "11"
+          "value": "7"
         },
         {
           "hint": "",
           "key": "i",
           "keys": "i",
           "label": "review it locally…",
-          "mnemonic_at": 3,
+          "target": "chrome:menu:8",
+          "value": "8"
+        },
+        {
+          "hint": "no folders set yet",
+          "icon": "search",
+          "key": "s",
+          "keys": "s",
+          "label": "scan for a checkout",
+          "target": "chrome:menu:9",
+          "value": "9"
+        },
+        {
+          "hint": "",
+          "icon": "link",
+          "key": "n",
+          "keys": "n",
+          "label": "link to a local folder…",
+          "target": "chrome:menu:10",
+          "value": "10"
+        },
+        {
+          "heading": true,
+          "hint": "",
+          "label": "ask someone",
+          "shown_only": true,
+          "value": "11"
+        },
+        {
+          "hint": "",
+          "key": "A",
+          "keys": "A",
+          "label": "ask an agent about it…",
           "target": "chrome:menu:12",
           "value": "12"
         },
         {
           "hint": "",
-          "key": ":",
-          "keys": ":",
-          "label": "go to a tenancy, repo or merge request…",
-          "target": "chrome:menu:13",
-          "value": "13"
-        },
-        {
-          "hint": "",
+          "icon": "action",
           "key": "a",
           "keys": "a",
-          "label": "show one author's merge requests…",
-          "mnemonic_at": 9,
-          "target": "chrome:menu:14",
-          "value": "14"
-        },
-        {
-          "hint": "",
-          "keys": "ctrl-r",
-          "label": "kept comments…",
-          "target": "chrome:menu:15",
-          "value": "15"
-        },
-        {
-          "hint": "",
-          "key": " ",
-          "keys": "space",
-          "label": "toggle the group",
-          "target": "chrome:menu:16",
-          "value": "16"
-        },
-        {
-          "hint": "",
-          "key": "+",
-          "keys": "+",
-          "label": "expand the group",
-          "target": "chrome:menu:17",
-          "value": "17"
-        },
-        {
-          "hint": "",
-          "key": "-",
-          "keys": "-",
-          "label": "collapse the group, or the one this row is in",
-          "target": "chrome:menu:18",
-          "value": "18"
-        },
-        {
-          "hint": "",
-          "key": "=",
-          "keys": "=",
-          "label": "expand every held group",
-          "target": "chrome:menu:19",
-          "value": "19"
+          "label": "add to work item…",
+          "target": "chrome:menu:13",
+          "value": "13"
         },
         {
           "heading": true,
           "hint": "",
           "label": "Jira",
           "shown_only": true,
-          "value": ""
+          "value": "14"
         },
         {
           "hint": "",
@@ -186,9 +131,8 @@
           "key": "v",
           "keys": "v",
           "label": "view ABC-12",
-          "mnemonic_at": 0,
-          "target": "chrome:menu:21",
-          "value": "21"
+          "target": "chrome:menu:15",
+          "value": "15"
         },
         {
           "hint": "",
@@ -196,89 +140,23 @@
           "key": ">",
           "keys": ">",
           "label": "move ABC-12 to …",
-          "target": "chrome:menu:22",
-          "value": "22"
-        },
-        {
-          "heading": true,
-          "hint": "",
-          "label": "Git",
-          "shown_only": true,
-          "value": ""
+          "target": "chrome:menu:16",
+          "value": "16"
         },
         {
           "hint": "",
-          "icon": "search",
-          "key": "s",
-          "keys": "s",
-          "label": "scan for a checkout · no folders set yet",
-          "mnemonic_at": 0,
-          "target": "chrome:menu:24",
-          "value": "24"
-        },
-        {
-          "hint": "",
-          "icon": "link",
-          "label": "link to a local folder…",
-          "target": "chrome:menu:25",
-          "value": "25"
-        },
-        {
-          "heading": true,
-          "hint": "",
-          "label": "Work",
-          "shown_only": true,
-          "value": ""
-        },
-        {
-          "hint": "",
-          "icon": "action",
-          "label": "add to work item…",
-          "target": "chrome:menu:27",
-          "value": "27"
-        },
-        {
-          "hint": "",
-          "key": "~",
-          "keys": "~",
-          "label": "recent notices (this session)",
-          "target": "chrome:menu:28",
-          "value": "28"
-        },
-        {
-          "heading": true,
-          "hint": "",
-          "label": "History",
-          "shown_only": true,
-          "value": ""
-        },
-        {
-          "hint": "",
+          "icon": "time",
           "key": "H",
           "keys": "H",
-          "label": "recent activity (last 24 hours)",
-          "mnemonic_at": 25,
-          "mnemonic_shift": true,
-          "target": "chrome:menu:30",
-          "value": "30"
-        },
-        {
-          "hint": "",
-          "label": "all activity history",
-          "target": "chrome:menu:31",
-          "value": "31"
-        },
-        {
-          "hint": "",
-          "label": "history for selected item",
-          "target": "chrome:menu:32",
-          "value": "32"
+          "label": "history of api !263",
+          "target": "chrome:menu:17",
+          "value": "17"
         }
       ],
-      "lines": 33,
+      "lines": 18,
       "question": false,
       "selected": 0,
-      "shown": 33,
+      "shown": 18,
       "title": "api !263"
     },
     "pane_jumps": [
@@ -391,9 +269,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -481,41 +360,41 @@
         "mnemonic_at": 3
       },
       {
-        "heading": true,
-        "id": "",
-        "label": "on GitLab"
-      },
-      {
         "change": "edit",
+        "group": "change",
+        "hint": "not behind main",
         "id": "gitlab.repos.rebase",
         "key": {
           "key": {
             "char": "u"
           }
         },
-        "label": "update by rebasing · not behind main",
-        "mnemonic_at": 0
+        "label": "rebase"
       },
       {
         "change": "edit",
+        "group": "change",
+        "hint": "needs 1 approval",
         "id": "gitlab.repos.merge",
         "key": {
           "key": {
             "char": "m"
           }
         },
-        "label": "merge · needs 1 approval",
+        "label": "merge",
         "mnemonic_at": 0
       },
       {
         "change": "edit",
+        "group": "change",
         "id": "gitlab.repos.approve",
         "key": {
           "key": {
             "char": "e"
           }
         },
-        "label": "approve !263…",
+        "label": "approve…",
+        "lead": true,
         "mnemonic_at": 6
       },
       {
@@ -525,7 +404,8 @@
             "char": "/"
           }
         },
-        "label": "filter the view by words"
+        "label": "filter the view by words",
+        "pane": true
       },
       {
         "id": "gitlab.repos.toggle_empty_repos",
@@ -534,7 +414,8 @@
             "char": "."
           }
         },
-        "label": "show only repos with merge requests in the view"
+        "label": "show only repos with merge requests in the view",
+        "pane": true
       },
       {
         "id": "gitlab.repos.refresh",
@@ -544,15 +425,11 @@
           }
         },
         "label": "refresh now",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       },
       {
-        "heading": true,
-        "icon": "bot",
-        "id": "",
-        "label": "with an agent"
-      },
-      {
+        "group": "ask",
         "id": "agent.send",
         "key": {
           "key": {
@@ -564,6 +441,7 @@
         "mnemonic_shift": true
       },
       {
+        "group": "local",
         "id": "agent.review_locally",
         "key": {
           "key": {
@@ -580,7 +458,8 @@
             "char": ":"
           }
         },
-        "label": "go to a tenancy, repo or merge request…"
+        "label": "go to a tenancy, repo or merge request…",
+        "pane": true
       },
       {
         "id": "gitlab.repos.authors",
@@ -590,7 +469,8 @@
           }
         },
         "label": "show one author's merge requests…",
-        "mnemonic_at": 9
+        "mnemonic_at": 9,
+        "pane": true
       },
       {
         "id": "gitlab.repos.kept_comments",
@@ -600,7 +480,8 @@
             "char": "r"
           }
         },
-        "label": "kept comments…"
+        "label": "kept comments…",
+        "pane": true
       }
     ],
     "medium_from": 70,
@@ -1732,6 +1613,8 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
+                "hint": "not behind main",
                 "id": "gitlab.repos.rebase",
                 "key": {
                   "key": {
@@ -1746,6 +1629,8 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
+                "hint": "needs 1 approval",
                 "id": "gitlab.repos.merge",
                 "key": {
                   "key": {
@@ -1760,6 +1645,7 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
                 "id": "gitlab.repos.approve",
                 "key": {
                   "key": {
@@ -1767,6 +1653,7 @@
                   }
                 },
                 "label": "approve",
+                "lead": true,
                 "mnemonic_at": 6
               }
             },

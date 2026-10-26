@@ -214,7 +214,7 @@ fn u_asks_to_rebase_a_merge_request_gitlab_says_is_behind_and_sends_it_once_on_a
                 && key.as_deref() == Some("u") && target.is_none()
     )), "fallback retains the disabled reason without an activation target");
     assert!(p.keys("repos", Pane::Detail).iter().any(|binding|
-        binding.keys == "u" && binding.what == "update by rebasing · asked, waiting for GitLab"
+        binding.keys == "u" && binding.what == "rebase" && binding.hint == "asked, waiting for GitLab"
     ));
     // GitLab answers: the answer is shown and the tree is refreshed.
     let done = mr_actions::ActMsg { connection: p.connection_stamp(), key: "acme/team-a/api!410".into(), what: "rebase", result: Ok("rebase requested".into()), outcome: radar_core::journal::Outcome::Succeeded };
@@ -372,16 +372,17 @@ fn the_actions_menu_of_a_row_lists_them_with_why_for_the_ones_not_offered() {
     select(&mut p, 410);
     let b = p.keys("repos", Pane::Middle);
     let what = |k: &str| b.iter().find(|b| b.keys == k).map(|b| b.what.clone());
-    assert_eq!(what("u").as_deref(), Some("update by rebasing onto main…"));
-    assert_eq!(what("m").as_deref(), Some("merge · needs rebase"));
-    assert_eq!(what("e").as_deref(), Some("approve !410…"));
+    assert_eq!(what("u").as_deref(), Some("rebase…"));
+    assert_eq!(what("m").as_deref(), Some("merge"));
+    assert_eq!(b.iter().find(|b| b.keys == "m").map(|b| b.hint.as_str()), Some("needs rebase"), "the blocker is a fact beside the row");
+    assert_eq!(what("e").as_deref(), Some("approve…"));
     assert_eq!(
         what("a").as_deref(),
         Some("show one author's merge requests…"),
         "`a` stays the tree's authors, not approve"
     );
     let heads: Vec<&str> = b.iter().filter(|b| b.is_heading()).map(|b| b.what.as_str()).collect();
-    assert_eq!(heads, ["api !410", "on GitLab", "with an agent"]);
+    assert_eq!(heads, ["api !410"], "the host groups the rows; the part adds no heading");
     // Pressing a row presses its key.
     for r in &b {
         if matches!(r.keys.as_str(), "u" | "m" | "e") {
@@ -391,8 +392,10 @@ fn the_actions_menu_of_a_row_lists_them_with_why_for_the_ones_not_offered() {
     select(&mut p, 263);
     let b = p.keys("repos", Pane::Middle);
     let what = |k: &str| b.iter().find(|b| b.keys == k).map(|b| b.what.clone());
-    assert_eq!(what("u").as_deref(), Some("update by rebasing · not behind main"));
-    assert_eq!(what("m").as_deref(), Some("merge · needs 1 approval"));
+    assert_eq!(what("u").as_deref(), Some("rebase"));
+    assert_eq!(b.iter().find(|b| b.keys == "u").map(|b| b.hint.as_str()), Some("not behind main"));
+    assert_eq!(what("m").as_deref(), Some("merge"));
+    assert_eq!(b.iter().find(|b| b.keys == "m").map(|b| b.hint.as_str()), Some("needs 1 approval"));
     // The detail pane's menu has them too.
     let b = p.keys("repos", Pane::Detail);
     assert!(b.iter().any(|b| b.keys == "u"));
@@ -508,6 +511,56 @@ fn the_actions_menu_of_a_row() {
     insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
 }
 
+/// What belongs to the pane is in the pane's menu (`x` again), not in the
+/// row's: the filter, every repo, refresh, go to, one author, kept comments.
+#[test]
+fn the_pane_rows_are_in_the_pane_menu_and_not_in_the_rows() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let mut host = host_of(p, "");
+    let _ = crate::tests::shown(&host, 160, 40);
+    host.update(crate::key_event(key_of(Key::Char('x'))));
+    let row_menu = crate::tests::shown(&host, 160, 40);
+    let pane_words = [
+        "filter the view by words",
+        "show only repos with merge requests in the view",
+        "refresh now",
+        "go to a tenancy, repo or merge request…",
+        "show one author's merge requests…",
+        "kept comments…",
+    ];
+    for words in pane_words {
+        assert!(!row_menu.contains(words), "{words:?} is the pane's, not the row's:\n{row_menu}");
+    }
+    assert!(row_menu.contains("rebase…  (u)"), "{row_menu}");
+    host.update(crate::key_event(key_of(Key::Char('x'))));
+    let pane_menu = crate::tests::shown(&host, 160, 40);
+    for words in pane_words {
+        assert!(pane_menu.contains(words), "{words:?} is missing from the pane's menu:\n{pane_menu}");
+    }
+    assert!(!pane_menu.contains("rebase…"), "{pane_menu}");
+}
+
+/// A merge request's state asks for a row now: the host puts it straight
+/// after the default action.
+#[test]
+fn the_state_of_a_merge_request_leads_with_the_row_it_asks_for() {
+    let lead = |mr: u64| -> Vec<String> {
+        let mut p = plugin();
+        select(&mut p, mr);
+        p.keys("repos", Pane::Middle).into_iter().filter(|b| b.lead).map(|b| b.keys).collect()
+    };
+    // !411 has a failed pipeline; !410 is blocked on a rebase; !187 is ready.
+    assert_eq!(lead(411), ["p"]);
+    assert!(lead(410).is_empty());
+    assert_eq!(lead(187), ["m"]);
+    // The pipeline's state is the hint beside it.
+    let mut p = plugin();
+    select(&mut p, 411);
+    let b = p.keys("repos", Pane::Middle);
+    assert_eq!(b.iter().find(|b| b.keys == "p").map(|b| b.hint.as_str()), Some("failed"));
+}
+
 /// The preview's pinned footer as the host displays it: each control with
 /// the target a press on it sends, none for one that is disabled.
 fn foot_controls(host: &Host) -> Vec<radar_core::view::detail::FootAction> {
@@ -557,7 +610,7 @@ fn a_disabled_foot_has_no_target_and_open_still_uses_its_original_action() {
     assert!(host.menu.is_none());
     assert!(host.message.is_none(), "disabled controls perform no action");
     let reasons = gitlab(&host).rows(Pane::Detail);
-    assert!(reasons.iter().any(|(id, row)| id == "gitlab.repos.merge" && row.what.contains("needs rebase")));
+    assert!(reasons.iter().any(|(id, row)| id == "gitlab.repos.merge" && row.hint.contains("needs rebase")));
     let fx = press_foot(&mut host, "open");
     assert!(
         fx.iter().any(|e| format!("{e:?}").contains("merge_requests/410")),
@@ -755,9 +808,10 @@ mod mnemonic_tests {
             let (_, rebase) = bindings.iter().find(|(id, _)| id == "gitlab.repos.rebase").unwrap();
             assert_eq!(rebase.keys, "u");
             assert!(rebase.change.is_some());
-            let action = radar_core::view::ActionSpec::named("gitlab.repos.rebase", rebase);
-            assert_eq!(action.mnemonic_at, Some(0));
-            assert!(!action.mnemonic_shift);
+            // A list menu draws its keys in the left column: the key need not be in the word.
+            assert_eq!(rebase.group, radar_core::view::ActionGroup::Change);
+            assert_eq!(rebase.what, if state == 0 { "rebase…" } else { "rebase" });
+            assert_eq!(rebase.hint.is_empty(), state == 0, "{state}: {}", rebase.hint);
         }
         fixture.assert_finished();
     }

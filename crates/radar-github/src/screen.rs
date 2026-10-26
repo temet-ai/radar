@@ -604,12 +604,12 @@ pub(crate) fn keys(p: &GithubPlugin, pane: Pane) -> Vec<crate::Act> {
     };
     let mut rows = vec![crate::head(Binding::heading(heading))];
     if p.pages.is_empty() && pane == Pane::Nav {
-        rows.push(act("choose_group", Binding::new("↑ ↓", "choose a group")));
+        rows.push(act("choose_group", Binding::new("↑ ↓", "choose a group").pane()));
     }
     if p.pages.is_empty() && pane == Pane::Middle {
         rows.push(act(
             "browse",
-            Binding::new("↑ ↓", "browse repositories and pull requests"),
+            Binding::new("↑ ↓", "browse repositories and pull requests").pane(),
         ));
         if matches!(
             selected_item(p),
@@ -648,12 +648,12 @@ pub(crate) fn keys(p: &GithubPlugin, pane: Pane) -> Vec<crate::Act> {
             } else {
                 "refresh this page"
             },
-        ),
+        ).pane(),
     ));
     if !p.pages.is_empty() {
         rows.extend([
-            act("previous_tab", Binding::new("[", "previous tab")),
-            act("next_tab", Binding::new("]", "next tab")),
+            act("previous_tab", Binding::new("[", "previous tab").pane()),
+            act("next_tab", Binding::new("]", "next tab").pane()),
             act("back", Binding::new("esc", "back to the previous page")),
         ]);
     }

@@ -5,7 +5,7 @@
 
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Msg, Outcome, Pane};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{ActionGroup, Chord, Key};
 use radar_core::ui::icon::Icon;
 use radar_core::{Subject, log, ui::rows::step};
 
@@ -696,21 +696,19 @@ pub fn rows(p: &SlackPlugin) -> Vec<Row> {
                     "mark read up to its newest reply, in radar only",
                 )));
             }
-            b.push(head(Binding::heading("on Slack")));
-            b.push(act("slack.page.reply", Binding::new("c", "comment in its thread…").adds()));
-            b.push(act("slack.page.react", Binding::new("e", "react to its first message…").adds()));
-            b.push(head(Binding::heading("page")));
+            b.push(act("slack.page.reply", Binding::new("c", "comment in its thread…").adds().group(ActionGroup::Change)));
+            b.push(act("slack.page.react", Binding::new("e", "react to its first message…").adds().group(ActionGroup::Change)));
             b.push(act("slack.page.next_tab", Binding::new(
                 "]",
                 format!("next tab: {}", THREAD_TABS[(tab + 1) % THREAD_TABS.len()]),
-            )));
+            ).pane()));
             b.push(act("slack.page.previous_tab", Binding::new(
                 "[",
                 format!(
                     "previous tab: {}",
                     THREAD_TABS[(tab + THREAD_TABS.len() - 1) % THREAD_TABS.len()]
                 ),
-            )));
+            ).pane()));
             if *tab == 0 && p.page_scroll.more() {
                 b.push(act("slack.page.scroll_down", Binding::new("pgdn", "scroll down a page")));
             }

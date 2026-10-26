@@ -7,38 +7,39 @@ bar: radar  :branch: branches work items :log: history <:settings: settings>  :m
   General  {chrome:group:general}
 >   :parts: parts  {chrome:section:0}
     :mode_edit: mode  {chrome:section:1}
-    :colours: appearance  {chrome:section:2}
-    :colours: colours  {chrome:section:3}
-    :icons: icons  {chrome:section:4}
+    :menu: menus  {chrome:section:2}
+    :colours: appearance  {chrome:section:3}
+    :colours: colours  {chrome:section:4}
+    :icons: icons  {chrome:section:5}
   GitLab  {chrome:group:gitlab}
-    :connection: connection  {chrome:section:5}
-    :group: tenancies  {chrome:section:6}
-    :views: views  {chrome:section:7}
-    :look: look  {chrome:section:8}
+    :connection: connection  {chrome:section:6}
+    :group: tenancies  {chrome:section:7}
+    :views: views  {chrome:section:8}
+    :look: look  {chrome:section:9}
   GitHub  {chrome:group:github}
-    connection  {chrome:section:9}
-    repositories  {chrome:section:10}
+    connection  {chrome:section:10}
+    repositories  {chrome:section:11}
   Jira  {chrome:group:jira}
-    :connection: connection  {chrome:section:11}
-    :folder: projects  {chrome:section:12}
-    :views: views  {chrome:section:13}
-    :look: look  {chrome:section:14}
+    :connection: connection  {chrome:section:12}
+    :folder: projects  {chrome:section:13}
+    :views: views  {chrome:section:14}
+    :look: look  {chrome:section:15}
   Slack  {chrome:group:slack}
-    :connection: connection  {chrome:section:15}
-    :channel: channels  {chrome:section:16}
-    :needs_approval: review  {chrome:section:17}
-    :alert: alerts  {chrome:section:18}
-    :look: look  {chrome:section:19}
+    :connection: connection  {chrome:section:16}
+    :channel: channels  {chrome:section:17}
+    :needs_approval: review  {chrome:section:18}
+    :alert: alerts  {chrome:section:19}
+    :look: look  {chrome:section:20}
   Git  {chrome:group:git}
-    :local: checkouts  {chrome:section:20}
-    :terminal: terminal  {chrome:section:21}
-    :editor: editors  {chrome:section:22}
-    :link: links  {chrome:section:23}
-    :branch: branches  {chrome:section:24}
+    :local: checkouts  {chrome:section:21}
+    :terminal: terminal  {chrome:section:22}
+    :editor: editors  {chrome:section:23}
+    :link: links  {chrome:section:24}
+    :branch: branches  {chrome:section:25}
   Workspace  {chrome:group:workspace}
-    :local: workspaces  {chrome:section:25}
+    :local: workspaces  {chrome:section:26}
   Agents  {chrome:group:sessions}
-    Tools and defaults  {chrome:section:26}
+    Tools and defaults  {chrome:section:27}
 ── section · parts ──
   # COMPILED INTO THIS RADAR  {compiled}
   #  {blank:1}

@@ -36,6 +36,8 @@ fn note(key: &str) -> Subject {
 struct Shelf {
     pages: Vec<Subject>,
     log: Log,
+    /// Its rows say what they are for, one is asked for now, one is the pane's.
+    grouped: bool,
 }
 
 impl Plugin for Shelf {
@@ -147,6 +149,11 @@ impl Plugin for Shelf {
             Binding::heading(self.subject("main", Pane::Middle).unwrap().label),
             Binding::new("o", "open it"),
         ];
+        if self.grouped {
+            b.push(Binding::new("m", "mend it").group(v::ActionGroup::Change));
+            b.push(Binding::new("p", "see its pages").hint("3 pages").lead());
+            b.push(Binding::new("r", "refresh the shelf").pane());
+        }
         if !self.pages.is_empty() {
             b.push(Binding::new("esc", "back to the list"));
         }
@@ -435,10 +442,12 @@ fn host(which: &str) -> (Host, Log) {
         .chars()
         .map(|c| -> Box<dyn Plugin> {
             match c {
-                's' => Box::new(Shelf {
+                's' | 'g' => Box::new(Shelf {
                     pages: vec![],
                     log: log.clone(),
+                    grouped: c == 'g',
                 }),
+                'd' => Box::new(Desk),
                 'n' | 'N' => Box::new(Notes {
                     ready: c == 'n',
                     pages: vec![],
@@ -493,6 +502,8 @@ fn the_x_menu_says_where_esc_goes_back_to() {
     let (mut host, _) = host("sn");
     press(&mut host, Key::Char('N'));
     press(&mut host, Key::Char('e'));
+    // Going back is the pane's, not the row's: `x` again.
+    press(&mut host, Key::Char('x'));
     press(&mut host, Key::Char('x'));
     assert!(
         labels(&host).contains(&"back to notes".to_string()),
@@ -574,7 +585,7 @@ fn a_part_not_set_up_has_a_set_up_page_and_adds_nothing() {
     assert!(text.contains("Add a notebook to follow."), "{text}");
     assert!(!text.contains("PgUp"), "nothing to scroll:\n{text}");
     press(&mut host, Key::Char('x'));
-    assert_eq!(labels(&host), ["set up Notes in settings", "recent notices (this session)", "History", "recent activity (last 24 hours)", "all activity history"]);
+    assert_eq!(labels(&host), ["set up Notes in settings"]);
     press(&mut host, Key::Enter);
     assert_eq!(host.view, View::Settings);
     assert_eq!(host.current_section().unwrap().1.name, "notebooks");
@@ -697,6 +708,7 @@ fn contributed_keys_and_menu_choices_receive_the_other_parts_relations() {
             Box::new(Shelf {
                 pages: vec![],
                 log: Arc::default(),
+                grouped: false,
             }),
             Box::new(Relations {
                 id: "relations",
@@ -722,13 +734,14 @@ fn contributed_keys_and_menu_choices_receive_the_other_parts_relations() {
     press(&mut host, Key::Char('a'));
     assert_eq!(host.message.as_deref(), Some("read related done"));
 
-    // A keyless row in the menu takes the same path.
+    // A keyless row takes a free letter of its words in the menu, and
+    // takes the same path.
     press(&mut host, Key::Char('x'));
     let at = labels(&host)
         .iter()
         .position(|l| l == "open related")
         .unwrap();
-    assert_eq!(host.menu.as_ref().unwrap().menu.items[at].key, None);
+    assert_eq!(host.menu.as_ref().unwrap().menu.items[at].key, Some('p'));
     host.menu.as_mut().unwrap().row = at;
     press(&mut host, Key::Enter);
     assert_eq!(host.message.as_deref(), Some("open related done"));
@@ -776,7 +789,7 @@ fn the_action_check_uses_the_related_hook_with_no_other_parts() {
 }
 
 #[test]
-fn contributed_actions_sit_under_their_part_and_lose_keys_others_use() {
+fn contributed_actions_sit_under_their_part_and_take_a_free_letter_for_keys_others_use() {
     let (mut host, log) = host("snb");
     press(&mut host, Key::Char('x'));
     let rows: Vec<(String, String, bool, Option<char>)> = host
@@ -792,19 +805,14 @@ fn contributed_actions_sit_under_their_part_and_lose_keys_others_use() {
         ("o", "open it", false, Some('o')),
         ("", "Notes", true, None),
         ("s", "start a note", false, Some('s')),
-        // o is the owner's: chosen from the menu only.
-        ("", "open N-1", false, None),
+        // o is the owner's: the menu gives it the next free letter of its words.
+        ("p", "open N-1", false, Some('p')),
         ("", "Bell", true, None),
         // s went to Notes, which comes first.
-        ("", "ring for it", false, None),
+        ("r", "ring for it", false, Some('r')),
         ("a", "announce it", false, Some('a')),
         // j moves in lists: never a contributed key.
-        ("", "jump", false, None),
-        // Host history remains available beside the parts' own actions.
-        ("~", "recent notices (this session)", false, Some('~')),
-        ("", "History", true, None),
-        ("H", "recent activity (last 24 hours)", false, Some('H')),
-        ("", "all activity history", false, None),
+        ("u", "jump", false, Some('u')),
     ]
     .into_iter()
     .map(|(k, l, h, c)| (k.to_string(), l.to_string(), h, c))
@@ -874,13 +882,225 @@ fn an_owner_lists_the_actions_as_the_menu_keeps_them_and_a_press_does_what_the_k
     assert_eq!(log.lock().unwrap().last().map(String::as_str), Some("bell ring book 1"));
 }
 
+/// Adds to books: actions that say what they are for, and one that does not.
+struct Desk;
+
+impl Plugin for Desk {
+    fn id(&self) -> &'static str {
+        "desk"
+    }
+    fn name(&self) -> &'static str {
+        "Desk"
+    }
+    fn configure(&mut self, _: Option<&toml::Value>) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn config(&self) -> Option<toml::Value> {
+        None
+    }
+    fn contribute(&self, point: Point, _: &Subject) -> Option<Contribution> {
+        match point {
+            Point::Actions => Some(Contribution::Actions(vec![
+                Action::new('c', "check it out", "check").hint("2 behind").group(v::ActionGroup::Local),
+                Action::new('t', "ask about it", "ask").group(v::ActionGroup::Ask),
+                Action::new('d', "dust it", "dust"),
+            ])),
+            _ => None,
+        }
+    }
+}
+
+#[test]
+fn a_rows_menu_groups_by_what_doing_it_is_for_and_leaves_the_panes_actions_to_the_pane() {
+    let (mut host, _) = host("gd");
+    press(&mut host, Key::Char('x'));
+    let menu = &host.menu.as_ref().unwrap().menu;
+    let rows: Vec<(&str, &str, &str)> =
+        menu.items.iter().map(|i| (i.keys.as_str(), i.label.as_str(), i.hint.as_str())).collect();
+    assert_eq!(
+        rows,
+        [
+            ("o", "open it", ""),
+            // What the row's state asks for follows the default action; its fact is at the right.
+            ("p", "see its pages", "3 pages"),
+            ("", "change it", ""),
+            ("m", "mend it", ""),
+            // Another part's grouped actions join the owner's headings.
+            ("", "work on it here", ""),
+            ("c", "check it out", "2 behind"),
+            ("", "ask someone", ""),
+            ("t", "ask about it", ""),
+            // One with no group stays under its part's name.
+            ("", "Desk", ""),
+            ("d", "dust it", ""),
+        ]
+    );
+    // `x` again: the pane's, with the shelf's refresh and the session.
+    press(&mut host, Key::Char('x'));
+    assert_eq!(
+        labels(&host),
+        ["refresh the shelf", "this session", "recent notices", "activity history"]
+    );
+}
+
+fn rows_of(host: &Host) -> Vec<(String, String, String)> {
+    host.menu.as_ref().unwrap().menu.items.iter().map(|i| (i.keys.clone(), i.label.clone(), i.hint.clone())).collect()
+}
+
+fn select(host: &mut Host, label: &str) {
+    let open = host.menu.as_mut().unwrap();
+    open.row = open.menu.items.iter().position(|i| i.label == label).unwrap();
+}
+
+#[test]
+fn the_gear_makes_a_rows_menu_its_own_editor_and_keeps_what_changed_for_its_kind_of_place() {
+    let (mut host, _) = host("gd");
+    press(&mut host, Key::Char('x'));
+    assert!(host.menu.as_ref().unwrap().menu.gear, "a row's menu has a gear");
+    press(&mut host, Key::Char(','));
+    let open = host.menu.as_ref().unwrap();
+    assert!(open.menu.customising);
+    assert_eq!(open.menu.title, "customise · book rows");
+    assert!(open.menu.items.last().unwrap().note, "the editor says its keys");
+
+    // Hide one, pin one, group one, give one another key.
+    select(&mut host, "mend it");
+    press(&mut host, Key::Char(' '));
+    assert_eq!(rows_of(&host).iter().find(|r| r.1 == "mend it").unwrap().2, "hidden");
+    select(&mut host, "ask about it");
+    press(&mut host, Key::Char('*'));
+    select(&mut host, "dust it");
+    press(&mut host, Key::Char('f'));
+    // `g` is radar's own: refused, the row keeps its key.
+    select(&mut host, "check it out");
+    press(&mut host, Key::Char('='));
+    press(&mut host, Key::Char('g'));
+    assert_eq!(rows_of(&host).iter().find(|r| r.1 == "check it out").unwrap().0, "c");
+    press(&mut host, Key::Char('='));
+    press(&mut host, Key::Char('v'));
+    press(&mut host, Key::Char(','));
+    assert!(!host.menu.as_ref().unwrap().menu.customising, ", is done");
+
+    let rows = rows_of(&host);
+    let labels: Vec<&str> = rows.iter().map(|r| r.1.as_str()).collect();
+    assert_eq!(labels[0], "ask about it", "pinned first: {labels:?}");
+    assert!(!labels.contains(&"mend it"), "hidden: {labels:?}");
+    assert_eq!(rows.iter().find(|r| r.1 == "check it out").unwrap().0, "v");
+    // The grouped one sits behind one row at the end, which opens it.
+    let more = rows.last().unwrap();
+    assert_eq!(more.1, "dust it…");
+    select(&mut host, "dust it…");
+    press(&mut host, Key::Enter);
+    assert_eq!(labels_of(&host), ["dust it"]);
+    press(&mut host, Key::Esc);
+
+    let text = host.config_text();
+    assert!(text.contains("[menus.book]"), "{text}");
+    assert!(text.contains("\"desk.check\" = \"v\""), "{text}");
+    assert!(text.contains("pinned = [\"desk.ask\"]"), "{text}");
+
+    // A key that another row shows is swapped with it.
+    press(&mut host, Key::Char('x'));
+    press(&mut host, Key::Char(','));
+    select(&mut host, "open it");
+    press(&mut host, Key::Char('='));
+    press(&mut host, Key::Char('v'));
+    let rows = rows_of(&host);
+    assert_eq!(rows.iter().find(|r| r.1 == "open it").unwrap().0, "v");
+    assert_eq!(rows.iter().find(|r| r.1 == "check it out").unwrap().0, "o");
+    // A key that moves in menus is refused.
+    select(&mut host, "see its pages");
+    press(&mut host, Key::Char('='));
+    press(&mut host, Key::Char('j'));
+    assert_eq!(rows_of(&host).iter().find(|r| r.1 == "see its pages").unwrap().0, "p");
+    // `d`: the place as the parts have it.
+    press(&mut host, Key::Char('d'));
+    press(&mut host, Key::Esc);
+    assert!(!host.config_text().contains("menus"), "{}", host.config_text());
+    assert_eq!(rows_of(&host)[0].1, "open it");
+}
+
+#[test]
+fn a_key_given_in_the_editor_does_the_action_on_the_row_too() {
+    let (mut host, log) = host("sb");
+    press(&mut host, Key::Char('x'));
+    press(&mut host, Key::Char(','));
+    select(&mut host, "announce it");
+    press(&mut host, Key::Char('='));
+    press(&mut host, Key::Char('v'));
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Esc);
+    assert!(host.menu.is_none());
+    press(&mut host, Key::Char('v'));
+    assert_eq!(*log.lock().unwrap(), ["bell announce book 1"]);
+}
+
+#[test]
+fn settings_menus_lists_each_kind_of_place_with_its_changes_and_the_switches() {
+    let (mut host, _) = host("gd");
+    press(&mut host, Key::Char('x'));
+    press(&mut host, Key::Char(','));
+    select(&mut host, "mend it");
+    press(&mut host, Key::Char(' '));
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Char(crate::host::SETTINGS_KEY));
+    host.section = host.sections.iter().position(|(o, _)| *o == Owner::Menus).unwrap();
+    host.focus = Pane::Middle;
+    let text = to_text(&host, 140, 30);
+    assert!(text.contains("books rows") && text.contains("1 hidden"), "{text}");
+    assert!(text.contains("other parts' actions") && text.contains("in the menu"), "{text}");
+    // `d` on a kind of place puts it back.
+    press(&mut host, Key::Char('d'));
+    assert!(!host.config_text().contains("menus"), "{}", host.config_text());
+    // A switch flips on ⏎ and is kept.
+    press(&mut host, Key::Char('j'));
+    press(&mut host, Key::Enter);
+    assert!(host.config_text().contains("state_first = false"), "{}", host.config_text());
+    // Off: what the row's state asks for stays where its part put it.
+    host.view = View::Screen(0);
+    host.focus = Pane::Middle;
+    press(&mut host, Key::Char('x'));
+    assert_eq!(labels(&host)[..3], ["open it", "see its pages", "change it"]);
+    let at = |host: &Host, l: &str| labels(host).iter().position(|x| x == l).unwrap();
+    assert!(at(&host, "see its pages") < at(&host, "change it"));
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Char(crate::host::SETTINGS_KEY));
+    host.section = host.sections.iter().position(|(o, _)| *o == Owner::Menus).unwrap();
+    host.focus = Pane::Middle;
+    press(&mut host, Key::Char('j'));
+    press(&mut host, Key::Enter);
+    assert!(host.config_text().contains("other_parts = \"folded\""), "{}", host.config_text());
+}
+
+#[test]
+fn moving_an_action_keeps_it_among_its_headings_rows() {
+    let (mut host, _) = host("gd");
+    press(&mut host, Key::Char('x'));
+    press(&mut host, Key::Char(','));
+    select(&mut host, "see its pages");
+    press(&mut host, Key::Char('K'));
+    press(&mut host, Key::Char(','));
+    let labels: Vec<String> = rows_of(&host).into_iter().map(|r| r.1).collect();
+    assert_eq!(labels[..2], ["see its pages".to_string(), "open it".to_string()]);
+    // At the top of its heading's rows it goes no further.
+    press(&mut host, Key::Char(','));
+    select(&mut host, "see its pages");
+    press(&mut host, Key::Char('K'));
+    assert_eq!(rows_of(&host)[0].1, "see its pages");
+}
+
+fn labels_of(host: &Host) -> Vec<String> {
+    labels(host)
+}
+
 #[test]
 fn alone_a_part_shows_nothing_of_the_others() {
     let (mut host, _) = host("s");
     let text = to_text(&host, 80, 24);
     assert!(text.contains("book 1") && !text.contains('['), "{text}");
     press(&mut host, Key::Char('x'));
-    assert_eq!(labels(&host), ["open it", "recent notices (this session)", "History", "recent activity (last 24 hours)", "all activity history"]);
+    assert_eq!(labels(&host), ["open it"]);
 }
 
 #[test]

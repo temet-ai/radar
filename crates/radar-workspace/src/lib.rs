@@ -739,6 +739,7 @@ impl WorkspacePlugin {
     }
 
     fn actions(&self, space: &Space, key: &str) -> Contribution {
+        use radar_core::view::ActionGroup::Local;
         let editor = if space.editor.is_empty() {
             format!("open {} in an editor…", space.label())
         } else {
@@ -758,14 +759,14 @@ impl WorkspacePlugin {
         } else {
             format!("open a terminal at the top of {}", space.label())
         };
-        let mut terminal = Action::new('t', terminal, "terminal").icon(Icon::Terminal);
+        let mut terminal = Action::new('t', terminal, "terminal").icon(Icon::Terminal).group(Local);
         // Other parts use `t`; this row is chosen from the menu then.
         terminal.key = None;
         Contribution::Actions(vec![
             start::action(key),
-            Action::new('e', editor, "editor").icon(Icon::Editor),
+            Action::new('e', editor, "editor").icon(Icon::Editor).group(Local),
             terminal,
-            Action::new('r', "look for notes again", "reindex").icon(Icon::Search),
+            Action::new('r', "look for notes again", "reindex").icon(Icon::Search).group(Local),
         ])
     }
 }

@@ -218,9 +218,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -301,41 +302,39 @@
         "mnemonic_at": 3
       },
       {
-        "heading": true,
-        "id": "",
-        "label": "on GitLab"
-      },
-      {
         "change": "edit",
+        "group": "change",
         "id": "gitlab.repos.rebase",
         "key": {
           "key": {
             "char": "u"
           }
         },
-        "label": "update by rebasing onto main…",
-        "mnemonic_at": 0
+        "label": "rebase…"
       },
       {
         "change": "edit",
+        "group": "change",
+        "hint": "needs rebase",
         "id": "gitlab.repos.merge",
         "key": {
           "key": {
             "char": "m"
           }
         },
-        "label": "merge · needs rebase",
+        "label": "merge",
         "mnemonic_at": 0
       },
       {
         "change": "edit",
+        "group": "change",
         "id": "gitlab.repos.approve",
         "key": {
           "key": {
             "char": "e"
           }
         },
-        "label": "approve !263…",
+        "label": "approve…",
         "mnemonic_at": 6
       },
       {
@@ -345,7 +344,8 @@
             "char": "/"
           }
         },
-        "label": "filter the view by words"
+        "label": "filter the view by words",
+        "pane": true
       },
       {
         "id": "gitlab.repos.toggle_empty_repos",
@@ -354,7 +354,8 @@
             "char": "."
           }
         },
-        "label": "show only repos with merge requests in the view"
+        "label": "show only repos with merge requests in the view",
+        "pane": true
       },
       {
         "id": "gitlab.repos.refresh",
@@ -364,15 +365,11 @@
           }
         },
         "label": "refresh now",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       },
       {
-        "heading": true,
-        "icon": "bot",
-        "id": "",
-        "label": "with an agent"
-      },
-      {
+        "group": "ask",
         "id": "agent.send",
         "key": {
           "key": {
@@ -384,6 +381,7 @@
         "mnemonic_shift": true
       },
       {
+        "group": "local",
         "id": "agent.review_locally",
         "key": {
           "key": {
@@ -400,7 +398,8 @@
             "char": ":"
           }
         },
-        "label": "go to a tenancy, repo or merge request…"
+        "label": "go to a tenancy, repo or merge request…",
+        "pane": true
       },
       {
         "id": "gitlab.repos.authors",
@@ -410,7 +409,8 @@
           }
         },
         "label": "show one author's merge requests…",
-        "mnemonic_at": 9
+        "mnemonic_at": 9,
+        "pane": true
       },
       {
         "id": "gitlab.repos.kept_comments",
@@ -420,7 +420,8 @@
             "char": "r"
           }
         },
-        "label": "kept comments…"
+        "label": "kept comments…",
+        "pane": true
       }
     ],
     "medium_from": 70,
@@ -1219,6 +1220,7 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
                 "id": "gitlab.repos.rebase",
                 "key": {
                   "key": {
@@ -1233,6 +1235,8 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
+                "hint": "needs rebase",
                 "id": "gitlab.repos.merge",
                 "key": {
                   "key": {
@@ -1247,6 +1251,7 @@
             {
               "action": {
                 "change": "edit",
+                "group": "change",
                 "id": "gitlab.repos.approve",
                 "key": {
                   "key": {

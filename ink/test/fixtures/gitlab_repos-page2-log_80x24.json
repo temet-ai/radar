@@ -44,7 +44,8 @@
         }
       },
       "label": "reread its log",
-      "mnemonic_at": 0
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "gitlab.job.copy_lines",
@@ -68,7 +69,8 @@
           "char": "/"
         }
       },
-      "label": "search the log…"
+      "label": "search the log…",
+      "pane": true
     },
     {
       "id": "gitlab.job.load_earlier",
@@ -78,12 +80,8 @@
         }
       },
       "label": "go to the start, loading the part before",
-      "mnemonic_at": 0
-    },
-    {
-      "heading": true,
-      "id": "",
-      "label": "page"
+      "mnemonic_at": 0,
+      "pane": true
     },
     {
       "id": "gitlab.page.back",
@@ -100,7 +98,8 @@
           "char": "r"
         }
       },
-      "label": "kept comments…"
+      "label": "kept comments…",
+      "pane": true
     }
   ],
   "dock": {

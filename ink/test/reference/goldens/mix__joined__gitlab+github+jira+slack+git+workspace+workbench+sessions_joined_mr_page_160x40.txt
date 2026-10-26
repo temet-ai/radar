@@ -1,4 +1,4 @@
- radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                                       ⠷ not synced yet  ✎ edit
+ radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                                         ⠷ not synced yet  edit
  Repositories / a / api / !263
  ABC-12: Add a stats endpoint for the dashboard                                                                     Alice Example · feature/abc-12-stats → main
  checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts

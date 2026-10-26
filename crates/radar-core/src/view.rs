@@ -550,7 +550,7 @@ impl From<crate::writes::Change> for Change {
 /// One thing that can be done where the view is focused: the rows of the
 /// actions menu, as data. The id is stable for the scope and is what
 /// [`Intent::Invoke`] names; the journal records what running it does.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct ActionSpec {
     /// Zero-based Unicode scalar position in label; underline its complete grapheme.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -572,6 +572,51 @@ pub struct ActionSpec {
     /// A write to a service: the host mutes it while the mode refuses it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub change: Option<Change>,
+    /// It acts on the pane or the session, not on the selected row: the
+    /// pane's menu offers it, the row's does not.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub pane: bool,
+    /// A fact about the row it acts on (`running 4m`), drawn at the right
+    /// edge of its menu row, never in the label.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub hint: String,
+    /// What doing it is for, which places it under a heading.
+    #[serde(default, skip_serializing_if = "ActionGroup::is_open")]
+    pub group: ActionGroup,
+    /// The row's state asks for it: it comes straight after the default action.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub lead: bool,
+}
+
+/// What an action is for: the row menu groups by this, not by which part
+/// offers it. `Open` rows come first, under no heading.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionGroup {
+    #[default]
+    Open,
+    /// Changes it where it lives: merge, approve, rebase.
+    Change,
+    /// Works on it on this machine: check out, an editor, a terminal.
+    Local,
+    /// Brings someone in: an agent, a review ask, a work item.
+    Ask,
+}
+
+impl ActionGroup {
+    pub fn is_open(&self) -> bool {
+        *self == Self::Open
+    }
+
+    /// The heading over the group in a row menu.
+    pub fn heading(self) -> Option<&'static str> {
+        match self {
+            Self::Open => None,
+            Self::Change => Some("change it"),
+            Self::Local => Some("work on it here"),
+            Self::Ask => Some("ask someone"),
+        }
+    }
 }
 
 impl ActionSpec {
@@ -591,6 +636,10 @@ impl ActionSpec {
             heading: b.is_heading(),
             icon: b.icon,
             change: b.change.map(Change::from),
+            pane: b.pane,
+            hint: b.hint.clone(),
+            group: b.group,
+            lead: b.lead,
         }
     }
 }

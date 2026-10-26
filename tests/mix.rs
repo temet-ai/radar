@@ -913,7 +913,7 @@ jql = "project = ABC ORDER BY updated DESC"
             .menu
             .items
             .iter()
-            .position(|item| item.label == "history for selected item")
+            .position(|item| item.label.starts_with("history of ") && item.key == Some('H'))
             .unwrap();
         host.menu.as_mut().unwrap().row = row;
         let effects = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Enter) }));
@@ -1230,14 +1230,9 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         .iter()
         .map(|i| (i.keys.clone(), i.label.clone()))
         .collect();
-    assert!(
-        rows.contains(&("u".into(), "update by rebasing onto main…".into())),
-        "{rows:?}"
-    );
-    assert!(
-        rows.contains(&("e".into(), "approve !263…".into())),
-        "{rows:?}"
-    );
+    assert!(rows.contains(&("u".into(), "rebase…".into())), "{rows:?}");
+    assert!(rows.contains(&("e".into(), "approve…".into())), "{rows:?}");
+    assert!(rows.contains(&("".into(), "change it".into())), "{rows:?}");
     press(&mut host, Key::Esc);
     let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('u')) }));
     assert!(fx.is_empty(), "asked, not sent: {fx:?}");
@@ -1452,12 +1447,14 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
         .iter()
         .map(|i| (i.keys.clone(), i.label.clone()))
         .collect();
+    // Git's actions join the merge request's "work on it here"; the branch they
+    // open on is their hint, and its chores sit behind one row.
     for want in [
-        ("", "Git"),
+        ("", "work on it here"),
         ("c", "check out stats…"),
-        ("e", "open in an editor on stats…"),
-        ("t", "open a terminal on stats…"),
-        ("s", "look for checkouts again"),
+        ("e", "open in an editor…"),
+        ("t", "open a terminal…"),
+        ("p", "push, worktree, new branch, link…"),
     ] {
         assert!(
             rows.contains(&(want.0.into(), want.1.into())),

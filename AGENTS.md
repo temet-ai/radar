@@ -75,7 +75,12 @@ The full set is in `docs/components.md` section 1 and GUIDE sections 1.15, 1.18 
 - **No chevrons** (▸ ▾ › ⌄, `[+]`, `[-]`) for folding: tree lines show open, a folded row
   ends in `⋯ n`.
 - **No pill shapes, no left-edge stripes.** Chips, counts, keys and buttons are square.
-- **Keys sit inside their word**, underlined (b̲ulk); glyph keys (↑↓ ⏎ esc) go before the word.
+- **Keys sit inside their word**, underlined (b̲ulk), on the status line, tabs and buttons;
+  glyph keys (↑↓ ⏎ esc) go before the word. **Menus put every key in the left column**
+  (shift as the capital, `A`), and a fact about the row (`running 4m`) at the right edge,
+  never in the label.
+- **A row's menu holds what acts on that row** (`Binding::pane()` marks the rest, which
+  goes to the pane's menu), grouped by what it is for (`ActionGroup`), not by part.
 - **Breadcrumbs join with `/`.** Tabs show names, not counts.
 - **Same key, same action, in the same kind of place** across parts; keys may differ
   between kinds of place.

@@ -212,9 +212,10 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_edit",
         "ink": "secondary",
         "target": "chrome:mode",
-        "text": "✎ edit"
+        "text": "edit"
       },
       "tabs": [
         {
@@ -317,7 +318,8 @@
             "char": "/"
           }
         },
-        "label": "filter the view by words"
+        "label": "filter the view by words",
+        "pane": true
       },
       {
         "id": "gitlab.repos.toggle_empty_repos",
@@ -326,7 +328,8 @@
             "char": "."
           }
         },
-        "label": "show only repos with merge requests in the view"
+        "label": "show only repos with merge requests in the view",
+        "pane": true
       },
       {
         "id": "gitlab.repos.refresh",
@@ -336,7 +339,8 @@
           }
         },
         "label": "refresh now",
-        "mnemonic_at": 0
+        "mnemonic_at": 0,
+        "pane": true
       },
       {
         "id": "gitlab.repos.goto",
@@ -345,7 +349,8 @@
             "char": ":"
           }
         },
-        "label": "go to a tenancy, repo or merge request…"
+        "label": "go to a tenancy, repo or merge request…",
+        "pane": true
       },
       {
         "id": "gitlab.repos.authors",
@@ -355,7 +360,8 @@
           }
         },
         "label": "show one author's merge requests…",
-        "mnemonic_at": 9
+        "mnemonic_at": 9,
+        "pane": true
       },
       {
         "id": "gitlab.repos.kept_comments",
@@ -365,7 +371,8 @@
             "char": "r"
           }
         },
-        "label": "kept comments…"
+        "label": "kept comments…",
+        "pane": true
       }
     ],
     "medium_from": 70,

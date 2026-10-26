@@ -1079,9 +1079,9 @@ pub(crate) fn keys(p: &GithubPlugin) -> Vec<crate::Act> {
         ));
     }
     rows.extend([
-        act("refresh", Binding::new("r", "refresh these Actions")),
-        act("previous_tab", Binding::new("[", "previous tab")),
-        act("next_tab", Binding::new("]", "next tab")),
+        act("refresh", Binding::new("r", "refresh these Actions").pane()),
+        act("previous_tab", Binding::new("[", "previous tab").pane()),
+        act("next_tab", Binding::new("]", "next tab").pane()),
         act("back", Binding::new("esc", "back to the previous page")),
     ]);
     rows

@@ -1,4 +1,4 @@
- radar    R   B   I   History   Settings (,)             not synced yet  ✎ edit
+ radar    R   B   I   History   Settings (,)               not synced yet  edit
 ╭ 1 views ─────────────╮╭ 3 api !263 ──────────────────────────────────────────╮
 │ Everything           ││ a / acme/team-a/api / !263                           │
 │ Needs my action      ││ Add a stats endpoint                                 │

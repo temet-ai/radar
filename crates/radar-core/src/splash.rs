@@ -25,7 +25,8 @@
 //!   screen is not ready after [`STATIC_AFTER_MS`].
 //! - A rare echo on the scope ([`Echo`]) or a special event ([`Event`], motion
 //!   full only) comes with the start ([`Start`]); an event takes the mark's
-//!   and the names' place and holds the splash [`EVENT_HOLD_MS`] longer.
+//!   and the names' place and holds the splash [`EVENT_HOLD_MS`] longer. The
+//!   fire is drawn here; the other scenes are in `events`.
 //! - Too small for the scope: the mark, the names and the line, from where
 //!   the beam would have finished; too small for the mark, the two lines.
 //! - A key, click or paste ends it at once and acts on the screen under it.
@@ -85,7 +86,7 @@ pub const NAMES_FROM_MS: u32 = 1620;
 /// The start line types from here, done by [`LINE_FROM_MS`] + 500.
 pub const LINE_FROM_MS: u32 = 1800;
 const TYPE_MS: u32 = 500;
-/// The fire starts burning here.
+/// The fire starts burning here, and the other events' stories start.
 const FIRE_FROM_MS: u32 = 1000;
 /// The splash hands off once the first screen is ready and this long has
 /// passed.
@@ -326,6 +327,39 @@ impl Shape {
 pub enum Event {
     /// "This is fine.": the PSX Doom fire.
     Fire,
+    /// The holidays: snow over pines and a cabin.
+    Snow,
+    /// Start 1,000: the number and confetti.
+    Confetti,
+    /// Nothing to review: a tumbleweed across the desert at dusk.
+    Tumbleweed,
+    /// The rubber duck, consulted.
+    Duck,
+    /// An unidentified contact beams up a cow.
+    Ufo,
+    /// Before ten: coffee, and its steam.
+    Steam,
+}
+
+impl Event {
+    pub const ALL: [Self; 7] = [Self::Fire, Self::Snow, Self::Confetti, Self::Tumbleweed, Self::Duck, Self::Ufo, Self::Steam];
+
+    /// Its word in the start lines' `anim`.
+    pub fn word(self) -> &'static str {
+        match self {
+            Self::Fire => "fire",
+            Self::Snow => "snow",
+            Self::Confetti => "confetti",
+            Self::Tumbleweed => "tumbleweed",
+            Self::Duck => "duck",
+            Self::Ufo => "ufo",
+            Self::Steam => "steam",
+        }
+    }
+
+    pub fn of_anim(word: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|e| e.word() == word)
+    }
 }
 
 /// A piece of the start line: words, or a key drawn in the key colour.
@@ -388,7 +422,7 @@ pub fn roll_start(motion_full: bool, emoji_ok: bool, held: Vec<(String, crate::s
     };
     Start {
         echo,
-        event: (motion_full && picked.anim.as_deref() == Some("fire")).then_some(Event::Fire),
+        event: picked.anim.as_deref().and_then(Event::of_anim).filter(|_| motion_full),
         line: picked
             .spans
             .into_iter()
@@ -779,6 +813,16 @@ struct Inks {
     names: [Ink; 6],
     /// The fire's heat 0 to [`FIRE_MAX`].
     fire: Vec<Ink>,
+    /// What the other events paint with.
+    green: Ink,
+    pink: Ink,
+    info: Ink,
+    red: Ink,
+    yellow: Ink,
+    purple: Ink,
+    violet: Ink,
+    /// Primary, secondary, tertiary.
+    accent: [Ink; 3],
 }
 
 /// Where the phosphor ramp steps: the energy at or above which each colour
@@ -859,6 +903,14 @@ impl Inks {
                 fg(Slot::AccentSecondary),
             ],
             fire,
+            green: fg(Slot::StatusSuccess),
+            pink: fg(Slot::GlowPink),
+            info: fg(Slot::StatusInfo),
+            red,
+            yellow,
+            purple,
+            violet,
+            accent: [fg(Slot::AccentPrimary), fg(Slot::AccentSecondary), fg(Slot::AccentTertiary)],
         }
     }
 
@@ -1011,7 +1063,7 @@ pub fn frame(theme: &Theme, scene: &Scene, width: u16, height: u16) -> Option<Fr
     let inks = Inks::of(theme);
     let mut grid = Grid::new(width, height);
     let full = scene.style == Style::Full;
-    let fire = full && scene.start.event == Some(Event::Fire);
+    let event = scene.start.event.filter(|_| full);
     // Seconds into the splash; with no motion, its last frame.
     let mut t = match scene.style {
         Style::Static => 9.0,
@@ -1024,8 +1076,12 @@ pub fn frame(theme: &Theme, scene: &Scene, width: u16, height: u16) -> Option<Fr
         let x0 = ((width - SCOPE_W) / 2) as i32;
         let dots = draw_scope(&mut grid, &inks, scene, t, x0, top);
         scope = Some(ScopeDots { x: x0 as u16, y: top as u16, dots });
-        if fire {
-            draw_fire(&mut grid, &inks, t, top + SCOPE_H as i32 + 1);
+        if let Some(event) = event {
+            if event == Event::Fire {
+                draw_fire(&mut grid, &inks, t, top + SCOPE_H as i32 + 1);
+            } else {
+                events::draw(&mut grid, &inks, event, t, top + SCOPE_H as i32 + 1);
+            }
         } else {
             draw_mark(&mut grid, &inks, scene.style, t, top + SCOPE_H as i32 + 2);
             draw_names(&mut grid, &inks, scene, t, top + SCOPE_H as i32 + 7);
@@ -1616,5 +1672,6 @@ pub fn view(frame: &Frame) -> SplashView {
     }
 }
 
+mod events;
 #[cfg(test)]
 mod tests;

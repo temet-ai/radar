@@ -248,6 +248,33 @@ fn a_rare_echo_says_one_unidentified() {
 }
 
 #[test]
+fn every_event_takes_the_marks_and_names_place_moves_and_keeps_to_its_rows() {
+    let t = truecolour();
+    let plain = text(&frame(&t, &scene(Style::Full, 2000), 64, 34).unwrap());
+    for event in Event::ALL {
+        let name = event.word();
+        let mut s = scene(Style::Full, 2000);
+        s.start = start(Echo::Plane, Some(event), "Brewing.");
+        let f = frame(&t, &s, 64, 34).unwrap();
+        let rows = text(&f);
+        let cells = f.rows[25..32].iter().flatten().filter(|r| r.text.contains('▀')).map(|r| r.text.chars().count()).sum::<usize>();
+        assert!(cells > 40, "{name} draws a scene: {cells} cells");
+        assert!(!rows[31].contains("Ledger"), "{name}: no names");
+        assert_eq!(rows[33].trim(), "Brewing.", "{name}: its line");
+        assert_eq!(rows[..24], plain[..24], "{name}: the scope is as it was");
+        assert_eq!(rows[32].trim(), "", "{name}: the row under it is clear");
+        // The same moment draws the same picture; a later one another.
+        assert_eq!(frame(&t, &s, 64, 34).unwrap().rows, f.rows, "{name} draws from the time alone");
+        s.at = 3200;
+        assert_ne!(frame(&t, &s, 64, 34).unwrap().rows[25..32], f.rows[25..32], "{name} moves");
+        // Before the scenery fades in, nothing; narrow, it is clipped, not wrapped.
+        s.at = 400;
+        assert!(text(&frame(&t, &s, 64, 34).unwrap())[25..32].iter().all(|r| !r.contains('▀')), "{name} waits");
+        assert_eq!(Event::of_anim(name), Some(event));
+    }
+}
+
+#[test]
 fn the_fire_takes_the_marks_and_names_place_at_full_only_and_holds_longer() {
     let t = truecolour();
     let mut s = scene(Style::Full, 2000);

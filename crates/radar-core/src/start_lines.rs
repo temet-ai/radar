@@ -63,7 +63,7 @@ pub const SHIPPED: &str = include_str!("../assets/start-lines.toml");
 /// A start line is never wider than this, in cells.
 pub const MAX_CELLS: usize = 56;
 /// The animations that exist. A line with any other is never eligible.
-pub const BUILT_ANIMS: [&str; 1] = ["fire"];
+pub const BUILT_ANIMS: [&str; 7] = ["fire", "snow", "confetti", "tumbleweed", "duck", "ufo", "steam"];
 
 const NAME_CELLS: usize = 16;
 const COUNT_CAP: i64 = 999;

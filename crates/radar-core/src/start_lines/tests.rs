@@ -55,11 +55,15 @@ fn now() -> Context {
 }
 
 /// A state whose last start was today (not the first of the day).
+/// Ten starts in, three of them today, and an event three days ago, so no
+/// event rolls unless a test clears `last_event`: the duck and the saucer
+/// can come at any start.
 fn state_today(ctx: &Context) -> State {
     State {
         starts: 10,
         last_day: Some(ctx.date.iso()),
         starts_today: 3,
+        last_event: Some(Date::from_days(ctx.date.days() - 3).iso()),
         ..State::default()
     }
 }
@@ -410,7 +414,8 @@ fn scenarios() -> Vec<Scenario> {
                 ("hour", N(16)),
                 ("weekday", S("fri")),
             ],
-            rolls: &[0.002],
+            // The event's roll, then the first of the events that can run.
+            rolls: &[0.002, 0.0],
             id: "this-is-fine",
             group: "animated",
             text: Some("This is fine."),
@@ -514,6 +519,9 @@ fn run_scenario(s: &Scenario, dict: &Dictionary) -> Option<Picked> {
     if s.group == "rare" {
         state.last_rare = Some(Date::from_days(ctx.date.days() - 19).iso());
     }
+    if s.group == "animated" {
+        state.last_event = None;
+    }
     if let Some(group) = s.bag {
         state.bags.insert(group.to_string(), vec![s.id.to_string()]);
     }
@@ -591,40 +599,27 @@ fn the_key_in_a_line_is_a_span_of_its_own() {
 }
 
 #[test]
-fn the_event_that_is_not_built_never_shows() {
-    // Start 88 held an empty review queue, which a tumbleweed animation suits;
-    // only fire is built, so the event is not eligible and nothing animates.
+fn every_event_in_the_dictionary_is_built() {
     let dict = Dictionary::shipped();
+    for l in dict.lines() {
+        if let Some(anim) = l.anim.as_deref() {
+            assert!(BUILT_ANIMS.contains(&anim), "{} animates with {anim}, which is not built", l.id);
+            assert!(crate::splash::Event::of_anim(anim).is_some(), "{} has no scene for {anim}", l.id);
+        }
+    }
+    for anim in BUILT_ANIMS {
+        assert!(crate::splash::Event::of_anim(anim).is_some(), "{anim} has no scene");
+    }
+
+    // Start 88 held an empty review queue: the tumbleweed's event can run.
     let ctx = now();
     let mut facts = fresh_facts(&ctx);
     facts.set("reviews.count", 0);
-    for _ in 0..40 {
-        let mut state = state_today(&ctx);
-        let got = go(&dict, &mut state, &facts, &ctx, &mut Rolls::always(0.0)).expect("a line");
-        assert_ne!(got.id, "tumbleweed");
-        assert_eq!(got.anim, None);
-        assert_ne!(got.group, "animated");
-    }
-    for l in dict
-        .lines()
-        .iter()
-        .filter(|l| l.anim.as_deref().is_some_and(|a| !BUILT_ANIMS.contains(&a)))
-    {
-        let mut state = state_today(&ctx);
-        let mut facts = fresh_facts(&ctx);
-        facts
-            .set("start.first_today", true)
-            .set("date", "12-25")
-            .set("start.count", 1000);
-        facts.set("hour", 8);
-        let got = go(&dict, &mut state, &facts, &ctx, &mut Rolls::always(0.0));
-        assert_ne!(
-            got.map(|p| p.id),
-            Some(l.id.clone()),
-            "{} animates with nothing built",
-            l.id
-        );
-    }
+    let mut state = state_today(&ctx);
+    state.last_event = None;
+    let got = go(&dict, &mut state, &facts, &ctx, &mut Rolls::always(0.0)).expect("a line");
+    assert_eq!(got.group, "animated");
+    assert!(got.anim.is_some());
 }
 
 #[test]
@@ -803,6 +798,7 @@ fn the_echo_takes_the_rare_line_and_no_event() {
     let mut facts = fresh_facts(&ctx);
     facts.set("pipelines.failing", 0);
     let mut state = state_today(&ctx);
+    state.last_event = None;
     let mut rolls = Rolls::always(0.0);
     let got = go(&dict, &mut state, &facts, &ctx, &mut rolls).expect("a line");
     assert_eq!(
@@ -819,7 +815,10 @@ fn the_echo_takes_the_rare_line_and_no_event() {
     ctx.echo_rare = false;
     let got = go(
         &dict,
-        &mut state_today(&ctx),
+        &mut State {
+            last_event: None,
+            ..state_today(&ctx)
+        },
         &facts,
         &ctx,
         &mut Rolls::always(0.0),
@@ -858,7 +857,7 @@ fn an_event_needs_full_motion_calm_pipelines_and_a_month() {
     };
 
     let (got, state) = event(&ctx, &calm, None, 0.0);
-    assert_eq!(got.expect("a line").anim.as_deref(), Some("fire"));
+    assert!(got.expect("a line").anim.is_some());
     assert_eq!(state.last_event.as_deref(), Some("2026-10-13"));
     // The roll is 0.0033 and no more.
     assert!(
@@ -1345,7 +1344,7 @@ fn emoji_lines_wait_for_a_terminal_that_draws_them() {
 
 #[test]
 fn a_line_with_an_animation_that_is_not_built_is_never_drawn() {
-    let dict = tiny(&line("alpha", "a", "Snow.", "anim = \"snow\""));
+    let dict = tiny(&line("alpha", "a", "Snow.", "anim = \"nope\""));
     let ctx = now();
     assert!(
         go(
@@ -2542,7 +2541,7 @@ fn a_year_of_starts_holds_every_rule_at_once() {
             );
             if got.anim.is_some() {
                 events += 1;
-                assert_eq!(got.anim.as_deref(), Some("fire"));
+                assert!(BUILT_ANIMS.contains(&got.anim.as_deref().unwrap()));
             }
             if got.group == "time" {
                 *ids_by_day.entry((date.days(), got.id.clone())).or_default() += 1;

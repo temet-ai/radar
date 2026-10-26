@@ -1417,8 +1417,10 @@ from its age, so nothing is kept after it expires.
   names. The start line (`radar_core::start_lines`, a new one each start) types in, and the
   first screen fades in at 2300 ms (the screen cue). At `subtle` there is no beam: everything
   fades in, and it hands off at 1600 ms. At `off` (or held back) the last frame shows only when
-  the first screen is not ready after 150 ms. A rare echo (1 in 50) or the fire event (motion
-  full, held 1.5 s longer) comes with the start. Too small for the scope, it shows the mark,
+  the first screen is not ready after 150 ms. A rare echo (1 in 50) or a special event comes
+  with the start: at motion `full` only, about 1 in 300 starts and a month apart, a scene in
+  the mark's place (`fire`, `snow`, `confetti`, `tumbleweed`, `duck`, `ufo`, `steam`; the
+  start line's `anim`), held 1.5 s longer. Too small for the scope, it shows the mark,
   the names and the line. In a terminal with kitty's graphics the scope is drawn in pixels;
   braille elsewhere. Skipped before 1.5 s (`splash::EARLY_MS`), its line moves to the status
   line for 5 s. Any key, click or

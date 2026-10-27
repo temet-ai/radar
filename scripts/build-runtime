@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Build radar's JavaScript runtime: the Ink renderer and the Claude Code sidecar
 # (runtime/entry.mjs) bundled into one Node single executable, radar-js, which the
-# radar binary embeds when RADAR_RUNTIME_EMBED names it (build.rs). Prints its path.
+# radar binary embeds when RADAR_RUNTIME_EMBED names it (build.rs). Prints its path
+# on stdout and nothing else; npm's and esbuild's own output goes to stderr.
 #
 #   scripts/build-runtime            into target/runtime
 #   scripts/build-runtime DIR        into DIR
@@ -29,8 +30,8 @@ case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*) exe=".exe" ;;
 esac
 
-(cd ink && npm ci --no-audit --no-fund && npm run bundle)
-(cd sidecars/claude-agent && npm ci --omit=optional --no-audit --no-fund)
+(cd ink && npm ci --no-audit --no-fund && npm run bundle) >&2
+(cd sidecars/claude-agent && npm ci --omit=optional --no-audit --no-fund) >&2
 
 # Anthropic's Agent SDK is left out: the sidecar fetches it from npm on first use
 # (sidecars/claude-agent/src/sdk.js), so radar ships none of Anthropic's code.

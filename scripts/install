@@ -8,7 +8,7 @@
 # shell left pointing elsewhere cannot install an old binary.
 # Works with bash 3.2 (macOS) and GNU or BSD tools.
 
-set -e
+set -eo pipefail
 
 cd "$(dirname "$0")/.."
 unset CARGO_TARGET_DIR
@@ -23,7 +23,13 @@ build="${RADAR_BUILD_DIR:-target}"
 # radar's runtime (the Ink renderer and the Claude Code sidecar as one Node
 # single executable, scripts/build-runtime) goes inside the binary, as in a
 # release: the installed radar needs no node and no files beside it.
+# A failed runtime build stops here (pipefail); a stray last line is refused
+# before cargo would try to embed it.
 runtime=$(scripts/build-runtime "$build/runtime" | tail -n 1)
+if [ ! -x "$runtime" ]; then
+    echo "install: scripts/build-runtime made no runtime (its last line: $runtime)" >&2
+    exit 1
+fi
 RADAR_RUNTIME_EMBED="$runtime" CARGO_TARGET_DIR="$build" cargo build --release --locked
 mkdir -p "$root/bin"
 

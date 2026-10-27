@@ -7,9 +7,14 @@
 #   scripts/build-runtime            into target/runtime
 #   scripts/build-runtime DIR        into DIR
 #
-# Needs node 25.5 or later (`node --build-sea`) and npm. The executable is
-# built from the node that runs this script, so it is for this machine's
-# platform: the release builds one per target on that target's runner.
+# Needs a node that can build a single executable: 25.5 or later (`node
+# --build-sea`), built with single executables in (Homebrew's node 26 is not:
+# its `--build-sea` says "Single executable application is disabled"). The
+# node on PATH is used when it can; otherwise the newest install on this
+# machine that can (nvm, fnm, volta, asdf, mise, Homebrew's kegs, the system's,
+# nvm-windows), and RADAR_NODE names one outright. Its npm goes with it. The
+# executable is built from that node, so it is for this machine's platform:
+# the release builds one per target on that target's runner.
 # Works with bash 3.2 (macOS) and GNU or BSD tools; on Windows under Git Bash.
 
 set -euo pipefail
@@ -20,15 +25,97 @@ out="${1:-target/runtime}"
 mkdir -p "$out"
 out=$(cd "$out" && pwd)
 
-if ! node --help 2>/dev/null | grep -q -- '--build-sea'; then
-    echo "build-runtime: node $(node --version 2>/dev/null || echo missing) cannot build a single executable; needs node 25.5 or later" >&2
-    exit 1
-fi
-
 exe=""
 case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*) exe=".exe" ;;
 esac
+
+# Why the node `$1` cannot build a single executable; nothing when it can.
+cannot_build_sea() {
+    local n=$1 version sea
+    [ -x "$n" ] || { echo "is not an executable"; return; }
+    version=$("$n" --version 2>/dev/null) || { echo "does not start"; return; }
+    if ! "$n" --help 2>/dev/null | grep -q -- '--build-sea'; then
+        echo "is $version, which has no --build-sea; needs 25.5 or later"
+        return
+    fi
+    sea=$("$n" -p 'process.config.variables.single_executable_application' 2>/dev/null) || sea=unknown
+    [ "$sea" != false ] || echo "is $version, built without single executables"
+}
+
+# Every node installed on this machine that is not the one on PATH, newest
+# first, one path a line.
+other_nodes() {
+    local on_path=$1 c version a b d
+    shopt -s nullglob
+    for c in \
+        "${NVM_DIR:-$HOME/.nvm}"/versions/node/*/bin/node \
+        "${FNM_DIR:-$HOME/.local/share/fnm}"/node-versions/*/installation/bin/node \
+        "$HOME/Library/Application Support/fnm/node-versions"/*/installation/bin/node \
+        "${VOLTA_HOME:-$HOME/.volta}"/tools/image/node/*/bin/node \
+        "${ASDF_DATA_DIR:-$HOME/.asdf}"/installs/nodejs/*/bin/node \
+        "${MISE_DATA_DIR:-$HOME/.local/share/mise}"/installs/node/*/bin/node \
+        /opt/homebrew/Cellar/node*/*/bin/node \
+        /usr/local/Cellar/node*/*/bin/node \
+        /home/linuxbrew/.linuxbrew/Cellar/node*/*/bin/node \
+        /usr/local/bin/node /usr/bin/node \
+        "${NVM_HOME:-${APPDATA:-/nonexistent}/nvm}"/v*/node"$exe"
+    do
+        [ -x "$c" ] || continue
+        [ -n "$on_path" ] && [ "$c" -ef "$on_path" ] && continue
+        version=$("$c" --version 2>/dev/null) || continue
+        IFS=. read -r a b d <<<"${version#v}"
+        echo "${a:-0} ${b:-0} ${d:-0} $c"
+    done | sort -k1,1nr -k2,2nr -k3,3nr | while read -r a b d c; do echo "$c"; done
+    shopt -u nullglob
+}
+
+# The node that builds the executable, on stdout; what was passed over, on stderr.
+node_for_sea() {
+    local on_path why c tried=""
+    if [ -n "${RADAR_NODE:-}" ]; then
+        why=$(cannot_build_sea "$RADAR_NODE")
+        if [ -n "$why" ]; then
+            echo "build-runtime: RADAR_NODE=$RADAR_NODE $why" >&2
+            return 1
+        fi
+        echo "$RADAR_NODE"
+        return
+    fi
+    on_path=$(command -v node || true)
+    if [ -n "$on_path" ]; then
+        why=$(cannot_build_sea "$on_path")
+        if [ -z "$why" ]; then
+            echo "$on_path"
+            return
+        fi
+        echo "build-runtime: the node on PATH ($on_path) $why; looking for another" >&2
+        tried="$on_path $why"
+    else
+        echo "build-runtime: no node on PATH; looking for one installed here" >&2
+    fi
+    while IFS= read -r c; do
+        why=$(cannot_build_sea "$c")
+        if [ -z "$why" ]; then
+            echo "build-runtime: using $c ($("$c" --version))" >&2
+            echo "$c"
+            return
+        fi
+        tried="$tried
+$c $why"
+    done <<<"$(other_nodes "$on_path")"
+    {
+        echo "build-runtime: no node here can build a single executable; needs node 25.5 or later built with single executables (not Homebrew's node 26)."
+        echo "  install one (nvm install 25, fnm install 25, or nodejs.org), or name one: RADAR_NODE=/path/to/node"
+        [ -z "$tried" ] || echo "  tried:$tried" | sed '2,$s/^/    /'
+    } >&2
+    return 1
+}
+
+NODE=$(node_for_sea)
+# Its npm (and npx) go with it: the ink and sidecar installs, and npm's scripts.
+PATH="$(dirname "$NODE"):$PATH"
+export PATH
 
 (cd ink && npm ci --no-audit --no-fund && npm run bundle) >&2
 (cd sidecars/claude-agent && npm ci --omit=optional --no-audit --no-fund) >&2
@@ -52,14 +139,14 @@ fi
 # stripping after the build drops the embedded script. macOS signatures are
 # taken off before the change and an ad hoc one put back after it.
 base="$out/node$exe"
-cp "$(node -p process.execPath)" "$base"
+cp "$("$NODE" -p process.execPath)" "$base"
 chmod u+w "$base"
 case "$(uname -s)" in
     Darwin)
         codesign --remove-signature "$base"
         # Xcode's strip cannot process some node builds (Intel: "file not in an
         # order that can be processed"); the runtime then keeps node's symbols.
-        strip -x "$base" 2>/dev/null || echo "build-runtime: strip refused $(node --version)'s binary; keeping its symbols" >&2
+        strip -x "$base" 2>/dev/null || echo "build-runtime: strip refused $("$NODE" --version)'s binary; keeping its symbols" >&2
         ;;
     Linux)
         strip "$base"
@@ -76,7 +163,7 @@ cat > "$out/sea.json" <<EOF
   "useCodeCache": false
 }
 EOF
-node --build-sea "$out/sea.json" >/dev/null
+"$NODE" --build-sea "$out/sea.json" >/dev/null
 rm "$base"
 if [ "$(uname -s)" = Darwin ]; then
     codesign --sign - "$out/radar-js"

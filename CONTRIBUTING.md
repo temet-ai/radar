@@ -17,9 +17,13 @@ licensed under the MIT licence too. There is no contributor licence agreement to
 
 - Git and a Rust toolchain. The workspace declares Rust 1.90 as its minimum;
   CI uses the current stable toolchain.
-- Node and npm. Node 26 matches CI and can build the embedded runtime. Running
-  the renderer bundle needs Node 22 or later; `scripts/build-runtime` needs
-  Node 25.5 or later for `node --build-sea`.
+- Node and npm. Node 26 from nodejs.org matches CI and can build the embedded
+  runtime. Running the renderer bundle needs Node 22 or later;
+  `scripts/build-runtime` needs Node 25.5 or later for `node --build-sea`, built
+  with single executables in. Homebrew's node 26 is built without them, so when the
+  node on PATH cannot build one, build-runtime uses the newest install on the
+  machine that can (nvm, fnm, volta, asdf, mise, Homebrew's kegs, nvm-windows) and
+  says so; `RADAR_NODE=/path/to/node` names one outright.
 - Your platform's C/C++ build tools and linker. On macOS, install the Xcode
   Command Line Tools. On Linux x86_64, install `mold`: `.cargo/config.toml`
   selects it with `-fuse-ld=mold`.

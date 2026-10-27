@@ -85,7 +85,9 @@ previous release.
 Ink and the Claude Code sidecar are JavaScript. `scripts/build-runtime`
 bundles both (`runtime/entry.mjs`) into one Node single executable, `radar-js`
 (about 120 MB; `radar-js ink`, `radar-js claude-agent`), built with
-`node --build-sea` from Node 25.5 or later. With `RADAR_RUNTIME_EMBED=<radar-js>`
+`node --build-sea` from Node 25.5 or later built with single executables in (the
+node on PATH when it can, else the newest install on the machine that can, or
+`RADAR_NODE`; Homebrew's node 26 cannot). With `RADAR_RUNTIME_EMBED=<radar-js>`
 set at build time, `build.rs` embeds it in the radar binary; on start radar writes it
 once to `<cache>/radar/runtime/<version>-<hash>/radar-js` (`~/.cache` on Linux,
 `~/Library/Caches` on macOS), removes the ones older builds wrote, and names it

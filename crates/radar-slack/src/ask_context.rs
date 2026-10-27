@@ -207,19 +207,21 @@ impl SlackPlugin {
         })
     }
 
-    pub(crate) fn preview_ask(&mut self) -> Vec<Effect> {
-        // A new preview attempt supersedes even an older dismissed dialog.
+    /// The draft as it would be sent now: its journal entry and the prepared
+    /// ask. `Err` is the effects that say why it cannot be sent.
+    fn prepare_ask(&mut self) -> Result<(Effect, PreparedAsk), Vec<Effect>> {
+        // A new attempt supersedes even an older dismissed dialog.
         self.ask_context.pending = None;
         self.ensure_ask_stamp();
         let Some(draft) = self.draft.as_ref() else {
-            return vec![];
+            return Err(vec![]);
         };
         if let Some(why) = self.ask_draft_blocked() {
-            return vec![
+            return Err(vec![
                 observation("slack.review_ask.draft.preview.skipped"),
                 Effect::Report(Outcome::Blocked),
                 Effect::Notify(format!("not yet: {why}")),
-            ];
+            ]);
         }
         let channel = self
             .cfg
@@ -228,37 +230,71 @@ impl SlackPlugin {
             .unwrap_or_default();
         let journal = self.journal_write("slack.review_ask.post", channel, None);
         if let Some(why) = draft.blocked(&self.cfg, &self.data.groups) {
-            return vec![
+            return Err(vec![
                 journal,
                 Effect::Report(Outcome::Blocked),
                 Effect::Notify(format!("not yet: {why}")),
-            ];
+            ]);
         }
         if draft.edit.is_some() {
-            return vec![
+            return Err(vec![
                 journal,
                 Effect::Report(Outcome::Blocked),
                 Effect::Notify("finish editing before previewing the review ask".into()),
-            ];
+            ]);
         }
         let Some(payload) = self.ask_payload() else {
-            return vec![journal, Effect::Report(Outcome::Blocked)];
+            return Err(vec![journal, Effect::Report(Outcome::Blocked)]);
         };
         let id = next(&mut self.ask_context.next_intent);
+        Ok((
+            journal,
+            PreparedAsk {
+                id,
+                draft: draft.stamp,
+                read: self.read_stamp(),
+                payload,
+            },
+        ))
+    }
+
+    /// Show the ask exactly as it will post, and where, and ask for a yes.
+    pub(crate) fn preview_ask(&mut self) -> Vec<Effect> {
+        let (journal, prepared) = match self.prepare_ask() {
+            Ok(ready) => ready,
+            Err(why) => return why,
+        };
+        let channel = self.draft.as_ref().map(|d| d.channel.clone()).unwrap_or_default();
         let menu = Menu::write_confirm(
-            format!("ask-send:{id}"),
-            format!("post this in #{}?", draft.channel),
-            &payload.text,
+            format!("ask-send:{}", prepared.id),
+            format!("post this in #{channel}?"),
+            &prepared.payload.text,
             "post it",
             "drop it",
         );
-        self.ask_context.pending = Some(AskIntent::Send(PreparedAsk {
-            id,
-            draft: draft.stamp,
-            read: self.read_stamp(),
-            payload,
-        }));
+        self.ask_context.pending = Some(AskIntent::Send(prepared));
         vec![journal, Effect::Menu(menu)]
+    }
+
+    /// Ask for review of one merge request the moment it is chosen: no
+    /// draft page and no question, as posting `at once` under review says.
+    /// What stands in the way (no channel, a template Slack would not take,
+    /// not signed in) opens the draft instead, saying why, so it can be put
+    /// right there and posted with `p`.
+    pub(crate) fn post_ask_now(&mut self, item: ask::Item) -> Vec<Effect> {
+        let draft = Draft::new(&self.cfg, item);
+        self.begin_ask_draft(draft);
+        match self.prepare_ask() {
+            Ok((journal, prepared)) => {
+                let mut fx = vec![journal];
+                fx.extend(self.send_ask(prepared));
+                fx
+            }
+            Err(mut why) => {
+                why.push(Effect::Show(crate::join::draft_subject(self)));
+                why
+            }
+        }
     }
 
     fn draft_intent(&mut self) -> Option<DraftIntent> {
@@ -388,6 +424,11 @@ impl SlackPlugin {
             }
             return effects;
         }
+        self.send_ask(prepared)
+    }
+
+    /// Send a prepared ask, once, while the draft is still what was prepared.
+    fn send_ask(&mut self, prepared: PreparedAsk) -> Vec<Effect> {
         let current = self.draft.as_ref().is_some_and(|draft| {
             draft.stamp == prepared.draft && draft.edit.is_none() && draft.sending.is_none()
         }) && self.ask_draft_blocked().is_none()
@@ -527,6 +568,11 @@ impl SlackPlugin {
                         "post the review ask in #{}",
                         self.alias(&operation.payload.channel)
                     );
+                    // Asked at once, with no draft page open: the draft is
+                    // shown now, with what Slack said and `p` to post again.
+                    if !matches!(self.pages.last(), Some(crate::page::Page::Draft)) {
+                        effects.push(Effect::Show(crate::join::draft_subject(self)));
+                    }
                     effects.push(writes::failed(&format!(
                         "{}{}",
                         crate::SERVICE.did_not(&doing, &error),

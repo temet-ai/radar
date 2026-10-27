@@ -90,12 +90,20 @@ or a service name such as `patrol`. That adds a local mapping rule; it does not 
 or resolve the alert in the source system. Review the rule and retention window in
 [Settings](settings.md).
 
-## Draft a review ask
+## Ask for review
 
 A review ask is a Slack message asking people to review a GitLab merge request. It is
 separate from starting an agent's local review. From a merge request's `x` menu, choose
-**ask for review in Slack…**. Radar opens the draft page, showing the items, destination
-and rendered message. Asking from another merge request adds it to the same draft.
+**ask for review in Slack**. Radar posts the message to the review channel the moment you
+choose it, as the template in Settings → Slack → Review says, and the merge request then
+follows the thread. The menu row says where it posts (`posts in #team now`). When the
+channel, the template or the connection is not ready, nothing is sent; the draft page opens
+instead and says what needs attention. If Slack refuses the message, the draft page opens
+with Slack's reason, and `p` posts it again.
+
+To see the message before it goes, set **posting** to **draft first** in Settings → Slack →
+Review. Then **ask for review in Slack…** opens the draft page, showing the items, destination
+and rendered message, and asking from another merge request adds it to the same draft.
 
 Use the draft's menu to edit the selected item's words, remove it, choose another channel,
 copy the text or cancel the draft. `esc` goes back while keeping the draft. **Post** (`p`)
@@ -104,8 +112,9 @@ which connection, channel or group setting needs attention. Nothing is sent just
 or editing the draft.
 
 Settings → Slack → Review holds the normal channel, the user group to mention, a test
-channel, the message template and when an unanswered request can be asked again. Sending
-to the test channel leaves out the review-group mention.
+channel, the message template, when an unanswered request can be asked again, and how
+asking posts (at once, or draft first). Sending to the test channel leaves out the
+review-group mention.
 
 The template puts the merge requests at `{mrs}`; **each request** sets how each one shows
 there (`{link} {title}` by default). Both can name a merge request by `{link}`, `{url}`,
@@ -118,8 +127,8 @@ requests as you type. Once posted, the merge request
 offers its review-ask thread and, when due, **ask again in the thread…**. A re-ask is an
 explicit action, not an automatic reminder.
 
-GitHub pull requests can show and open existing exact-link Slack discussions. The review-ask
-draft action is currently for GitLab merge requests. Local agent reviews from Slack support
+GitHub pull requests can show and open existing exact-link Slack discussions. Asking for
+review is currently for GitLab merge requests. Local agent reviews from Slack support
 both GitLab and GitHub links.
 
 ## Give an agent the conversation

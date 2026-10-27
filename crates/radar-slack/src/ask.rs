@@ -1,6 +1,8 @@
-//! Asking for review: the team's message drafted from the template in
-//! settings, shown exactly as it will post and where, and posted only after
-//! a yes. The user group is mentioned only in the review channel.
+//! Asking for review: the team's message from the template in settings,
+//! posted to the review channel the moment it is asked for, or, with
+//! posting set to `draft first`, shown exactly as it will post and where
+//! and posted only after a yes. The user group is mentioned only in the
+//! review channel.
 
 use std::collections::BTreeMap;
 

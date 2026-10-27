@@ -172,8 +172,18 @@ fn a_merge_request_not_asked_about_asks_and_one_asked_opens_its_thread() {
     let offered = actions(&p, &mr);
     let ids: Vec<&str> = offered.iter().map(|a| a.id.as_str()).collect();
     assert_eq!(ids, ["ask"]);
-    assert_eq!((offered[0].key, offered[0].what.as_str()), (Some('s'), "ask for review in Slack…"));
-    assert_eq!((offered[0].group, offered[0].hint.as_str()), (Some(ActionGroup::Ask), ""));
+    // Posting at once (the default): the row acts, and says where it posts.
+    assert_eq!((offered[0].key, offered[0].what.as_str()), (Some('s'), "ask for review in Slack"));
+    assert_eq!((offered[0].group, offered[0].hint.as_str()), (Some(ActionGroup::Ask), "posts in #team now"));
+    // Draft first: the draft page comes first, so the row says more follows.
+    p.cfg.review.draft_first = true;
+    let offered = actions(&p, &mr);
+    assert_eq!((offered[0].what.as_str(), offered[0].hint.as_str()), ("ask for review in Slack…", ""));
+    // No channel to post in: the draft opens and says so.
+    p.cfg.review.draft_first = false;
+    p.cfg.review.channel.clear();
+    let offered = actions(&p, &mr);
+    assert_eq!((offered[0].what.as_str(), offered[0].hint.as_str()), ("ask for review in Slack…", ""));
 
     // Asked, nobody has answered: the thread opens with `s`, there is no second ask row.
     let mut p = held(MR);

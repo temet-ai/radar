@@ -750,8 +750,15 @@ pub fn keys(p: &SlackPlugin) -> Vec<Binding> {
     rows(p).into_iter().map(|(_, b)| b).collect()
 }
 
-/// Start a review ask with a merge request, or add it to the one being
-/// written; then show the draft.
+/// Whether asking for review posts the moment it is chosen: posting is
+/// `at once` under review, and no ask is being written.
+pub(crate) fn asks_at_once(p: &SlackPlugin) -> bool {
+    !p.cfg.review.draft_first && p.draft.is_none()
+}
+
+/// Ask for review of a merge request. Posted at once, unless posting is
+/// `draft first` under review or an ask is being written: then it starts
+/// the draft or joins it, and the draft is shown.
 pub(crate) fn ask_for(p: &mut SlackPlugin, item: ask::Item) -> Vec<Effect> {
     if p.draft.is_some()
         && let Some(why) = p.ask_draft_blocked()
@@ -759,6 +766,9 @@ pub(crate) fn ask_for(p: &mut SlackPlugin, item: ask::Item) -> Vec<Effect> {
         return vec![Effect::Notify(format!(
             "{why}; copy or drop the retained ask first"
         ))];
+    }
+    if asks_at_once(p) {
+        return p.post_ask_now(item);
     }
     let label = item.label.clone();
     let note = match p.draft.as_mut() {
@@ -789,6 +799,7 @@ mod ask_revision_tests {
     fn draft() -> SlackPlugin {
         let mut p = crate::demo::sample();
         p.cfg.review.channel = "team".into();
+        p.cfg.review.draft_first = true;
         let item = ask::Item::of(
             &Subject::new("merge-request", "mr-1", "api !1")
                 .with_url("https://git.example/mr/1")

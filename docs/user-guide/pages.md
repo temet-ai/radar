@@ -43,7 +43,7 @@ editor instead; the guides identify those cases.
 | [Jira ticket](jira.md#every-page-and-tab) | `⏎` on a ticket | Overview, Comments, Links; linked Code, Slack and Notes |
 | [Slack](slack.md#choose-a-feed) | `S` | For you, Discussions, Alerts and watched channels |
 | [Slack thread](slack.md#read-a-thread) | `⏎` on a message | Thread, Links; replies and reactions |
-| [Slack review draft](slack.md#draft-a-review-ask) | Ask for review from a GitLab merge request; add more requests to the draft individually | Items, per-item text, channel choice and posting confirmation |
+| [Slack review draft](slack.md#ask-for-review) | The review ask before it posts, when posting is set to draft first; add more requests to the draft individually | Items, per-item text, channel choice and posting confirmation |
 
 Linked tabs appear only when the relevant parts are connected and radar knows
 the relationship. Their absence can mean there is no linked information in the

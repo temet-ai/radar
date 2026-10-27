@@ -296,6 +296,7 @@ fn the_draft_names_the_group_as_slack_does_when_settings_have_only_its_id() {
     let mut p = sample();
     forget_the_review_ask(&mut p);
     p.cfg.review.handle.clear();
+    p.cfg.review.draft_first = true;
     host.plugins[2] = Box::new(p);
     press(&mut host, Key::Char('s'));
     let text = shown(&host, 160, 40);
@@ -867,6 +868,7 @@ fn a_template_naming_a_group_by_handle_is_checked_and_sends_the_groups_mention()
     let mut host = hosted_with_parts();
     let mut p = sample();
     p.via = crate::Via(Some(rec.clone()));
+    p.cfg.review.draft_first = true;
     p.cfg.review.group.clear();
     p.cfg.review.handle.clear();
     p.cfg.review.template = "{@acme-devs} :gitlab: {mrs}".into();
@@ -1378,6 +1380,8 @@ mod review_draft {
         let mut p = sample();
         forget_the_review_ask(&mut p);
         p.via = crate::Via(Some(rec.clone()));
+        // The draft page and its question: posting set to draft first.
+        p.cfg.review.draft_first = true;
         host.plugins[2] = Box::new(p);
 
         key(&mut host, Key::Char('x'));
@@ -1594,6 +1598,8 @@ mod review_post {
         let mut p = sample();
         forget_the_review_ask(&mut p);
         p.via = crate::Via(Some(rec.clone()));
+        // The draft page and its question: posting set to draft first.
+        p.cfg.review.draft_first = true;
         host.plugins[2] = Box::new(p);
         let mut s = Scenario::new(host);
 
@@ -1708,6 +1714,157 @@ mod review_post {
             "both responses were consumed"
         );
         assert!(s.desktop_effects().is_empty());
+        s.finish_journal().unwrap();
+    }
+}
+
+mod review_post_at_once {
+    use super::*;
+
+    /// Posting `at once`, the default: the merge request's `x` row says where
+    /// it posts, `s` sends it with no draft page and no question, and the
+    /// merge request follows the thread. A refusal opens the draft with what
+    /// Slack said, so `p` can post it again.
+    #[tokio::test(flavor = "current_thread")]
+    async fn an_ask_posts_the_moment_it_is_chosen_and_a_refusal_opens_the_draft() {
+        use radar_core::scenario::Scenario;
+        use radar_core::view::{Intent, Node, PaneId};
+
+        const BUDGET: usize = 256;
+        fn key(s: &mut Scenario, code: Key) {
+            s.dispatch(crate::keys::ev(crate::keys::chord(code, Mods::NONE))).unwrap();
+        }
+        fn select_mr(s: &mut Scenario, iid: &str) {
+            let target = s.inspect(|host| {
+                assert_eq!(host.screen().unwrap().1.name, "code");
+                let view = host.screen_view_in(0, "code", 160, 40).expect("Code view");
+                let Node::List { rows, .. } = &view.pane(PaneId::Middle).expect("merge requests").body
+                else {
+                    panic!("merge request rows");
+                };
+                rows.iter()
+                    .find(|row| row.target.as_str() == iid)
+                    .expect("emitted merge request target")
+                    .target
+                    .clone()
+            });
+            s.dispatch(Event::Intent(Intent::Select { target })).unwrap();
+        }
+
+        let expected = [
+            crate::client::Request {
+                method: "chat.postMessage",
+                params: vec![],
+                write: true,
+                body: Some(serde_json::json!({
+                    "channel": TEAM,
+                    "text": format!("<!subteam^{GROUP}> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/270|mr> Tidy the README"),
+                    "unfurl_links": false,
+                    "unfurl_media": false,
+                })),
+            },
+            crate::client::Request {
+                method: "chat.postMessage",
+                params: vec![],
+                write: true,
+                body: Some(serde_json::json!({
+                    "channel": TEAM,
+                    "text": format!("<!subteam^{GROUP}> :gitlab: <{MR_263}|mr> Add a stats endpoint for the dashboard"),
+                    "unfurl_links": false,
+                    "unfurl_media": false,
+                })),
+            },
+        ];
+        let rec = crate::client::Recorded::new(vec![
+            ok(serde_json::json!({"ok": true, "channel": TEAM, "ts": "1791271000.000500"})),
+            Ok(crate::client::Reply {
+                status: 429,
+                retry_after: Some(30),
+                ..Default::default()
+            }),
+        ]);
+        let mut host = Host::new(
+            vec![
+                Box::new(stand_in::Code::default()),
+                Box::new(stand_in::Tracker::default()),
+                Box::new(SlackPlugin::default()),
+            ],
+            NOW,
+        )
+        .unwrap();
+        host.load_config(Some("")).unwrap();
+        let mut p = sample();
+        forget_the_review_ask(&mut p);
+        p.via = crate::Via(Some(rec.clone()));
+        assert!(!p.cfg.review.draft_first, "posting at once is the default");
+        host.plugins[2] = Box::new(p);
+        let mut s = Scenario::new(host);
+
+        // The row says it acts at once, and where: no ellipsis, a write.
+        select_mr(&mut s, "270");
+        key(&mut s, Key::Char('x'));
+        let ask = s.inspect(|host| {
+            host.menu
+                .as_ref()
+                .expect("MR actions")
+                .menu
+                .items
+                .iter()
+                .find(|i| i.label == "ask for review in Slack")
+                .map(|i| i.hint.clone())
+        });
+        assert_eq!(ask.as_deref(), Some("posts in #team now"), "{:?}", menu_labels(s.host()));
+        key(&mut s, Key::Esc);
+        assert_eq!(s.costs().spawned_completion_tasks, 0);
+
+        key(&mut s, Key::Char('s'));
+        assert_eq!(s.costs().spawned_completion_tasks, 1, "one task, no question asked");
+        assert!(s.host().menu.is_none(), "no confirmation");
+        assert_eq!(s.host().screen().unwrap().1.name, "code", "no draft page");
+        s.settle(BUDGET).await.unwrap();
+        assert_eq!(rec.requests().as_slice(), &expected[..1], "sent exactly once");
+        assert_eq!(
+            s.host().message.as_deref(),
+            Some("✓ review asked · its thread is followed on the merge request")
+        );
+        let text = s.inspect(|host| shown(host, 160, 40));
+        assert!(text.contains("api !270 Tidy the README [asked 0s · no reply]"), "{text}");
+
+        // Nothing retained: the next merge request posts at once too, and a
+        // refusal brings the draft up with what Slack said.
+        select_mr(&mut s, "263");
+        key(&mut s, Key::Char('x'));
+        assert!(
+            menu_labels(s.host()).iter().any(|l| l.ends_with("ask for review in Slack")),
+            "{:?}",
+            menu_labels(s.host())
+        );
+        key(&mut s, Key::Esc);
+        key(&mut s, Key::Char('s'));
+        assert_eq!(s.costs().spawned_completion_tasks, 2);
+        s.settle(BUDGET).await.unwrap();
+        assert_eq!(rec.requests(), expected, "one request per ask, never retried");
+        let refusal = s
+            .host()
+            .message
+            .as_deref()
+            .expect("the refused ask reports why")
+            .to_owned();
+        assert!(
+            refusal.contains("✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent"),
+            "{refusal}"
+        );
+        assert!(refusal.ends_with("· p has your text"), "{refusal}");
+        assert_eq!(s.host().screen().unwrap().1.name, "slack", "the draft is shown");
+        let text = s.inspect(|host| shown(host, 160, 40));
+        assert!(text.contains("Ask for review in #team"), "{text}");
+        assert!(
+            text.contains("Slack did not take it: Slack is busy (rate limited): it was not sent"),
+            "{text}"
+        );
+        s.settle(BUDGET).await.unwrap();
+        assert!(s.is_idle());
+        assert_eq!(rec.requests(), expected, "settling does not retry the refused ask");
         s.finish_journal().unwrap();
     }
 }

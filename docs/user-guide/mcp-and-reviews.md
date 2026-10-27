@@ -101,7 +101,7 @@ auto_review = true
 ```
 
 The channel value is radar's configured channel alias, not the Slack channel ID or URL.
-Automatic intake is off by default. The [Slack guide](slack.md#draft-a-review-ask) covers
+Automatic intake is off by default. The [Slack guide](slack.md#ask-for-review) covers
 composing a request yourself; this option handles incoming requests.
 
 When a group is configured, a request must mention that exact group and its thread must

@@ -193,7 +193,7 @@ On a job's log page:
 | `e` | react to a message |
 | `v` | on a review ask: review its linked merge request locally |
 
-On a review ask you are drafting:
+On a review ask you are drafting (Settings → Slack → Review, posting set to draft first):
 
 | Key | Does |
 |---|---|

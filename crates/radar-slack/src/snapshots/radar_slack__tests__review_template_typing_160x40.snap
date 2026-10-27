@@ -10,6 +10,7 @@ expression: text
   each request     {link} {title}  {row:4}
   test channel     try  {row:5}
   ask again        after 2 working days without a reply  {row:6}
+  posting          at once  {row:7}
 ── detail · template ──
 AS YOU TYPE
 :run_passed: mentions the group picked under user group (in the review channel); posts: Review please <!subteam^S0REVIEW01>: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard

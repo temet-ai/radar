@@ -268,7 +268,7 @@ comments, assignment and transitions.
 
 Press `S`. Choose For you, Discussions, Alerts or a watched channel. The
 [Slack guide](slack.md) covers threads, links, replies, reactions, local read marks and
-review-request drafts. [Automatic local reviews](mcp-and-reviews.md#start-reviews-from-slack)
+asking for review. [Automatic local reviews](mcp-and-reviews.md#start-reviews-from-slack)
 can turn watched review requests into local reports.
 
 ### Git (Branches)

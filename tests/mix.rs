@@ -593,8 +593,9 @@ jql = "project = ABC ORDER BY updated DESC"
         let mut host = both();
         // Explicit synthetic Slack authentication; no provider request is needed.
         let cache = host.plugins[0].snapshot().unwrap();
+        // The draft page shows the text: posting set to draft first.
         host.load_config(Some(&format!(
-            "{CONFIG}\n[slack]\ntoken = 'env:RADAR_MIX_SURELY_UNSET'\n"
+            "{CONFIG}\n[slack]\ntoken = 'env:RADAR_MIX_SURELY_UNSET'\n[slack.review]\ndraft_first = true\n"
         )))
         .unwrap();
         host.plugins[0].restore(cache);

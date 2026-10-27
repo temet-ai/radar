@@ -634,21 +634,29 @@ pub(crate) fn contribute(p: &SlackPlugin, point: Point, s: &Subject) -> Option<C
             // `s` opens; the fact about it is the row's hint.
             let thread_key = if asked.is_some() && p.draft.is_none() { 's' } else { 't' };
             if s.url.is_some() && (asked.is_none() || p.draft.is_some()) {
-                out.push(
-                    Action::new(
-                        's',
-                        match &p.draft {
-                            Some(d) if d.items.iter().any(|i| i.id == s.id) => {
-                                "show the review ask being written".to_string()
-                            }
-                            Some(d) => format!("add to the review ask ({} in it)…", d.items.len()),
-                            None => "ask for review in Slack…".to_string(),
-                        },
-                        "ask",
-                    )
-                    .icon(Icon::NeedsApproval)
-                    .group(ActionGroup::Ask),
-                );
+                // Posted the moment it is chosen: a write, saying where it
+                // goes. Without a channel it opens the draft, which says so.
+                let at_once = page::asks_at_once(p) && !p.cfg.review.channel.is_empty();
+                let mut action = Action::new(
+                    's',
+                    match &p.draft {
+                        Some(d) if d.items.iter().any(|i| i.id == s.id) => {
+                            "show the review ask being written".to_string()
+                        }
+                        Some(d) => format!("add to the review ask ({} in it)…", d.items.len()),
+                        None if at_once => "ask for review in Slack".to_string(),
+                        None => "ask for review in Slack…".to_string(),
+                    },
+                    "ask",
+                )
+                .icon(Icon::NeedsApproval)
+                .group(ActionGroup::Ask);
+                if at_once {
+                    action = action
+                        .adds()
+                        .hint(format!("posts in #{} now", p.cfg.review.channel));
+                }
+                out.push(action);
             }
             if let Some(a) = asked {
                 let fact = if a.replies == 0 { "no reply yet".to_string() } else { view::replies(a.replies) };

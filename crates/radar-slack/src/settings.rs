@@ -53,7 +53,7 @@ pub(crate) const NEEDS: [(&str, &[&str], &str); 8] = [
     (
         "asking and replying",
         &["chat:write"],
-        "posting review asks and replies as you, after you say yes",
+        "posting review asks and replies as you",
     ),
     (
         "reacting",
@@ -412,9 +412,10 @@ pub(crate) enum RvRow {
     Line,
     Test,
     Reask,
+    Posting,
 }
 
-const RV_ROWS: [RvRow; 7] = [
+const RV_ROWS: [RvRow; 8] = [
     RvRow::Channel,
     RvRow::Group,
     RvRow::Template,
@@ -422,6 +423,7 @@ const RV_ROWS: [RvRow; 7] = [
     RvRow::Line,
     RvRow::Test,
     RvRow::Reask,
+    RvRow::Posting,
 ];
 
 impl RvRow {
@@ -434,8 +436,14 @@ impl RvRow {
             Self::Line => "each request",
             Self::Test => "test channel",
             Self::Reask => "ask again",
+            Self::Posting => "posting",
         }
     }
+}
+
+/// How asking for review posts, as the `posting` row says it.
+const fn posting_word(draft_first: bool) -> &'static str {
+    if draft_first { "draft first" } else { "at once" }
 }
 
 const LOOK: [(&str, &[(&str, &str)]); 3] = [
@@ -634,6 +642,7 @@ fn rv_value(p: &SlackPlugin, r: RvRow) -> String {
         RvRow::Line => rv.line.clone(),
         RvRow::Test => or_dash(&rv.test_channel),
         RvRow::Reask => rv.reask().words(),
+        RvRow::Posting => posting_word(rv.draft_first).into(),
     }
 }
 
@@ -1448,7 +1457,7 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                     d.accepts = Some("https://slack.com, https://slack-gov.com, or http://127.0.0.1:PORT for this machine".into()); d.config = Some("[slack] api".into()); d
                 }
                 WsRow::Token => {
-                    let mut d = connection::DetailText::new("How radar proves who you are to Slack: a user token (xoxp-…), so radar reads what you can read and asks for review as you. It only reads, unless you say yes to a post, reply or reaction.");
+                    let mut d = connection::DetailText::new("How radar proves who you are to Slack: a user token (xoxp-…), so radar reads what you can read and asks for review as you. It only reads, unless you ask for review or say yes to a post, reply or reaction.");
                     d.accepts = Some(connection::TOKEN_ACCEPTS.into()); d.config = Some("[slack] token".into()); d
                 }
                 WsRow::SignedIn => connection::DetailText::new(format!("{} \"For you\" means this person.", connection::about_signed_in("Slack"))),
@@ -1767,6 +1776,7 @@ pub fn review_view(p: &SlackPlugin) -> v::SectionView {
         RvRow::Line => ("How {mrs} shows each merge request. Tickets missing from {title} are added after it unless {tickets} is used.", "text with {link}, and any of:", "[slack.review] line"),
         RvRow::Test => ("A channel to try a review ask in first: change the draft's channel to it; no one is mentioned there.", "a channel in the registry", "[slack.review] test_channel"),
         RvRow::Reask => ("When an ask with no reply is due again, its merge request's slack column turns to a warning and it offers to ask again in the thread (asked first): a reply that mentions the group and links to the ask. Working days are Monday to Friday, in your Slack time zone.", "2d (working days) · 4h (working hours) · 10:00 (that time on the next working day) · never", "[slack.review] reask"),
+        RvRow::Posting => ("How ask for review on a merge request posts. At once: the message goes to the channel the moment it is chosen, as the template says, and the merge request follows its thread; the row in the merge request's menu says where. Draft first: the draft page shows the merge requests, the channel and the message, more merge requests can be added, and p posts after a yes.", "at once · draft first", "[slack.review] draft_first"),
     };
     let mut detail = Vec::new();
     typing_text(p, &mut detail);
@@ -2009,6 +2019,12 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
                     MenuItem::new('e', "select it…", "from the channels in the registry", "pick")
                 }
                 RvRow::Group => MenuItem::new('e', "select it…", "from Slack's user groups", "pick"),
+                RvRow::Posting => MenuItem::new(
+                    'e',
+                    format!("change to {}", posting_word(!p.cfg.review.draft_first)),
+                    "at once posts the moment it is chosen; draft first shows the draft and asks",
+                    "toggle",
+                ),
                 _ => MenuItem::new('e', "change it", "type it", "edit"),
             };
             let mut items = vec![item];
@@ -2570,6 +2586,14 @@ pub fn on_menu(p: &mut SlackPlugin, menu: &str, value: &str) -> Vec<Effect> {
                 (RvRow::Reask, "edit") => {
                     p.edit = Some((Target::Reask, TextInput::new(&p.cfg.review.reask().spec())));
                     vec![]
+                }
+                (RvRow::Posting, "toggle") => {
+                    p.cfg.review.draft_first = !p.cfg.review.draft_first;
+                    vec![Effect::Notify(if p.cfg.review.draft_first {
+                        "ask for review shows the draft first; p posts it".into()
+                    } else {
+                        "ask for review posts the moment it is chosen".into()
+                    })]
                 }
                 (RvRow::Template, "reset") => {
                     p.cfg.review.template = config::default_template();

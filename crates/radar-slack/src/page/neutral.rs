@@ -535,7 +535,7 @@ fn draft_view(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PageView {
     ];
     let Some(draft) = &p.draft else {
         return PageView { crumbs, title: Text::of("ask for review", Ink::Emphasis), details: Text::new(), under: None, tabs: vec![], tab: 0, notice: None,
-            panes: vec![PaneView::new(PaneId::Middle, "ask for review", Node::State { state: v::State::Empty, text: "No review ask being written. Choose \"ask for review…\" on a merge request.".into() })], layout: None };
+            panes: vec![PaneView::new(PaneId::Middle, "ask for review", Node::State { state: v::State::Empty, text: "No review ask being written. With posting set to draft first under review, \"ask for review in Slack…\" on a merge request starts one.".into() })], layout: None };
     };
     if let Some(why) = p.ask_draft_blocked() {
         let mut lines = vec![

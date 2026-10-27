@@ -1801,7 +1801,11 @@ asks, then reports what it said. Writes behave one way in every part, through th
   `e keep writing`, `n drop it` in a row (a question is a dialog, 1.9). One without
   text (approve, resolve, move, assign, react, rebase, merge) uses `Menu::write_plain`,
   its lines saying what it does. Nothing is sent before `y`;
-  it is sent once and never retried.
+  it is sent once and never retried. The one write that may skip the question is the
+  Slack review ask: with `[slack.review] draft_first` off (the default) its `x` row says
+  where it posts (`ask for review in Slack · posts in #team now`) and it posts the moment
+  it is chosen; a refusal opens the draft with Slack's reason. With `draft_first` on, the
+  draft page and the write confirm come first.
 - **Text is typed in the kit's composer** (`ui::composer::Composer`): `⏎` a new line,
   `ctrl-s` review and send, `esc` stop (asking first when there is text).
 - **Text is never lost.** Declined (`n`) or refused text is kept as a draft that the key

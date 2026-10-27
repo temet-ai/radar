@@ -6,7 +6,7 @@
 //! threads folded under them │ a detail pane; `⏎` opens a thread's page. It
 //! owns `thread`s (and a review ask being drafted), recognises its
 //! permalinks, and adds to the other parts: a "Discussed in Slack" section
-//! and a chip on merge requests, "ask for review…" on them, and a Slack tab
+//! and a chip on merge requests, "ask for review" on them, and a Slack tab
 //! on tickets. Settings sections `connection`, `channels`, `review`,
 //! `alerts` and `look`; the `[slack]` config table; the `slack.*` colour slots;
 //! a cache (with the caught-up marks); `radar slack catchup`.

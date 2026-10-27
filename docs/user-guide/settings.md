@@ -142,12 +142,12 @@ when its JQL matches no tickets.
 |---|---|
 | **connection** | A user token, connection check, refresh interval and how far back to read. Permission rows explain the scopes needed for each capability. The channel registry can also be edited here. |
 | **channels** | Channel aliases, purpose, kind, colour and whether each channel is watched. A channel may stay registered without being watched. |
-| **review** | The channel, user group, message template and link text used for review asks, with a live example. A separate test channel sends no group mentions. **Reask** controls when an unanswered ask is due again, using working days/hours, a next-working-day time or `never`. |
+| **review** | The channel, user group, message template and link text used for review asks, with a live example. A separate test channel sends no group mentions. **Reask** controls when an unanswered ask is due again, using working days/hours, a next-working-day time or `never`. **Posting** is `at once` (the default: the ask is sent the moment it is chosen from a merge request's menu) or `draft first` (the draft page shows it, and `p` posts after a confirmation). |
 | **alerts** | Name prefixes and/or `key=value` labels mapped to repositories, services and default environments. Rules are tried from the top; if both prefix and label are set, both must match. Unmapped alerts can be assigned here. **Keep resolved** controls retention of resolved alerts and failed jobs; firing alerts stay while they fire. |
 | **look** | Compact or cozy message density, message and tree colours, and colours for alert states. |
 
 [Connect Slack](connect.md#slack) explains the token and scopes. The
-[Slack guide](slack.md) covers channel and thread pages, replies and review drafts.
+[Slack guide](slack.md) covers channel and thread pages, replies and review asks.
 Automatic local review intake is enabled by the `auto_review` config setting;
 follow [Start reviews from Slack](mcp-and-reviews.md#start-reviews-from-slack) for
 the complete setup.

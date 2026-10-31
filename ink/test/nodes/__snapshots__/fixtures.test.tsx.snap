@@ -4046,6 +4046,7 @@ exports[`recorded view fixtures > slack_settings-review at 80x24 1`] = `
  each request     {link} {title}
  test channel     try
  ask again        after 2 working days without a reply
+ posting          at once
 
 ── channel ──
  Where review asks go. The user group is mentioned only here.
@@ -4110,6 +4111,7 @@ exports[`recorded view fixtures > slack_settings-review at 160x40 1`] = `
  each request     {link} {title}
  test channel     try
  ask again        after 2 working days without a reply
+ posting          at once
 
 ── channel ──
  Where review asks go. The user group is mentioned only here.

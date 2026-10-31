@@ -2810,7 +2810,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_80
 │                      ││ each request     {link} {title}                      │
 │                      ││ test channel     try                                 │
 │                      ││ ask again        after 2 working days without a repl │
-│                      ││                                                      │
+│                      ││ posting          at once                             │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ channel ─────────────────────────────────────────────╮
@@ -2837,7 +2837,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_16
 │                      ││ each request     {link} {title}                                                ││ a channel in the registry                          │
 │                      ││ test channel     try                                                           ││                                                    │
 │                      ││ ask again        after 2 working days without a reply                          ││ NOW                                                │
-│                      ││                                                                                ││ team                                               │
+│                      ││ posting          at once                                                       ││ team                                               │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
 │                      ││                                                                                ││ @review-squad :gitlab: mr Add a stats endpoint     │

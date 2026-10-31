@@ -129,6 +129,19 @@
             "text": "after 2 working days without a reply"
           }
         ]
+      },
+      {
+        "target": "row:7",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "posting          "
+          },
+          {
+            "ink": "primary",
+            "text": "at once"
+          }
+        ]
       }
     ],
     "selected": 0

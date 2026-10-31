@@ -5,7 +5,9 @@ import { cellsOf, type Cell } from "../../src/text/cells.js";
 import type { Hit } from "../../src/chrome/types.js";
 import type { MouseEvent } from "../../src/input/mouse.js";
 
-const ev = (kind: MouseEvent["kind"], x: number, y = 3): MouseEvent => ({ kind, button: kind === "motion" ? "none" : "left", x, y, ctrl: false, alt: false, shift: false });
+// A move with the left button down, as a terminal reports a drag (SGR 32); a move with no button is `hover`.
+const ev = (kind: MouseEvent["kind"], x: number, y = 3): MouseEvent => ({ kind, button: "left", x, y, ctrl: false, alt: false, shift: false });
+const hover = (x: number, y = 3): MouseEvent => ({ ...ev("motion", x, y), button: "none" });
 const text = (cs: Cell[]) => cs.map((c) => c.ch).join("");
 
 /** A pane "middle" whose heading line, at row 3, has STATE (x 10, 8 wide), APPROVALS (x 18, 11) and UPDATED (x 29, 8). */
@@ -143,11 +145,65 @@ describe("dragging a column, a heading or a pane border", () => {
     expect(sent.at(-1)).toEqual({ intent: "layout", layout: "split", edge: "nav", share: null });
   });
 
+  it("a border pushed past a pane's least or most room stops there, and the share kept is the one drawn", () => {
+    const { sent, shown, drag } = rig();
+    // 200 wide from cell 0; the nav may have 12 to 90 cells where it is drawn (Panes.tsx puts them in the target)
+    const border: Hit = { x: 25, y: 2, w: 2, h: 20, target: "layout:split:nav:0:200:12:90" };
+    drag.mouse(ev("press", 25, 5), border);
+    drag.mouse(ev("motion", 199, 5), undefined);
+    expect(shown.at(-1)).toEqual({ kind: "split", edge: "nav", share: 450 });
+    drag.mouse(ev("motion", 260, 5), undefined);
+    drag.mouse(ev("release", 260, 5), undefined);
+    expect(sent.at(-1)).toMatchObject({ layout: "split", share: 450 });
+    drag.mouse(ev("press", 89, 5), border);
+    drag.mouse(ev("motion", -3, 5), undefined);
+    drag.mouse(ev("release", -3, 5), undefined);
+    expect(sent.at(-1)).toMatchObject({ layout: "split", share: 60 });
+    // the detail pane's room counts from the right edge
+    drag.mouse(ev("press", 150, 5), { x: 150, y: 2, w: 2, h: 20, target: "layout:split:detail:0:200:24:120" });
+    drag.mouse(ev("motion", 2, 5), undefined);
+    drag.mouse(ev("release", 2, 5), undefined);
+    expect(sent.at(-1)).toMatchObject({ layout: "split", edge: "detail", share: 600 });
+  });
+
+  it("a release radar did not hear (a move with no button down, or the window losing focus) drops what is held", () => {
+    const { sent, drag, at } = rig();
+    drag.mouse(ev("press", 17), at("layout:edge:state:1"));
+    drag.mouse(ev("motion", 20), undefined);
+    expect(drag.mouse(hover(40), undefined)).toBe(true);
+    expect(drag.holding).toBe(false);
+    expect(sent).toEqual([{ intent: "layout", layout: "column_width", key: "gitlab/middle", heading: "state", width: 11 }]);
+    drag.mouse(ev("press", 0, 5), at("layout:split:nav:0:200"));
+    drag.mouse(ev("motion", 39, 5), undefined);
+    drag.release();
+    expect(drag.holding).toBe(false);
+    expect(sent.at(-1)).toEqual({ intent: "layout", layout: "split", edge: "nav", share: 200 });
+    drag.release();
+    expect(sent).toHaveLength(2);
+  });
+
+  it("a right-click on a heading opens its menu where the pointer is", () => {
+    const sent: any[] = [];
+    const pointed: number[][] = [];
+    const drag = new LayoutDrag({
+      send: (i) => sent.push(i),
+      show: () => {},
+      screen: () => ({ scope: "gitlab", panes: [] }),
+      paneAt: () => "middle",
+      hits: () => [],
+      pointer: (x, y) => pointed.push([x, y]),
+    });
+    expect(drag.mouse({ ...ev("press", 12), button: "right" }, { x: 10, y: 3, w: 7, h: 1, target: "layout:head:for%20you" })).toBe(true);
+    expect(pointed).toEqual([[12, 3]]);
+    expect(sent).toEqual([{ intent: "layout", layout: "heading_menu", key: "gitlab/middle", heading: "for you" }]);
+    expect(drag.holding).toBe(false);
+  });
+
   it("anything but a left press on its targets is left to the rest of the input", () => {
     const { drag, at } = rig();
     expect(drag.mouse(ev("press", 5), { x: 0, y: 3, w: 9, h: 1, target: "row:1" })).toBe(false);
-    expect(drag.mouse({ ...ev("press", 12), button: "right" }, at("layout:head:state"))).toBe(false);
-    expect(drag.mouse(ev("motion", 12), at("layout:head:state"))).toBe(false);
+    expect(drag.mouse({ ...ev("press", 12), button: "right" }, at("layout:edge:state:1"))).toBe(false);
+    expect(drag.mouse(hover(12), at("layout:head:state"))).toBe(false);
   });
 });
 

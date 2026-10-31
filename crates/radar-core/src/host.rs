@@ -4,6 +4,8 @@
 
 #[path = "host/detail_actions.rs"]
 mod detail_actions;
+#[path = "host/columns.rs"]
+mod columns_menu;
 mod measure;
 
 #[path = "host_palette.rs"]
@@ -84,6 +86,10 @@ mod ink_intent_tests;
 #[cfg(test)]
 #[path = "host_dock_tests.rs"]
 mod dock_tests;
+
+#[cfg(test)]
+#[path = "host_columns_tests.rs"]
+mod columns_tests;
 
 #[cfg(test)]
 #[path = "host_agent_tests.rs"]
@@ -254,6 +260,8 @@ enum Press {
     RecentHistory,
     /// Open these rows as a menu of their own, under this title.
     Sub(String, Vec<MenuItem>, Vec<Option<Press>>),
+    /// The columns of the pane kept under this key ([`crate::layout::key`]).
+    Columns(String),
 }
 
 impl std::fmt::Debug for Press {
@@ -265,6 +273,7 @@ impl std::fmt::Debug for Press {
             Self::History(..) => f.write_str("History(..)"),
             Self::RecentHistory => f.write_str("RecentHistory"),
             Self::Sub(title, ..) => f.debug_tuple("Sub").field(title).finish(),
+            Self::Columns(key) => f.debug_tuple("Columns").field(key).finish(),
         }
     }
 }
@@ -1191,8 +1200,16 @@ impl Host {
                 }
                 Some(Press::Key(k, _) | Press::TreeKey(k, _)) => self.on_key(k),
                 Some(Press::Act(p, subject, id, _)) => self.contributed_act(p, &subject, &id, 0),
+                Some(Press::Columns(key)) => {
+                    self.open_columns_menu(&key);
+                    vec![]
+                }
                 None => vec![],
             },
+            Owner::Host if open.menu.id == crate::layout::MENU => {
+                self.on_columns_menu(&item.value.clone());
+                vec![]
+            }
             Owner::Host if open.menu.id == crate::mode::MODE_MENU => {
                 self.on_mode_menu(&item.value.clone());
                 vec![]
@@ -3050,6 +3067,9 @@ impl Host {
             return self.on_dock_intent(dock);
         }
         if let Intent::Layout(layout) = intent {
+            if let crate::layout::LayoutIntent::HeadingMenu { key, heading } = &layout {
+                self.open_heading_menu(key, heading);
+            }
             self.layout.on_intent(&layout);
             return vec![];
         }
@@ -4589,6 +4609,20 @@ impl Host {
         if of == MenuOf::Row && !chrome_keys && !customising && items.iter().all(|i| i.heading || i.note) {
             self.open_actions_menu(MenuOf::Pane);
             return;
+        }
+        // A pane with columns: the menu that moves, sizes and hides them, as
+        // the mouse does on the headings.
+        if of == MenuOf::Pane
+            && !chrome_keys
+            && let Some(key) = self.columns_key_here()
+        {
+            let taken: Vec<char> = items.iter().filter_map(|i| i.key).collect();
+            if let Some(c) = ['c'].into_iter().find(|c| !taken.contains(c)).or_else(|| free_letter("columns", &taken)) {
+                items.push(MenuItem::heading("columns"));
+                items.push(MenuItem::new(c, "columns…", "move, size, hide or show them", items.len().to_string()));
+                presses.extend([None, Some(Press::Columns(key))]);
+                ids.extend([None, None]);
+            }
         }
         if of != MenuOf::Row || chrome_keys {
             items.push(MenuItem::heading("this session"));

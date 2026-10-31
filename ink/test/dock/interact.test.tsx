@@ -148,6 +148,21 @@ describe("dock input", () => {
     expect(resizes[0].rows).toBeGreaterThan(7);
   });
 
+  it("the top edge dragged past the top stops where the pane above keeps its room, and the host keeps that height", async () => {
+    const { m, docks } = await open(STATES["two-tabs"]!);
+    const edge = plain(m.frame()).findIndex((r) => r.includes("agents")) + 1;
+    m.type(`\x1b[<0;40;${edge}M`);
+    m.type(`\x1b[<32;40;1M`);
+    await until(() => plain(m.frame()).findIndex((r) => r.includes("agents")) < edge - 1);
+    const rows = plain(m.frame());
+    const top = rows.findIndex((r) => r.includes("agents"));
+    // a move with no button down outside the window: the release happened where radar did not hear it
+    m.type(`\x1b[<35;40;1M`);
+    await until(() => docks().some((d: any) => d.dock === "resize"));
+    // the dock runs from its top line to the row above the status line: the height drawn is the height kept
+    expect(docks().filter((d: any) => d.dock === "resize")).toEqual([{ intent: "dock", dock: "resize", rows: rows.length - 1 - top }]);
+  });
+
   describe("closing a tab", () => {
     const tabRow = (m: Awaited<ReturnType<typeof open>>["m"]) => {
       const rows = plain(m.frame());

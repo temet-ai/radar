@@ -29,7 +29,7 @@ import { SetupBody } from "./SetupBody.js";
 import { InputController, menuShowing, type InputView } from "../input/controller.js";
 import { WorkArea } from "../workarea/index.js";
 import { FrameRampOwnership, Framed, PageBody, PaneArea, PaneFrame, ScreenPanes, share, paneTitle, type DockSlot } from "./Panes.js";
-import { splitDock } from "../dock/layout.js";
+import { splitDock, dragHeight } from "../dock/layout.js";
 import { Dock } from "../dock/Dock.js";
 import { TerminalSurface } from "../terminal/index.js";
 import { dockClick, dockCommand, dockClose, dockCloseKey, dockKey, isCloseChord, emptyLocal, scrollDock, WHEEL, type DockLocal } from "../dock/composer.js";
@@ -171,6 +171,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       screen: () => session.state.snapshot?.screen,
       paneAt: (x, y) => registry.paneAt(x, y),
       hits: () => registry.all(),
+      pointer: (x, y) => session.sendPointer(x, y),
     }),
     [session, registry],
   );
@@ -241,6 +242,14 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         if (before?.base !== live.current.snap || before?.focused !== focused) redrawDockFocus();
       }
     };
+    // The dock's edge let go: the height drawn last is the one the host keeps.
+    const endDockDrag = () => {
+      if (dockDrag.current === null) return;
+      dockDrag.current = null;
+      pointerShape.hold(null);
+      if (dockRowsRef.current !== null) sendDock({ dock: "resize", rows: dockRowsRef.current });
+      dockRowsRef.current = null;
+    };
     return {
       noticeInput: (escape) => session.noticeInput(escape),
       noticeAt: (x, y) => hitAt(session.noticeHits, x, y),
@@ -272,20 +281,24 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         pointerShape.hold(layoutDrag.shape());
         return took;
       },
+      endDrags: () => {
+        layoutDrag.release();
+        pointerShape.hold(null);
+        endDockDrag();
+      },
       dockMouse: (ev, hit) => {
         const dock = shown();
         if (!dock) return false;
         const target = hit?.target ?? "";
         const send = sendDock;
         if (dockDrag.current !== null) {
-          // The top edge follows the pointer: the dock is as tall as the rows from the pointer to its foot. The host
-          // hears the height once, on release, and keeps it.
-          if (ev.kind === "release") {
-            dockDrag.current = null;
-            if (dockRowsRef.current !== null) send({ dock: "resize", rows: dockRowsRef.current });
-            dockRowsRef.current = null;
-          } else if (ev.kind === "motion") {
-            dockRowsRef.current = Math.max(3, dockDrag.current - ev.y);
+          // The top edge follows the pointer: the dock is as tall as the rows from the pointer to its foot, within what
+          // it is drawn at (a least height, and room for the pane above). The host hears the height once, on release
+          // (or a move with no button down: a release outside the window), and keeps it.
+          if (ev.kind === "release" || (ev.kind === "motion" && ev.button === "none")) endDockDrag();
+          else if (ev.kind === "motion") {
+            const rows = live.current.frame.bodyHeight;
+            dockRowsRef.current = dragHeight(dockDrag.current - rows, rows, ev.y);
             setDockRows(dockRowsRef.current);
           }
           return true;
@@ -342,6 +355,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         }
         if (target.startsWith("dock:edge:")) {
           dockDrag.current = Number(target.slice("dock:edge:".length));
+          pointerShape.hold("row-resize");
           return true;
         }
         if (target.startsWith("dock:tab:")) {

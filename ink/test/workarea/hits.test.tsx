@@ -85,6 +85,19 @@ for (const [w, h] of [
   });
 }
 
+// #25: the panes beside the work area's sections are resized by their borders, as on every screen.
+it("a drag of the work screen's nav border sends the split", async () => {
+  const m = mount(160, 40);
+  m.snapshot({ chrome: chromeOf(160, 40), screen: read("work_view.json"), focus: "middle" });
+  await m.settle();
+  const y = m.lines().findIndex((l) => l.includes("╮╭"));
+  const x = m.lines()[y]!.indexOf("╮╭");
+  const before = m.intents().length;
+  m.type(`\x1b[<0;${x + 1};${y + 3}M\x1b[<32;${x + 11};${y + 3}M\x1b[<0;${x + 11};${y + 3}m`);
+  await until(() => m.intents().length > before, 500);
+  expect(m.intents().slice(before)).toEqual([{ intent: "layout", layout: "split", edge: "nav", share: Math.round(((x + 11) * 1000) / 160) }]);
+});
+
 // GUIDE 2.12: a chevron is never a focus, selection or fold marker, in any section, in either mode.
 describe("no chevron marks focus, selection or folds in the work area", () => {
   const CHEVRON = /(^|\s)[›▸▶❯>»](\s|$)/m;

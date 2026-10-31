@@ -10,6 +10,8 @@ import { plainText, plainLines } from "./plain.js";
 import { SegRun, TextLine } from "../text/TextLine.js";
 import type { Seg } from "../nodes/view.js";
 import { HitBox, type HitSink } from "./hit.js";
+import type { Hit } from "../chrome/types.js";
+import type { PaneArea } from "../state/ui-state.js";
 
 /** A work.* section's own content is its fallback document (the part's words for hosts that do not know the capability). */
 const contentOf = (body: ViewNode): ViewNode =>
@@ -169,9 +171,16 @@ export function WorkArea({ screen, capabilities, focus, weights, renderNode, reg
   const panes = (screen.panes ?? []).filter((_, i) => sections[i]!.kind === "other");
   const extras = sections.filter((s) => s.kind !== "other" && (panels === "all" || s.pending));
   const paneFocus = ["nav", "middle", "detail"].includes(String(focus)) ? String(focus) : undefined;
-  // The panes register where text is selected in them (issue #51); their rows' hits come from the nodes themselves.
-  const sink = registry as SelectSink | undefined;
-  const selects = sink?.addSelect ? { add: () => {}, addSelect: (a: Parameters<NonNullable<SelectSink["addSelect"]>>[0]) => sink.addSelect!(a) } : undefined;
+  // The panes register where text is selected in them (issue #51), where each is drawn (a column drag asks which pane
+  // it is in) and their borders, which a drag resizes (#25); their rows' hits come from the nodes themselves.
+  const sink = registry as (SelectSink & { add?(hit: Hit): void; addPane?(area: PaneArea): void }) | undefined;
+  const selects = sink?.addSelect
+    ? {
+        add: (hit: Hit) => (hit.target.startsWith("layout:split:") ? sink.add?.(hit) : undefined),
+        addPane: (area: PaneArea) => sink.addPane?.(area),
+        addSelect: (a: Parameters<NonNullable<SelectSink["addSelect"]>>[0]) => sink.addSelect!(a),
+      }
+    : undefined;
   const appCx: NodeCx = { width: W, height: H, actions: [], plainText: false, focused: true, registry: selects, paneJumps };
   const appRender: AppRenderNode = (node, c) => render(node, { columns: c.width, focused: !!c.focused });
   const panesAt = (h: number) =>

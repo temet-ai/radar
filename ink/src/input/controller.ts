@@ -38,6 +38,8 @@ export interface InputView {
   /** A pointer event on a pane border or a column heading, or one that continues a drag of one: true when it was
    * taken (app/layout-drag.ts). Asked before a press can start selecting text. */
   layoutMouse?(ev: MouseEvent, hit: Hit | undefined): boolean;
+  /** The terminal lost focus: whatever is held (a border, a column, the dock's edge) is dropped as a release would. */
+  endDrags?(): void;
   /** The pane drawn at the cell (HitRegistry.paneAt), if any. */
   paneAt?(x: number, y: number): string | undefined;
   /** The wheel over pane `pane` (none: over no pane) at the cell: that pane scrolls (and has the focus, host.rs
@@ -249,6 +251,8 @@ export class InputController {
 
   /** The terminal lost focus: nothing is lit under a pointer that left the window. */
   blur() {
+    // A border, a column or the dock's edge held when the pointer left: dropped where it was last drawn.
+    this.view.endDrags?.();
     this.pointerAt = undefined;
     this.hover(null);
     this.shape("default");
@@ -277,6 +281,7 @@ export class InputController {
     const lit = this.litAt(x, y);
     if (lit?.target.startsWith("layout:edge:") || lit?.target.startsWith("layout:split:") || lit?.target.startsWith("layout:names:")) return "col-resize";
     if (lit?.target.startsWith("layout:head:")) return "grab";
+    if (lit?.target.startsWith("dock:edge:")) return "row-resize";
     if (lit) return "pointer";
     return this.view.selectAt?.(x, y) ? "text" : "default";
   }
@@ -315,7 +320,11 @@ export class InputController {
     }
     // A border or a heading held: its drag takes every report until the release.
     if (!this.view.menu() && !this.view.capturing() && this.view.layoutMouse?.(ev, hitAt(this.view.hits(), ev.x, ev.y))) {
-      this.hover(null);
+      // Once dropped, what is under the pointer where it let go is lit and shapes the pointer again.
+      if (ev.kind === "release" || (ev.kind === "motion" && ev.button === "none")) {
+        this.pointerAt = { x: ev.x, y: ev.y };
+        this.refreshHover();
+      } else this.hover(null);
       return;
     }
     // The selection first: a left press in a pane's text, the moves and release after it, and any press clears it.

@@ -17,6 +17,10 @@ pub const MIN_COLUMN: u16 = 3;
 pub const MAX_COLUMN: u16 = 120;
 /// Least cells a tree's names may be dragged to.
 pub const MIN_NAMES: u16 = 8;
+/// The id of the host's columns menus (a pane's columns, one heading's).
+pub const MENU: &str = "layout";
+/// Cells a column grows or shrinks by from its heading's menu.
+pub const STEP: u16 = 2;
 
 /// The `[layout]` table.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -82,6 +86,9 @@ pub enum LayoutIntent {
     NamesWidth { key: String, width: Option<u16> },
     /// The place's columns as the part has them.
     ColumnsReset { key: String },
+    /// A right-click on a heading: the menu that moves, sizes and hides
+    /// it, as the mouse does. Changes nothing kept.
+    HeadingMenu { key: String, heading: String },
 }
 
 /// The split the renderer draws ([`ScreenView::layout`]): absent while
@@ -201,9 +208,40 @@ impl LayoutConfig {
             LayoutIntent::ColumnsReset { key } => {
                 self.columns.remove(key);
             }
+            LayoutIntent::HeadingMenu { .. } => {}
         }
         self.columns.retain(|_, c| *c != Columns::default());
     }
+}
+
+/// The columns `body` draws, in the order it draws them: a table's as they
+/// are; a tree's other parts' columns before the part's last, unless the
+/// tree is drawn in its declared order. `None` for a body without columns.
+pub fn drawn_columns(body: &Node) -> Option<Vec<ColumnSpec>> {
+    let columns = match body {
+        Node::Table { columns, .. } => columns.clone(),
+        Node::Tree(tree) if tree.ordered_columns => tree.columns.clone(),
+        Node::Tree(tree) => {
+            let mut columns = tree.columns.clone();
+            if let Some(last) = columns.iter().rposition(|c| !c.extra) {
+                let own_last = columns.remove(last);
+                columns.push(own_last);
+            }
+            columns
+        }
+        _ => return None,
+    };
+    (!columns.is_empty()).then_some(columns)
+}
+
+/// `order` with `heading` moved `by` places (-1 left, 1 right); `None` at
+/// either end or when it is not there.
+pub fn moved(order: &[String], heading: &str, by: isize) -> Option<Vec<String>> {
+    let at = order.iter().position(|h| h == heading)?;
+    let to = at.checked_add_signed(by).filter(|to| *to < order.len())?;
+    let mut out = order.to_vec();
+    out.swap(at, to);
+    Some(out)
 }
 
 /// Put `columns` in the kept order, at the kept widths, without the hidden
@@ -337,6 +375,27 @@ mod tests {
         assert_eq!(tree.names, Some(MIN_NAMES), "the names keep a least width");
         assert_eq!(names(&tree.columns), ["updated", "patrol", "state"]);
         assert!(view.layout.is_none());
+    }
+
+    #[test]
+    fn a_heading_moves_one_place_and_stops_at_either_end() {
+        let order: Vec<String> = ["state", "updated", "for you"].map(String::from).into();
+        assert_eq!(moved(&order, "updated", -1).unwrap(), ["updated", "state", "for you"]);
+        assert_eq!(moved(&order, "updated", 1).unwrap(), ["state", "for you", "updated"]);
+        assert_eq!(moved(&order, "state", -1), None);
+        assert_eq!(moved(&order, "for you", 1), None);
+        assert_eq!(moved(&order, "patrol", 1), None);
+    }
+
+    #[test]
+    fn a_tree_draws_other_parts_columns_before_its_last() {
+        let mut columns = cols(&["state", "updated"]);
+        columns.push(ColumnSpec::extra("patrol", 8));
+        let tree = Tree { columns, ..Tree::default() };
+        assert_eq!(names(&drawn_columns(&Node::Tree(tree.clone())).unwrap()), ["state", "patrol", "updated"]);
+        let ordered = Tree { ordered_columns: true, ..tree };
+        assert_eq!(names(&drawn_columns(&Node::Tree(ordered)).unwrap()), ["state", "updated", "patrol"]);
+        assert!(drawn_columns(&Node::Tree(Tree::default())).is_none());
     }
 
     #[test]

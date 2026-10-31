@@ -335,13 +335,16 @@ export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock
   const focusId = setUp ? panes[0]!.pane : (focus ?? "middle");
   // The borders between panes are dragged to resize them (app/layout-drag.ts): the two border cells, full height.
   const rowRef = useRef<DOMElement>(null);
-  const borders = useRef<Array<{ dx: number; edge: "nav" | "detail" }>>([]);
+  const borders = useRef<Array<{ dx: number; edge: "nav" | "detail"; room: Room }>>([]);
   borders.current = [];
   useLayoutEffect(() => {
     const at = cx.registry?.add && borders.current.length ? screenAt(rowRef.current) : null;
-    if (at) for (const b of borders.current) cx.registry!.add!({ x: at.x + b.dx, y: at.y, w: 2, h: height, target: `layout:split:${b.edge}:${at.x}:${width}` });
+    if (at) for (const b of borders.current) cx.registry!.add!({ x: at.x + b.dx, y: at.y, w: 2, h: height, target: `layout:split:${b.edge}:${at.x}:${width}:${b.room[0]}:${b.room[1]}` });
   });
-  const row = (list: Array<{ pane: Pane; w: number }>) => {
+  // The least and most cells a dragged border can give the nav or the detail pane where it is drawn.
+  type Room = [number, number];
+  const room = (least: number, others: number): Room => [least, Math.max(least, width - others - MIDDLE_LEAST)];
+  const row = (list: Array<{ pane: Pane; w: number }>, rooms: { nav?: Room; detail?: Room } = {}) => {
     // The dock sits under the middle pane (or the one pane a narrow screen shows); below 100 columns it covers it.
     const host = list.find((l) => l.pane.pane === "middle") ?? list.find((l) => l.pane.pane !== "nav");
     const split = dock ? splitDock(height, width, true, dock.rows, dock.full) : null;
@@ -351,7 +354,7 @@ export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock
       const next = list[i + 1];
       if (!next || setUp) return;
       const edge = l.pane.pane === "nav" ? "nav" : next.pane.pane === "detail" ? "detail" : null;
-      if (edge) borders.current.push({ dx: edgeAt - 1, edge });
+      if (edge) borders.current.push({ dx: edgeAt - 1, edge, room: rooms[edge] ?? room(edge === "nav" ? NAV_LEAST : DETAIL_LEAST, 0) });
     });
     return (
       <Box ref={rowRef} flexDirection="row" width={width} height={height} overflow="hidden">
@@ -376,7 +379,7 @@ export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock
     const navW = nav ? (dragged(screen.layout?.nav, NAV_LEAST, detDefault) ?? nav.width ?? 26) : 0;
     const detW = det ? (dragged(screen.layout?.detail, DETAIL_LEAST, navW) ?? detDefault) : 0;
     const [a, b, c] = share(width, [{ length: navW }, { fill: 1 }, { length: detW }]);
-    return row([nav && { pane: nav, w: a! }, mid && { pane: mid, w: b! }, det && { pane: det, w: c! }].filter(Boolean) as any);
+    return row([nav && { pane: nav, w: a! }, mid && { pane: mid, w: b! }, det && { pane: det, w: c! }].filter(Boolean) as any, { nav: room(NAV_LEAST, detW), detail: room(DETAIL_LEAST, navW) });
   }
   if (width >= (screen.medium_from ?? MEDIUM)) {
     if (!nav && mid && det) {

@@ -66,7 +66,7 @@ export function previewSnapshot(snap: any, p: Preview | null, dockRows: number |
 
 type Slot = { heading: string; x: number; width: number };
 type Held =
-  | { kind: "split"; target: string; edge: Edge; x0: number; width: number; share?: number }
+  | { kind: "split"; target: string; edge: Edge; x0: number; width: number; lo: number; hi: number; share?: number }
   | { kind: "width"; target: string; key: string; heading: string; sign: number; x: number; start: number; most: number; width?: number }
   | { kind: "move"; key: string; heading: string; slots: Slot[]; grab: number; x: number; order?: string[] }
   | { kind: "names"; target: string; key: string; x: number; start: number; most: number; width?: number };
@@ -79,6 +79,8 @@ export interface DragHost {
   paneAt(x: number, y: number): string | undefined;
   hits(): Hit[];
   now?(): number;
+  /** Where a right-click on a heading opens its menu (the host's pointer, as for any right-click). */
+  pointer?(x: number, y: number): void;
 }
 
 export class LayoutDrag {
@@ -99,12 +101,27 @@ export class LayoutDrag {
     return this.held.kind === "move" ? "grabbing" : "col-resize";
   }
 
+  /** The pointer left without a release reaching radar (the terminal lost focus): what is held is dropped where it
+   * was last drawn, as a release there would. */
+  release() {
+    if (this.held) this.drop();
+  }
+
   /** A pointer report: true when a drag took it. */
   mouse(ev: MouseEvent, hit: Hit | undefined): boolean {
     if (this.held) {
-      if (ev.kind === "motion") this.moveTo(ev.x);
-      else if (ev.kind === "release") this.drop();
+      // A move with no button down: the release happened where radar did not hear it (outside the window).
+      if (ev.kind === "release" || (ev.kind === "motion" && ev.button === "none")) this.drop();
+      else if (ev.kind === "motion") this.moveTo(ev.x);
       return true;
+    }
+    // A right-click on a heading opens its menu: what the drags do, by keys.
+    if (ev.kind === "press" && ev.button === "right" && hit?.target.startsWith("layout:head:")) {
+      const screen = this.host.screen();
+      const pane = this.host.paneAt(ev.x, ev.y);
+      if (!screen || !pane) return false;
+      this.host.pointer?.(ev.x, ev.y);
+      return this.send({ layout: "heading_menu", key: layoutKey(screen, pane), heading: decodeURIComponent(hit.target.slice("layout:head:".length)) });
     }
     if (ev.kind !== "press" || ev.button !== "left" || !hit?.target.startsWith("layout:")) return false;
     const now = this.host.now?.() ?? Date.now();
@@ -114,7 +131,10 @@ export class LayoutDrag {
     if (kind === "split") {
       const edge = rest[0] as Edge;
       if (again) return this.send({ layout: "split", edge, share: null });
-      this.held = { kind, target: hit.target, edge, x0: Number(rest[1]), width: Math.max(1, Number(rest[2])) };
+      const width = Math.max(1, Number(rest[2]));
+      // the least and most cells the pane beside the border can have where it is drawn (Panes.tsx)
+      const lo = Number(rest[3]) || 1;
+      this.held = { kind, target: hit.target, edge, x0: Number(rest[1]), width, lo, hi: Math.max(lo, Number(rest[4]) || width) };
       return true;
     }
     const screen = this.host.screen();
@@ -171,7 +191,9 @@ export class LayoutDrag {
   private moveTo(x: number) {
     const h = this.held!;
     if (h.kind === "split") {
-      h.share = clampShare(((h.edge === "nav" ? x - h.x0 + 1 : h.x0 + h.width - x) * 1000) / h.width);
+      // the share the pane is drawn at: a border pushed past a pane's least room stops there, and so does what is kept
+      const cells = clamp(h.edge === "nav" ? x - h.x0 + 1 : h.x0 + h.width - x, h.lo, h.hi);
+      h.share = clampShare((cells * 1000) / h.width);
       this.show({ kind: "split", edge: h.edge, share: h.share });
     } else if (h.kind === "names") {
       h.width = clamp(h.start + (x - h.x), MIN_NAMES, h.most);

@@ -4,8 +4,8 @@
 import { currentLook } from "../text/look.js";
 
 /** `col-resize` over a pane border or the cell between two headings, `grab` over a heading, `grabbing` while one is
- * moved (app/layout-drag.ts). */
-export type Shape = "default" | "pointer" | "text" | "col-resize" | "grab" | "grabbing";
+ * moved (app/layout-drag.ts), `row-resize` over the agent dock's top edge and while it is dragged. */
+export type Shape = "default" | "pointer" | "text" | "col-resize" | "row-resize" | "grab" | "grabbing";
 
 /** The sequence that sets the pointer to `shape`. */
 export const shapeSequence = (shape: Shape) => `\x1b]22;${shape}\x1b\\`;

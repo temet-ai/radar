@@ -54,16 +54,27 @@ export function inHerdrPane(env: NodeJS.ProcessEnv): boolean {
 
 export const HERDR_ROUTE_TIMEOUT_MS = 2000;
 
+/**
+ * The Herdr desktop app sets no HERDR_* variables; its terminals carry their herdr-core id in HC_TERMINAL_ID, and the
+ * app keeps right-clicks for its menu until `terminal.right_click` sends that terminal's to the program.
+ */
+export function inHerdrApp(env: NodeJS.ProcessEnv): boolean {
+  return !inHerdrPane(env) && !!env.HC_TERMINAL_ID;
+}
+
 /** The command that routes this pane's right-clicks to radar. */
 export function herdrRouteCommand(env: NodeJS.ProcessEnv): { file: string; args: string[] } {
+  if (inHerdrApp(env)) {
+    return { file: "herdr-app", args: ["do", "terminal.right_click", "--to", "program", "--terminal", env.HC_TERMINAL_ID!] };
+  }
   return { file: env.HERDR_BIN_PATH || "herdr", args: ["pane", "input", "--current", "--right-click", "pane"] };
 }
 
 type Spawn = (file: string, args: string[], opts: { timeout: number; stdio: "ignore" }) => { on(ev: string, fn: (...a: any[]) => void): unknown; unref?: () => void };
 
-/** Routes the pane's right-clicks to radar when in a Herdr pane; reports the outcome to `done` (never throws). */
+/** Routes the pane's right-clicks to radar when in a Herdr pane or the Herdr app; reports the outcome to `done` (never throws). */
 export function routeHerdrRightClick(env: NodeJS.ProcessEnv, spawn: Spawn, done: (err: string | null) => void = () => {}): boolean {
-  if (!inHerdrPane(env)) return false;
+  if (!inHerdrPane(env) && !inHerdrApp(env)) return false;
   const { file, args } = herdrRouteCommand(env);
   try {
     const child = spawn(file, args, { timeout: HERDR_ROUTE_TIMEOUT_MS, stdio: "ignore" });

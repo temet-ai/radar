@@ -31,6 +31,13 @@ describe("Herdr right-click routing (terminal_host::route_herdr_right_click)", (
     expect(herdrRouteCommand({ ...herdr, HERDR_BIN_PATH: "/opt/herdr" }).file).toBe("/opt/herdr");
   });
 
+  it("in the Herdr app, runs `herdr-app do terminal.right_click` for this terminal", () => {
+    const f = fake();
+    expect(routeHerdrRightClick({ HC_TERMINAL_ID: "t22" }, f.spawn)).toBe(true);
+    expect(f.calls).toEqual([{ file: "herdr-app", args: ["do", "terminal.right_click", "--to", "program", "--terminal", "t22"] }]);
+    expect(herdrRouteCommand({ ...herdr, HC_TERMINAL_ID: "t22" }).file).toBe("herdr");
+  });
+
   it("reports success, failure and a missing binary", () => {
     const seen: (string | null)[] = [];
     const f = fake();

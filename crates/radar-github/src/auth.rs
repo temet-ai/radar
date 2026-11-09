@@ -50,7 +50,7 @@ pub(crate) fn resolve(reference: &str) -> Result<Option<HeaderValue>, ApiError> 
 
 /// The authorization for a request to `host` (the host gh signs in to).
 pub(crate) fn resolve_at(reference: &str, host: &str) -> Result<Option<HeaderValue>, ApiError> {
-    resolve_with(reference, |name| std::env::var(name).ok(), || gh_token(host))
+    resolve_with(reference, radar_core::env::var, || gh_token(host))
 }
 
 /// gh's token for `host`, from memory while it is fresh, else from gh.

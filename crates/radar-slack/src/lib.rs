@@ -171,6 +171,9 @@ pub(crate) enum SlackMsg {
     /// Whether the Slack app runs here, asked before opening a message in
     /// it: its own link if so, else the web one.
     OpenIn { link: String, web: String, running: bool },
+    /// The workspace's `env:` settings read again; the check goes on with
+    /// these channels to check after it.
+    Reread { ids: Vec<String> },
     /// A write's answer.
     Wrote {
         instance: String,
@@ -1288,6 +1291,7 @@ impl Plugin for SlackPlugin {
             }
             SlackMsg::Wrote { instance, what, result } => self.on_wrote(what, result, &instance),
             SlackMsg::OpenIn { link, web, running } => self.opened_in(link, web, running),
+            SlackMsg::Reread { ids } => settings::run_token_check(self, ids),
         };
         // Accepted answers may change the text or links. Until the next frame
         // derives them again, no action may use the previous rendered rows.

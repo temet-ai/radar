@@ -652,7 +652,25 @@ pub(crate) fn check_token(p: &mut SlackPlugin) -> Vec<Effect> {
     check_token_then(p, Vec::new())
 }
 
+/// The workspace check reads `env:` settings again from the person's shell
+/// first (a token exported after radar started is the one checked), then
+/// checks; Slack's client is built before the check's task, so the reread
+/// is its own task that comes back as [`SlackMsg::Reread`].
 fn check_token_then(p: &mut SlackPlugin, ids: Vec<String>) -> Vec<Effect> {
+    let settings = vec![p.cfg.token.clone(), p.cfg.api.clone()];
+    if p.via.0.is_some()
+        || radar_core::system::sandboxed()
+        || radar_core::env::names_in(settings.iter().map(String::as_str)).is_empty()
+    {
+        return run_token_check(p, ids);
+    }
+    vec![Effect::Spawn(Box::pin(async move {
+        radar_core::env::reread_settings(settings).await;
+        Box::new(crate::SlackMsg::Reread { ids }) as Msg
+    }))]
+}
+
+pub(crate) fn run_token_check(p: &mut SlackPlugin, ids: Vec<String>) -> Vec<Effect> {
     if !p.authenticated() {
         p.revoke_session();
     }
@@ -1037,8 +1055,8 @@ fn env_ok(p: &SlackPlugin, spec: &str) -> Option<Result<String, String>> {
         return Some(Ok(format!("{var} uses an offline fixture: a user token")));
     }
     let _ = p;
-    Some(match std::env::var(var) {
-        Ok(v) if !v.trim().is_empty() => {
+    Some(match radar_core::env::var(var) {
+        Some(v) if !v.trim().is_empty() => {
             Ok(format!("{var} is set: {}", config::token_kind(v.trim())))
         }
         _ => Err(format!("{var} is not set in this shell")),

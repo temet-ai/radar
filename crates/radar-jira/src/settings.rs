@@ -363,7 +363,11 @@ pub(crate) fn check_site(p: &mut JiraPlugin, i: usize) -> Vec<Effect> {
     let action = settings_history::action(Kind::Site, Some(&site), "");
     p.checks.insert(target.clone(), (Check::Running, p.now));
     let provider = p.provider.clone();
+    // Asking for the check reads the site's `env:` settings again from the
+    // person's shell: one exported after radar started is used at once.
+    let reread = vec![site.url.clone(), site.email.clone(), site.token.clone()];
     vec![settings_history::spawn(target, request, action, async move {
+        radar_core::env::reread_settings(reread).await;
         let result = settings_history::read_site(provider.client(&site)).await;
         match &result {
             Ok(got) => log::info(format!("jira check site:{}: signed in as {}", site.name, got.value)),
@@ -679,8 +683,8 @@ pub fn on_bulk(p: &mut JiraPlugin, value: &str) -> Vec<Effect> {
 
 fn env_ok(spec: &str) -> Option<Result<String, String>> {
     let var = spec.strip_prefix("env:")?;
-    Some(match std::env::var(var) {
-        Ok(v) if !v.trim().is_empty() => Ok(format!("{var} is set")),
+    Some(match radar_core::env::var(var) {
+        Some(v) if !v.trim().is_empty() => Ok(format!("{var} is set")),
         _ => Err(format!("{var} is not set in this shell")),
     })
 }

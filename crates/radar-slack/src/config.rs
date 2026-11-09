@@ -578,7 +578,7 @@ impl Settings {
 pub fn resolve(spec: &str, what: &str) -> Result<String> {
     let spec = spec.trim();
     if let Some(var) = spec.strip_prefix("env:") {
-        let v = std::env::var(var).with_context(|| format!("{var} is not set"))?;
+        let v = radar_core::env::var(var).with_context(|| format!("{var} is not set"))?;
         if v.trim().is_empty() {
             bail!("{var} is empty");
         }

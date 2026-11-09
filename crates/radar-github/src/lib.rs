@@ -728,6 +728,9 @@ impl GithubPlugin {
         vec![Effect::SpawnAction {
             action,
             task: Box::pin(async move {
+                // Asking for the check reads an `env:` token again from the
+                // person's shell: one exported after radar started is used.
+                radar_core::env::reread_settings(vec![token.clone(), api.clone()]).await;
                 let result = match via.client(&[], &token, &api) {
                     Ok(client) => client.check_connection_scopes().await.map_err(|e| e.to_string()),
                     Err(error) => Err(error.to_string()),

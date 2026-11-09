@@ -36,12 +36,51 @@ pub fn var(name: &str) -> Option<String> {
 /// no answer within a few seconds, the variable unset there), the value
 /// already held stays. Blocks: call it off the UI thread.
 pub fn reread(name: &str) -> Option<String> {
-    if let Some(v) = from_shell(name)
-        && let Ok(mut m) = FRESH.write()
-    {
-        m.insert(name.to_string(), v);
-    }
+    reread_all(&[name]);
     var(name)
+}
+
+/// [`reread`] for several names, in one shell.
+pub fn reread_all(names: &[&str]) {
+    let names: Vec<&str> = names.iter().copied().filter(|n| valid_name(n)).collect();
+    if names.is_empty() {
+        return;
+    }
+    let Some(values) = from_shell(&names) else { return };
+    if let Ok(mut m) = FRESH.write() {
+        for (name, value) in names.iter().zip(values) {
+            if let Some(v) = value {
+                m.insert((*name).to_string(), v);
+            }
+        }
+    }
+}
+
+/// The variable names among settings that may read `env:NAME`.
+pub fn names_in<'a>(settings: impl IntoIterator<Item = &'a str>) -> Vec<String> {
+    let mut out: Vec<String> = settings
+        .into_iter()
+        .filter_map(|s| s.trim().strip_prefix("env:"))
+        .filter(|n| valid_name(n))
+        .map(str::to_owned)
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Read every `env:NAME` among `settings` again from the shell, off the
+/// async workers: what a part's check does first, so a token exported after
+/// radar started is the one checked.
+pub async fn reread_settings(settings: Vec<String>) {
+    let names = names_in(settings.iter().map(String::as_str));
+    if names.is_empty() || crate::system::sandboxed() {
+        return;
+    }
+    let _ = tokio::task::spawn_blocking(move || {
+        reread_all(&names.iter().map(String::as_str).collect::<Vec<_>>())
+    })
+    .await;
 }
 
 fn valid_name(name: &str) -> bool {
@@ -50,15 +89,20 @@ fn valid_name(name: &str) -> bool {
         && chars.all(|c| c == '_' || c.is_ascii_alphanumeric())
 }
 
-fn from_shell(name: &str) -> Option<String> {
-    if !valid_name(name) || crate::system::sandboxed() {
+/// Each name's value in the login shell (`None` when unset there); `None`
+/// as a whole when the shell cannot be asked.
+fn from_shell(names: &[&str]) -> Option<Vec<Option<String>>> {
+    if names.is_empty() || !names.iter().all(|n| valid_name(n)) || crate::system::sandboxed() {
         return None;
     }
+    let what = names.join(", ");
     let shell = std::env::var("SHELL").ok().filter(|s| !s.trim().is_empty()).unwrap_or_else(|| "sh".into());
     // Interactive and login, so both ~/.zshrc-style and ~/.profile-style
     // exports are seen. `$NAME` (no braces) reads the same in sh, bash, zsh
     // and fish.
-    let script = format!("printf '\\036radar\\036%s\\036' \"${name}\"");
+    let formats = "%s\\036".repeat(names.len());
+    let args: String = names.iter().map(|n| format!(" \"${n}\"")).collect();
+    let script = format!("printf '\\036radar\\036{formats}'{args}");
     let mut child = Command::new(&shell)
         .args(["-l", "-i", "-c", &script])
         .env("RADAR_ENV_PROBE", "1")
@@ -81,23 +125,30 @@ fn from_shell(name: &str) -> Option<String> {
             _ => {
                 let _ = child.kill();
                 let _ = child.wait();
-                crate::log::warn(format!("reading {name} from {shell}: no answer within {}s", WAIT.as_secs()));
+                crate::log::warn(format!("reading {what} from {shell}: no answer within {}s", WAIT.as_secs()));
                 return None;
             }
         }
     }
-    let value = parse(&reader.join().ok()?)?;
-    crate::log::secret(&value);
-    crate::log::info(format!("read {name} again from {shell}"));
-    Some(value)
+    let values = parse(&reader.join().ok()?, names.len())?;
+    values.iter().flatten().for_each(|v| crate::log::secret(v));
+    crate::log::info(format!("read {what} again from {shell}"));
+    Some(values)
 }
 
-/// The value between the marks; `None` when absent or empty (unset).
-fn parse(out: &str) -> Option<String> {
+/// The `n` values between the marks, each `None` when empty (unset);
+/// `None` when the marks are missing.
+fn parse(out: &str, n: usize) -> Option<Vec<Option<String>>> {
     let start = format!("{MARK}radar{MARK}");
-    let rest = &out[out.find(&start)? + start.len()..];
-    let value = &rest[..rest.find(MARK)?];
-    (!value.is_empty()).then(|| value.to_string())
+    let mut rest = &out[out.find(&start)? + start.len()..];
+    let mut values = Vec::with_capacity(n);
+    for _ in 0..n {
+        let end = rest.find(MARK)?;
+        let value = &rest[..end];
+        values.push((!value.is_empty()).then(|| value.to_string()));
+        rest = &rest[end + MARK.len_utf8()..];
+    }
+    Some(values)
 }
 
 #[cfg(test)]
@@ -106,10 +157,18 @@ mod tests {
 
     #[test]
     fn the_value_is_found_among_start_up_noise() {
-        let out = "welcome!\n\u{1e}radar\u{1e}glpat-new\u{1e}bye\n";
-        assert_eq!(parse(out).as_deref(), Some("glpat-new"));
-        assert_eq!(parse("\u{1e}radar\u{1e}\u{1e}"), None);
-        assert_eq!(parse("no marks"), None);
+        let out = "welcome!\n\u{1e}radar\u{1e}glpat-new\u{1e}\u{1e}xoxp-1\u{1e}bye\n";
+        let got = parse(out, 3).unwrap();
+        assert_eq!(got, vec![Some("glpat-new".into()), None, Some("xoxp-1".into())]);
+        assert_eq!(parse("\u{1e}radar\u{1e}\u{1e}", 1), Some(vec![None]));
+        assert_eq!(parse("\u{1e}radar\u{1e}a\u{1e}", 2), None);
+        assert_eq!(parse("no marks", 1), None);
+    }
+
+    #[test]
+    fn only_env_settings_name_variables() {
+        let got = names_in(["env:JIRA_TOKEN", "https://x.example", " env:JIRA_TOKEN", "env:bad name", "env:EMAIL"]);
+        assert_eq!(got, vec!["EMAIL", "JIRA_TOKEN"]);
     }
 
     #[test]

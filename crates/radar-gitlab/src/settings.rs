@@ -581,18 +581,17 @@ fn check(p: &mut GitlabPlugin, target: CheckTarget) -> Vec<Effect> {
     };
     // Asking for the token check reads an `env:` token again from the
     // person's shell: one exported after radar started is used at once.
-    let reread = matches!(target, CheckTarget::Auth)
-        .then(|| p.cfg.token.trim().strip_prefix("env:").map(str::to_owned))
-        .flatten();
+    let reread = match target {
+        CheckTarget::Auth => vec![p.cfg.token.clone()],
+        _ => Vec::new(),
+    };
     let action = crate::settings_history::action(kind, &url, &path);
     vec![crate::settings_history::spawn(
         action,
         target,
         request,
         async move {
-            if let Some(var) = reread {
-                let _ = tokio::task::spawn_blocking(move || radar_core::env::reread(&var)).await;
-            }
+            radar_core::env::reread_settings(reread).await;
             let attempt = crate::settings_history::Attempt::default();
             let result = provider.run(|client: Client| {
                 attempt.enter();

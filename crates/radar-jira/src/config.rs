@@ -225,7 +225,7 @@ impl Site {
 pub fn resolve(spec: &str, what: &str) -> Result<String> {
     let spec = spec.trim();
     if let Some(var) = spec.strip_prefix("env:") {
-        return std::env::var(var).with_context(|| format!("{var} is not set"));
+        return radar_core::env::var(var).with_context(|| format!("{var} is not set"));
     }
     if spec.is_empty() {
         bail!("no {what} set");
@@ -258,8 +258,8 @@ pub fn url_problem(input: &str) -> Option<String> {
         return Some("paste the site's link, e.g. https://acme.atlassian.net".into());
     }
     if let Some(var) = s.strip_prefix("env:") {
-        return match std::env::var(var) {
-            Ok(v) if !v.trim().is_empty() => None,
+        return match radar_core::env::var(var) {
+            Some(v) if !v.trim().is_empty() => None,
             _ => Some(format!("{var} is not set in this shell")),
         };
     }

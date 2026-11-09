@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# The notes for a release: its section of CHANGELOG.md, then how to install or
+# upgrade, what each archive holds and the full comparison with the release before.
+#
+#   scripts/release-notes 0.1.0-alpha.18 [repo]   # prints Markdown
+#
+# Exits 1 when CHANGELOG.md has no section for the version, or it is empty: the
+# release workflow runs this before building, so a tag without notes stops there.
+set -euo pipefail
+
+version="${1:?usage: scripts/release-notes <version> [owner/repo]}"
+repo="${2:-temet-ai/radar}"
+root="$(cd "$(dirname "$0")/.." && pwd)"
+changelog="$root/CHANGELOG.md"
+
+section="$(awk -v v="$version" '
+  /^## / { if (found) exit; if (index($0, "## " v " ") == 1 || $0 == "## " v) { found = 1; next } }
+  found { print }
+' "$changelog")"
+
+if [[ -z "$(printf '%s' "$section" | tr -d '[:space:]')" ]]; then
+  echo "release-notes: CHANGELOG.md has no section for $version (a heading '## $version (date)' with what changed)" >&2
+  exit 1
+fi
+
+# The tag before this one, for the comparison link: in version order, the one after
+# v<version>, or the newest when v<version> is not tagged yet.
+previous="$(git -C "$root" tag --list 'v*' --sort=-version:refname | awk -v v="v$version" '
+  NR == 1 { first = $0 }
+  seen { print; found = 1; exit }
+  $0 == v { seen = 1 }
+  END { if (!found && !seen && first != "") print first }
+')"
+
+printf '%s\n' "$section" | sed -e '/./,$!d'
+cat <<EOF
+
+## Install or upgrade
+
+| How | Install | Upgrade |
+|---|---|---|
+| Homebrew (macOS, Linux) | \`brew install $repo/radar\` | \`brew update && brew upgrade $repo/radar\` |
+| mise | \`"github:$repo" = { version = "latest", prerelease = true, minimum_release_age = "0s" }\` under \`[tools]\`, then \`mise install\` | \`mise upgrade\` |
+| By hand | download the archive for your machine below, check it against \`checksums.txt\`, put \`radar\` on your \`PATH\` | the same, over the old file |
+
+Archives: macOS Apple Silicon (\`aarch64-apple-darwin\`) and Intel (\`x86_64-apple-darwin\`),
+Linux arm64 (\`aarch64-unknown-linux-gnu\`) and x64 (\`x86_64-unknown-linux-gnu\`), glibc
+2.35 or later. Windows: the Linux build in WSL2. Each holds \`radar\`, LICENSE and
+THIRD-PARTY-NOTICES.md; radar needs no Node or Rust. \`radar --version\` names the
+version and commit. To go back, install the previous release.
+EOF
+if [[ -n "$previous" ]]; then
+  printf '\nEvery commit since %s: https://github.com/%s/compare/%s...v%s\n' "${previous#v}" "$repo" "$previous" "$version"
+fi

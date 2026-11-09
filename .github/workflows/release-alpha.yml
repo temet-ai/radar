@@ -27,6 +27,15 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             test "$version" = "$actual"
           fi
+      # The release's notes come from its CHANGELOG.md section; a tag without one
+      # stops here, before any build.
+      - name: Check the release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force --quiet
+          version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "radar") | .version')"
+          scripts/release-notes "$version" "$GITHUB_REPOSITORY"
       - name: Test workspace
         run: cargo test --workspace --locked
 
@@ -122,6 +131,14 @@ jobs:
           pattern: radar-*
           path: dist
           merge-multiple: true
+      # CHANGELOG.md and the tags, for the notes; also the tap step's script.
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          fetch-depth: 0
+      - name: Write the release notes
+        shell: bash
+        run: src/scripts/release-notes "${GITHUB_REF_NAME#v}" "$GITHUB_REPOSITORY" > notes.md
       - name: Publish prerelease and checksums
         env:
           GH_TOKEN: ${{ github.token }}
@@ -134,13 +151,10 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" ./*.tar.gz checksums.txt \
             --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease --title "radar $version" \
-            --notes "radar $version. Install: \`brew install temet-ai/radar/radar\`, or mise with \`github:temet-ai/radar\`. Each archive holds \`radar\`, LICENSE and THIRD-PARTY-NOTICES.md."
+            --notes-file ../notes.md
       # The tap's formula, rendered from this release's checksums. Needs
       # HOMEBREW_TAP_TOKEN, a token that can write to temet-ai/homebrew-radar;
       # without it the step is skipped and docs/RELEASING.md's manual step applies.
-      - uses: actions/checkout@v4
-        with:
-          path: src
       - name: Update the Homebrew tap
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

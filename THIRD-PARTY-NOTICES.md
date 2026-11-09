@@ -4685,7 +4685,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 Used by:
 - tokio-stream 0.1.19 (https://github.com/tokio-rs/tokio)
 - tokio-util 0.7.20 (https://github.com/tokio-rs/tokio)
-- tokio 1.53.2 (https://github.com/tokio-rs/tokio)
+- tokio 1.54.1 (https://github.com/tokio-rs/tokio)
 
 ```
 MIT License
@@ -5028,7 +5028,7 @@ SOFTWARE.
 ### MIT License
 
 Used by:
-- pulldown-cmark 0.13.4 (https://github.com/raphlinus/pulldown-cmark)
+- pulldown-cmark 0.13.6 (https://github.com/raphlinus/pulldown-cmark)
 
 ```
 The MIT License

@@ -41,6 +41,8 @@ ignore = [
     { id = "RUSTSEC-2026-0367", reason = "github-copilot-sdk 1.0.20 reads named ZIP entries without calling extraction APIs" },
     { id = "RUSTSEC-2026-0368", reason = "github-copilot-sdk 1.0.20 reads named ZIP entries without calling ZipArchive::extract" },
     { id = "RUSTSEC-2026-0369", reason = "github-copilot-sdk 1.0.20 reads named ZIP entries without calling extraction APIs" },
+    # 1.0.29 (zip 9.1) still turns on serde_json preserve_order (checked 2026-11-09).
+    { id = "RUSTSEC-2026-0429", reason = "github-copilot-sdk 1.0.20 reads ZIP entries by index without calling ZipArchive::extract" },
 ]
 
 [bans]

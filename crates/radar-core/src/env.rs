@@ -123,14 +123,15 @@ fn from_shell(names: &[&str]) -> Option<Vec<Option<String>>> {
     let formats = "%s\\036".repeat(names.len());
     let args: String = names.iter().map(|n| format!(" \"${n}\"")).collect();
     let script = format!("printf '\\036radar\\036{formats}'{args}");
-    let mut child = Command::new(&shell)
+    let mut command = Command::new(&shell);
+    command
         .args(["-l", "-i", "-c", &script])
         .env("RADAR_ENV_PROBE", "1")
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .ok()?;
+        .stderr(Stdio::null());
+    detach(&mut command);
+    let mut child = command.spawn().ok()?;
     let mut out = child.stdout.take()?;
     let reader = std::thread::spawn(move || {
         let mut s = String::new();
@@ -155,6 +156,31 @@ fn from_shell(names: &[&str]) -> Option<Vec<Option<String>>> {
     crate::log::info(format!("read {what} again from {shell}"));
     Some(values)
 }
+
+/// Start the shell in a session of its own, with no controlling terminal. An
+/// interactive shell (`-i`, so the person's rc file is read) otherwise opens
+/// radar's terminal and makes itself the foreground job while it runs: radar
+/// and its renderer become a background job on their own terminal, and the
+/// mouse reports sent meanwhile land on the screen as text.
+#[cfg(unix)]
+fn detach(command: &mut Command) {
+    use std::os::unix::process::CommandExt;
+    unsafe extern "C" {
+        fn setsid() -> i32;
+    }
+    // SAFETY: setsid is async-signal-safe and touches no memory of this process.
+    unsafe {
+        command.pre_exec(|| {
+            if setsid() < 0 {
+                return Err(std::io::Error::last_os_error());
+            }
+            Ok(())
+        });
+    }
+}
+
+#[cfg(not(unix))]
+fn detach(_: &mut Command) {}
 
 /// The `n` values between the marks, each `None` when empty (unset);
 /// `None` when the marks are missing.
@@ -189,6 +215,22 @@ mod tests {
     fn only_env_settings_name_variables() {
         let got = names_in(["env:WATCH_TOKEN", "https://x.example", " env:WATCH_TOKEN", "env:bad name", "env:EMAIL"]);
         assert_eq!(got, vec!["EMAIL", "WATCH_TOKEN"]);
+    }
+
+    /// The shell runs in a session of its own, so it can never take radar's
+    /// terminal (an interactive zsh made itself the foreground job, and the
+    /// mouse reports sent meanwhile were drawn as text over radar).
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn the_shell_is_started_in_a_session_of_its_own() {
+        let mut command = Command::new("sh");
+        command.args(["-c", "echo $$; cut -d' ' -f6 /proc/self/stat"]).stdout(Stdio::piped());
+        detach(&mut command);
+        let out = String::from_utf8(command.output().unwrap().stdout).unwrap();
+        let mut lines = out.lines();
+        let (pid, session) = (lines.next().unwrap(), lines.next().unwrap());
+        // `cut` is the shell's child: its session is the shell's own, led by the shell.
+        assert_eq!(session, pid, "{out}");
     }
 
     #[test]

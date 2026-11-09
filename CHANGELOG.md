@@ -8,6 +8,17 @@ comparison link at the end of each release's notes.
 Sections use these headings, leaving out any with nothing in them: **New**,
 **Changed**, **Fixed**, **Security**, **Upgrading** (anything to do by hand).
 
+## 0.1.0-alpha.20 (2026-11-09)
+
+### Fixed
+
+- **Mouse moves no longer print over the screen.** When radar read a token again
+  from your shell (new in alpha.18), it started the shell interactively, and that
+  shell took over the terminal for a moment. Mouse moves made then were drawn as
+  text across the screen, such as `35;63;20M35;64;21M…`, most often on the start
+  screen. radar now starts that shell detached from the terminal. alpha.18 and
+  alpha.19 have this bug.
+
 ## 0.1.0-alpha.19 (2026-11-09)
 
 ### Changed

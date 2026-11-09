@@ -2078,11 +2078,11 @@ DEALINGS IN THE SOFTWARE.
 ### MIT License
 
 Used by:
-- libsqlite3-sys 0.30.1 (https://github.com/rusqlite/rusqlite)
-- rusqlite 0.32.1 (https://github.com/rusqlite/rusqlite)
+- libsqlite3-sys 0.39.1 (https://github.com/rusqlite/rusqlite)
+- rusqlite 0.41.1 (https://github.com/rusqlite/rusqlite)
 
 ```
-Copyright (c) 2014-2021 The rusqlite developers
+Copyright (c) 2014 The rusqlite developers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2499,7 +2499,6 @@ DEALINGS IN THE SOFTWARE.
 ### MIT License
 
 Used by:
-- hashbrown 0.14.5 (https://github.com/rust-lang/hashbrown)
 - hashbrown 0.17.1 (https://github.com/rust-lang/hashbrown)
 
 ```
@@ -3378,40 +3377,6 @@ Used by:
 
 ```
 Copyright (c) 2018 The Servo Project Developers
-
-Permission is hereby granted, free of charge, to any
-person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the
-Software without restriction, including without
-limitation the rights to use, copy, modify, merge,
-publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software
-is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice
-shall be included in all copies or substantial portions
-of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
-ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
-SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-
-```
-
-### MIT License
-
-Used by:
-- ahash 0.8.12 (https://github.com/tkaitchuck/ahash)
-
-```
-Copyright (c) 2018 Tom Kaitchuck
 
 Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated
@@ -4600,6 +4565,36 @@ SOFTWARE.
 ### MIT License
 
 Used by:
+- sqlite-wasm-rs 0.6.2 (https://github.com/Spxg/sqlite-wasm-rs)
+
+```
+MIT License
+
+Copyright (c) 2024 Spxg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+```
+
+### MIT License
+
+Used by:
 - opaline 0.4.2 (https://github.com/hyperb1iss/opaline)
 
 ```
@@ -4632,6 +4627,7 @@ SOFTWARE.
 Used by:
 - r-efi 5.3.0 (https://github.com/r-efi/r-efi)
 - r-efi 6.0.0 (https://github.com/r-efi/r-efi)
+- rsqlite-vfs 0.2.0 (https://github.com/Spxg/sqlite-wasm-rs)
 - ts-rs-macros 12.0.1 (https://github.com/Aleph-Alpha/ts-rs)
 - ts-rs 12.0.1 (https://github.com/Aleph-Alpha/ts-rs)
 - winapi-i686-pc-windows-gnu 0.4.0 (https://github.com/retep998/winapi-rs)
@@ -5608,7 +5604,7 @@ SOFTWARE.
 ### MIT License
 
 Used by:
-- hashlink 0.9.1 (https://github.com/kyren/hashlink)
+- hashlink 0.12.2 (https://github.com/djc/hashlink)
 
 ```
 This work is derived in part from the `linked-hash-map` crate, Copyright (c)
@@ -6140,6 +6136,33 @@ SPDX-License-Identifier: Unicode-3.0
 Portions of ICU4X may have been adapted from ICU4C and/or ICU4J.
 ICU 1.8.1 to ICU 57.1 © 1995-2016 International Business Machines Corporation and others.
 
+```
+
+### zlib License
+
+Used by:
+- foldhash 0.2.0 (https://github.com/orlp/foldhash)
+
+```
+Copyright (c) 2024 Orson Peters
+
+This software is provided 'as-is', without any express or implied warranty. In
+no event will the authors be held liable for any damages arising from the use of
+this software.
+
+Permission is granted to anyone to use this software for any purpose, including
+commercial applications, and to alter it and redistribute it freely, subject to
+the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim
+    that you wrote the original software. If you use this software in a product,
+    an acknowledgment in the product documentation would be appreciated but is
+    not required.
+
+2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
 ```
 
 ## npm packages (the Ink renderer)

@@ -8,6 +8,21 @@ comparison link at the end of each release's notes.
 Sections use these headings, leaving out any with nothing in them: **New**,
 **Changed**, **Fixed**, **Security**, **Upgrading** (anything to do by hand).
 
+## 0.1.0-alpha.19 (2026-11-09)
+
+### Changed
+
+- **Release notes say what changed.** Each release's page lists what is new,
+  changed, fixed and security-related, from this file, with how to install or
+  upgrade, which archive suits which machine, and every commit since the release
+  before.
+
+### Security
+
+- **SQLite 3.54.1**, for CVE-2026-119375 (RUSTSEC-2026-0459). radar keeps its
+  journal and caches in SQLite, built into the binary; it now bundles the fixed
+  version (rusqlite 0.41). Existing journals and caches open as before.
+
 ## 0.1.0-alpha.18 (2026-11-09)
 
 ### New

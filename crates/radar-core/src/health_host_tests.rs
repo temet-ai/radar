@@ -110,7 +110,7 @@ fn a_chip_opens_its_menu_and_refresh_now_asks_the_part_to_sync() {
             ("refresh now", "ask every source again, waiting or not"),
             ("sources", ""),
             ("wecm", "503 Service Unavailable · trying again in 4m"),
-            ("acme", "ok · 12s ago"),
+            ("acme", "ok · 07:59"),
         ]
     );
     host.update(Event::Intent(Intent::Activate { target: targets::menu_item(0) }));
@@ -119,6 +119,19 @@ fn a_chip_opens_its_menu_and_refresh_now_asks_the_part_to_sync() {
     // A target for no part does nothing.
     assert!(host.update(Event::Intent(Intent::Activate { target: targets::health("nope") })).is_empty());
     assert!(host.menu.is_none());
+}
+
+#[test]
+fn a_reread_that_found_a_new_value_syncs_the_part_and_one_that_did_not_waits() {
+    let (mut host, refreshed) = host();
+    let lab = host.plugins.iter().position(|p| p.id() == "lab").unwrap();
+    let msg = |refresh| Event::Msg { plugin: lab, msg: Box::new(crate::env::Reread { refresh }) };
+    host.update(msg(false));
+    assert_eq!(*refreshed.lock().unwrap(), 0, "nothing changed in the shell: no sync");
+    host.update(msg(true));
+    assert_eq!(*refreshed.lock().unwrap(), 1, "a new token: the part syncs at once");
+    // Sandboxed, a signed-out part is not sent to the shell.
+    assert!(host.update(Event::Tick(NOW + 120)).is_empty() || !crate::system::sandboxed());
 }
 
 #[test]

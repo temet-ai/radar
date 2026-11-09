@@ -1332,6 +1332,9 @@ impl Plugin for GithubPlugin {
     fn refresh_now(&mut self) -> Vec<Effect> {
         self.refresh_all()
     }
+    fn env_settings(&self) -> Vec<String> {
+        vec![self.cfg.token.clone(), self.cfg.api.clone()]
+    }
     fn busy(&self, _: &str) -> bool {
         self.page_loading
             || self.sync.probing

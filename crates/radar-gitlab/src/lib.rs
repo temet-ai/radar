@@ -1476,6 +1476,9 @@ impl Plugin for GitlabPlugin {
     fn refresh_now(&mut self) -> Vec<Effect> {
         self.refresh()
     }
+    fn env_settings(&self) -> Vec<String> {
+        vec![self.cfg.token.clone()]
+    }
     fn view(&self, screen: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::ScreenView> {
         if screen != SCREEN.id { return None; }
         let mut view = if self.pages.is_empty() { Some(screen::neutral::view(self, cx)) }

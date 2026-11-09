@@ -1,7 +1,7 @@
 //! Environment variables as the person's shell has them now.
 //!
 //! radar's own environment is fixed when it starts, so a token exported
-//! again afterwards (a new `GITLAB_TOKEN` in `~/.zshrc`) never reaches it.
+//! again afterwards (a new `SERVICE_TOKEN` in `~/.zshrc`) never reaches it.
 //! [`reread`] asks the person's login shell for one variable's current value
 //! and keeps it; [`var`] returns that kept value before radar's own. Parts
 //! read `env:NAME` settings through [`var`], and call [`reread`] when the
@@ -71,16 +71,36 @@ pub fn names_in<'a>(settings: impl IntoIterator<Item = &'a str>) -> Vec<String> 
 
 /// Read every `env:NAME` among `settings` again from the shell, off the
 /// async workers: what a part's check does first, so a token exported after
-/// radar started is the one checked.
-pub async fn reread_settings(settings: Vec<String>) {
+/// radar started is the one checked. `true` when a value changed.
+pub async fn reread_settings(settings: Vec<String>) -> bool {
     let names = names_in(settings.iter().map(String::as_str));
     if names.is_empty() || crate::system::sandboxed() {
-        return;
+        return false;
     }
-    let _ = tokio::task::spawn_blocking(move || {
-        reread_all(&names.iter().map(String::as_str).collect::<Vec<_>>())
+    tokio::task::spawn_blocking(move || {
+        let before: Vec<Option<String>> = names.iter().map(|n| var(n)).collect();
+        reread_all(&names.iter().map(String::as_str).collect::<Vec<_>>());
+        names.iter().zip(before).any(|(n, b)| var(n) != b)
     })
-    .await;
+    .await
+    .unwrap_or(false)
+}
+
+/// What the host's reread task ([`reread_task`]) comes back with, to the
+/// part it was for: the host syncs that part again when `refresh` says to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Reread {
+    pub refresh: bool,
+}
+
+/// A task that reads a part's `env:` settings again; it comes back as
+/// [`Reread`], asking for a sync always (`always`, the person asked) or
+/// only when a value changed.
+pub fn reread_task(settings: Vec<String>, always: bool) -> crate::plugin::Task {
+    Box::pin(async move {
+        let changed = reread_settings(settings).await;
+        Box::new(Reread { refresh: always || changed }) as crate::plugin::Msg
+    })
 }
 
 fn valid_name(name: &str) -> bool {
@@ -157,9 +177,9 @@ mod tests {
 
     #[test]
     fn the_value_is_found_among_start_up_noise() {
-        let out = "welcome!\n\u{1e}radar\u{1e}glpat-new\u{1e}\u{1e}xoxp-1\u{1e}bye\n";
+        let out = "welcome!\n\u{1e}radar\u{1e}token-new\u{1e}\u{1e}token-2\u{1e}bye\n";
         let got = parse(out, 3).unwrap();
-        assert_eq!(got, vec![Some("glpat-new".into()), None, Some("xoxp-1".into())]);
+        assert_eq!(got, vec![Some("token-new".into()), None, Some("token-2".into())]);
         assert_eq!(parse("\u{1e}radar\u{1e}\u{1e}", 1), Some(vec![None]));
         assert_eq!(parse("\u{1e}radar\u{1e}a\u{1e}", 2), None);
         assert_eq!(parse("no marks", 1), None);
@@ -167,13 +187,13 @@ mod tests {
 
     #[test]
     fn only_env_settings_name_variables() {
-        let got = names_in(["env:JIRA_TOKEN", "https://x.example", " env:JIRA_TOKEN", "env:bad name", "env:EMAIL"]);
-        assert_eq!(got, vec!["EMAIL", "JIRA_TOKEN"]);
+        let got = names_in(["env:WATCH_TOKEN", "https://x.example", " env:WATCH_TOKEN", "env:bad name", "env:EMAIL"]);
+        assert_eq!(got, vec!["EMAIL", "WATCH_TOKEN"]);
     }
 
     #[test]
     fn only_plain_names_reach_a_shell() {
-        assert!(valid_name("GITLAB_TOKEN"));
+        assert!(valid_name("WATCH_TOKEN"));
         assert!(!valid_name("A;rm -rf ~"));
         assert!(!valid_name("1A"));
         assert!(!valid_name(""));

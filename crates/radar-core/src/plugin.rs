@@ -1207,6 +1207,13 @@ pub trait Plugin: Send {
     fn refresh_now(&mut self) -> Vec<Effect> {
         vec![]
     }
+    /// Its settings that may read `env:NAME` (tokens, addresses), as
+    /// written. The host reads those variables again from the person's shell
+    /// before `refresh now`, and while the part is signed out
+    /// ([`crate::env`]), so a token exported after radar started is used.
+    fn env_settings(&self) -> Vec<String> {
+        Vec::new()
+    }
     /// What an agent should be told about one of this part's subjects
     /// ([`crate::agent_context`]). Answer from what the part already holds;
     /// never fetch. None when it is not this part's subject or holds nothing.

@@ -1616,6 +1616,9 @@ impl Plugin for JiraPlugin {
     fn refresh_now(&mut self) -> Vec<Effect> {
         self.refresh()
     }
+    fn env_settings(&self) -> Vec<String> {
+        self.cfg.sites.iter().flat_map(|s| [s.url.clone(), s.email.clone(), s.token.clone()]).collect()
+    }
     fn view(&self, screen: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::ScreenView> {
         if screen != SCREEN.id {
             return None;

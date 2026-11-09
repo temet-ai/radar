@@ -4,6 +4,7 @@
 
 #[path = "host/detail_actions.rs"]
 mod detail_actions;
+mod env_reread;
 #[path = "host/columns.rs"]
 mod columns_menu;
 mod measure;
@@ -592,6 +593,8 @@ impl std::fmt::Debug for HostEffect {
 pub struct Host {
     context_service: crate::context::Service,
     review_context_started: std::collections::BTreeMap<u64, i64>,
+    /// When each signed-out part's `env:` settings were last read again.
+    env_reread: std::collections::BTreeMap<usize, i64>,
     pub(crate) history: Option<crate::history::History>,
     history_request: u64,
     trace: Trace,
@@ -828,6 +831,7 @@ impl Host {
         Ok(Self {
             context_service: crate::context::Service::default(),
             review_context_started: std::collections::BTreeMap::new(),
+            env_reread: std::collections::BTreeMap::new(),
             wake,
             history: None,
             history_request: 0,
@@ -1221,10 +1225,7 @@ impl Host {
             Owner::Host if open.menu.id.starts_with(crate::health::MENU) => {
                 let part = open.menu.id.split_once(':').map(|(_, id)| id);
                 match part.and_then(|id| self.plugins.iter().position(|p| p.id() == id)) {
-                    Some(p) if item.value == "refresh" => {
-                        let fx = self.plugins[p].refresh_now();
-                        self.route(p, fx, 0)
-                    }
+                    Some(p) if item.value == "refresh" => self.refresh_part(p),
                     _ => vec![],
                 }
             }
@@ -2095,6 +2096,7 @@ impl Host {
                 }
                 if ticking > 0 {
                     out.extend(self.pump_reviews());
+                    out.extend(self.reread_signed_out(now));
                 }
                 self.pump_context();
                 out
@@ -2114,6 +2116,9 @@ impl Host {
             }
             Event::Wake(_) => vec![],
             Event::Msg { plugin, msg } => {
+                if let Some(reread) = msg.downcast_ref::<crate::env::Reread>() {
+                    return self.on_reread(plugin, *reread);
+                }
                 let fx = self.plugins[plugin].on_msg(msg);
                 self.route(plugin, fx, 0)
             }

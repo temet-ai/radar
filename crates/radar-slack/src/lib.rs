@@ -1351,6 +1351,9 @@ impl Plugin for SlackPlugin {
     fn refresh_now(&mut self) -> Vec<Effect> {
         self.fetch_now()
     }
+    fn env_settings(&self) -> Vec<String> {
+        vec![self.cfg.token.clone(), self.cfg.api.clone()]
+    }
     fn view(&self, screen: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::ScreenView> {
         if screen != SCREEN.id { return None; }
         if self.pages.is_empty() { Some(screen::view(self, cx)) } else { page::view(self, cx) }

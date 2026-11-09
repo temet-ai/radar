@@ -6,13 +6,13 @@ expression: top_bars
     (
         "browse",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (
         "overview",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (
@@ -26,7 +26,7 @@ expression: top_bars
     (
         "checks",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (
@@ -44,25 +44,25 @@ expression: top_bars
     (
         "actions",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (
         "repository_overview",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (
         "repository_pulls",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (
         "empty",
         Some(
-            "synced 25s ago",
+            "synced 07:16",
         ),
     ),
     (

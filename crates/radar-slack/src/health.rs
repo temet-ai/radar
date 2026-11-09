@@ -59,7 +59,7 @@ mod tests {
         let names: Vec<&str> = h.sources.iter().map(|s| s.name.as_str()).collect();
         assert_eq!(names, ["team", "svc", "for you"]);
         assert_eq!(h.state(p.now), HealthState::Ok);
-        assert_eq!(radar_core::health::source_words(&h.sources[0], p.now), "ok · 12s ago");
+        assert_eq!(radar_core::health::source_words(&h.sources[0], p.now), "ok · 07:16");
     }
 
     #[test]

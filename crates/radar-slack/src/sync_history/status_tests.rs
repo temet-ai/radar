@@ -78,22 +78,22 @@ fn followed_failures_and_partial_results_show_safe_sync_health() {
     }
     insta::assert_snapshot!(summaries.join("\n\n"), @r"
     all failed
-    synced 40s ago · every 2m
+    synced 07:16 · every 2m
     1 read failed
     Followed review asks could not sync: followed review threads could not be refreshed
 
     missing parent
-    synced 40s ago · every 2m
+    synced 07:16 · every 2m
     1 read failed
     Followed review asks could not sync: followed review threads could not be refreshed
 
     mixed
-    synced 40s ago · every 2m
+    synced 07:16 · every 2m
     1 read failed
     Followed review asks could not sync: some followed review threads could not be fully refreshed
 
     paging gap
-    synced 40s ago · every 2m
+    synced 07:16 · every 2m
     1 read failed
     Followed review asks could not sync: some followed review threads could not be fully refreshed
     ");

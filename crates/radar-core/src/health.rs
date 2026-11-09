@@ -157,10 +157,11 @@ pub fn words(health: &Health, now: i64) -> String {
     }
 }
 
-/// What a source's row says: `ok · 12s ago`, or what went wrong.
+/// What a source's row says: `ok · 13:27` (when it last read, a clock time
+/// so the row stays still between syncs), or what went wrong.
 pub fn source_words(s: &Source, now: i64) -> String {
     match (s.state, s.at) {
-        (SourceState::Ok, Some(t)) => format!("ok · {} ago", crate::time::ago(t, now)),
+        (SourceState::Ok, Some(t)) => format!("ok · {}", crate::time::when(t, now)),
         (SourceState::Ok, None) => "ok · not synced yet".into(),
         _ if s.words.is_empty() => match s.state {
             SourceState::SignedOut => "signed out".into(),
@@ -295,7 +296,7 @@ mod tests {
             rows,
             vec![
                 ("wecm".into(), "503 Service Unavailable · trying again in 4m".into()),
-                ("acme".into(), "ok · 12s ago".into()),
+                ("acme".into(), "ok · 07:59".into()),
             ]
         );
         assert_eq!(words(&h, NOW), "1 of 2 failing");

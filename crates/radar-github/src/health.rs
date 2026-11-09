@@ -70,7 +70,7 @@ mod tests {
         assert!(p.repos.len() > 1, "the sample has several repositories");
         assert_eq!(state(&p), HealthState::Ok);
         let h = health(&p).unwrap();
-        assert_eq!(radar_core::health::source_words(&h.sources[0], p.now), "ok · 12s ago");
+        assert_eq!(radar_core::health::source_words(&h.sources[0], p.now), "ok · 07:16");
     }
 
     #[test]

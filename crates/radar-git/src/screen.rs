@@ -1579,8 +1579,8 @@ pub fn top_right(p: &GitPlugin) -> Option<String> {
     if !busy(p) && !p.branches.incomplete.is_empty() {
         return Some(match p.branches.last_ok {
             Some(at) => format!(
-                "read incomplete · last complete {} ago",
-                time::ago(at, p.now)
+                "read incomplete · last complete {}",
+                time::when(at, p.now)
             ),
             None => "read incomplete · no complete sync yet".into(),
         });
@@ -2240,7 +2240,7 @@ mod tests {
         // The sync words are only on the top bar, which the text form leaves out.
         assert_eq!(
             crate::tests::top_bar_words(&host).as_deref(),
-            Some("synced 20s ago · every 1m")
+            Some("synced 07:16 · every 1m")
         );
         insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }

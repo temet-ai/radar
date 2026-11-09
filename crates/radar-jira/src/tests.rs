@@ -742,7 +742,7 @@ fn the_top_bar_says_what_every_part_says() {
     let mut p = sample();
     p.sync.last_ok = Some(p.now - 4);
     p.sync.in_flight.clear();
-    assert_eq!(screen::top_right(&p).as_deref(), Some("synced 4s ago · every 2m"));
+    assert_eq!(screen::top_right(&p).as_deref(), Some("synced 07:16 · every 2m"));
     p.sync.in_flight.insert("x".into());
     assert_eq!(screen::top_right(&p).as_deref(), Some("syncing Jira · every 2m"));
     let q = JiraPlugin::new();

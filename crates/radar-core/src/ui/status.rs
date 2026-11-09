@@ -4,12 +4,13 @@
 /// Where a check of a setting stands: not run, running, or what the
 /// service said and how long ago.
 /// The top bar's sync words, the same in every part: `syncing Notes`
-/// while it runs, else `synced 4s ago`, or `not synced yet`; then
-/// ` · every 1m` when `every_secs` is given.
+/// while it runs, else `synced 13:27`, or `not synced yet`; then
+/// ` · every 1m` when `every_secs` is given. The clock time, not an age: an
+/// age would change the bar every second and redraw it while nothing happens.
 pub fn sync_words(part: &str, busy: bool, last: Option<i64>, now: i64, every_secs: Option<u64>) -> String {
     let said = match (busy, last) {
         (true, _) => format!("syncing {part}"),
-        (false, Some(t)) => format!("synced {} ago", crate::time::ago(t, now)),
+        (false, Some(t)) => format!("synced {}", crate::time::when(t, now)),
         (false, None) => "not synced yet".to_string(),
     };
     match every_secs {

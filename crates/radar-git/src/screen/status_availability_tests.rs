@@ -249,7 +249,7 @@ fn host_shows_unavailable_and_last_known_without_false_clean() {
         assert_eq!(
             crate::tests::top_bar_words(&h).as_deref(),
             Some(if cached {
-                "read incomplete · last complete 1m ago"
+                "read incomplete · last complete 07:16"
             } else {
                 "read incomplete · no complete sync yet"
             })
@@ -300,7 +300,7 @@ fn host_confirmation_rechecks_original_worktree_after_status_failure() {
     );
     assert_eq!(
         crate::tests::top_bar_words(&h).as_deref(),
-        Some("synced 0s ago · every 1m"),
+        Some("synced 07:16 · every 1m"),
         "the sync words are only on the top bar"
     );
     insta::assert_snapshot!("status_known_remove_confirm", question);

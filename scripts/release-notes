@@ -23,11 +23,17 @@ if [[ -z "$(printf '%s' "$section" | tr -d '[:space:]')" ]]; then
   exit 1
 fi
 
-# The tag before this one, for the comparison link: in version order, the one after
-# v<version>, or the newest when v<version> is not tagged yet.
-previous="$(git -C "$root" tag --list 'v*' --sort=-version:refname | awk -v v="v$version" '
+# The release before this one, for the comparison link: in version order, the tag
+# after v<version>, or the newest when v<version> is not tagged yet. Only tags with a
+# CHANGELOG.md section count (alpha.11 was tagged but never published).
+released() {
+  while read -r tag; do
+    if [[ "$tag" == "v$version" ]] || grep -q "^## ${tag#v} " "$changelog"; then echo "$tag"; fi
+  done
+}
+previous="$(git -C "$root" tag --list 'v*' --sort=-version:refname | released | awk -v v="v$version" '
   NR == 1 { first = $0 }
-  seen { print; found = 1; exit }
+  seen && !found { print; found = 1 }
   $0 == v { seen = 1 }
   END { if (!found && !seen && first != "") print first }
 ')"

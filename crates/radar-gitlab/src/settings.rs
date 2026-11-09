@@ -579,12 +579,20 @@ fn check(p: &mut GitlabPlugin, target: CheckTarget) -> Vec<Effect> {
         // Preserve the legacy repeated-prefix handling for malformed hand config.
         CheckTarget::Source(path) => path.trim_start_matches("group:").to_owned(),
     };
+    // Asking for the token check reads an `env:` token again from the
+    // person's shell: one exported after radar started is used at once.
+    let reread = matches!(target, CheckTarget::Auth)
+        .then(|| p.cfg.token.trim().strip_prefix("env:").map(str::to_owned))
+        .flatten();
     let action = crate::settings_history::action(kind, &url, &path);
     vec![crate::settings_history::spawn(
         action,
         target,
         request,
         async move {
+            if let Some(var) = reread {
+                let _ = tokio::task::spawn_blocking(move || radar_core::env::reread(&var)).await;
+            }
             let attempt = crate::settings_history::Attempt::default();
             let result = provider.run(|client: Client| {
                 attempt.enter();
@@ -794,7 +802,7 @@ fn validate(p: &GitlabPlugin, target: &Target, text: &str) -> Result<String, Str
                 if p.scripted_fixture {
                     return Ok(format!("{var}: scripted fixture uses no credential"));
                 }
-                if std::env::var(var).is_ok() {
+                if radar_core::env::var(var).is_some() {
                     Ok(format!("{var} is set"))
                 } else {
                     Err(format!("{var} is not set in this shell"))

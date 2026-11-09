@@ -21,6 +21,10 @@ pub trait Tokens: Send + Sync {
     /// Ask the source to bring its token up to date. `false` when it cannot
     /// (an environment variable or a typed-in token stays what it is).
     fn renew(&self) -> Result<bool>;
+    /// What the person can do when a renewed token is turned down too.
+    fn renew_hint(&self) -> String {
+        "run glab auth login".into()
+    }
 }
 
 /// The configured token spec (`env:NAME`, `glab`, or a literal) for a server.
@@ -46,6 +50,12 @@ impl Tokens for Configured {
     }
 
     fn renew(&self) -> Result<bool> {
+        if let Some(var) = self.spec.strip_prefix("env:") {
+            // The shell may hold a newer token than radar started with.
+            let before = radar_core::env::var(var);
+            let after = radar_core::env::reread(var);
+            return Ok(after.is_some() && after != before);
+        }
         if self.spec != "glab" {
             return Ok(false);
         }
@@ -65,6 +75,13 @@ impl Tokens for Configured {
         ));
         Ok(true)
     }
+
+    fn renew_hint(&self) -> String {
+        match self.spec.strip_prefix("env:") {
+            Some(var) => format!("check {var} in your shell"),
+            None => "run glab auth login".into(),
+        }
+    }
 }
 
 /// Run `op` with a token; if GitLab rejects it and the source can renew it,
@@ -81,13 +98,11 @@ where
     if !tokens.renew()? {
         return Err(anyhow!("{err}: check the token under settings, connection"));
     }
-    log::info("gitlab: GitLab rejected the token; trying once more with a fresh one from glab");
+    log::info("gitlab: GitLab rejected the token; trying once more with a renewed one");
     match op(tokens.token()?).await {
         Err(e) if is_rejected(&e) => {
-            log::warn("gitlab: GitLab rejected glab's renewed token too");
-            Err(anyhow!(
-                "{e}, also after glab renewed its login once: run glab auth login"
-            ))
+            log::warn("gitlab: GitLab rejected the renewed token too");
+            Err(anyhow!("{e}, also after renewing the token once: {}", tokens.renew_hint()))
         }
         other => other,
     }
@@ -216,8 +231,16 @@ mod tests {
         assert!(format!("{e:#}").contains("glab auth login"), "{e:#}");
         assert_eq!(
             e.to_string(),
-            "GitLab rejected the token (401), also after glab renewed its login once: run glab auth login"
+            "GitLab rejected the token (401), also after renewing the token once: run glab auth login"
         );
+    }
+
+    #[test]
+    fn an_env_token_points_at_the_shell() {
+        let hint = Configured::new("env:GITLAB_TOKEN", "https://gitlab.com").renew_hint();
+        assert_eq!(hint, "check GITLAB_TOKEN in your shell");
+        // Sandboxed, the shell is not asked, so nothing changed: no retry.
+        assert!(!Configured::new("env:GITLAB_TOKEN", "https://gitlab.com").renew().unwrap());
     }
 
     #[test]

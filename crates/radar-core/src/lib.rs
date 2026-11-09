@@ -14,6 +14,7 @@ pub mod agent_text;
 pub mod demo;
 pub mod design;
 pub mod dock;
+pub mod env;
 pub mod fetch;
 pub mod health;
 #[cfg(test)]

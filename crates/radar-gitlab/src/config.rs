@@ -358,7 +358,7 @@ pub fn host_of(url: &str) -> String {
 pub fn resolve_token(spec: &str, url: &str) -> Result<String> {
     let spec = spec.trim();
     if let Some(var) = spec.strip_prefix("env:") {
-        return std::env::var(var).with_context(|| format!("{var} is not set"));
+        return radar_core::env::var(var).with_context(|| format!("{var} is not set"));
     }
     if spec == "glab" {
         let host = host_of(url);

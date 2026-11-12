@@ -61,18 +61,30 @@ fn valid_sha(sha: &str) -> bool {
     matches!(sha.len(), 40 | 64) && sha.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
-/// The worktree paths of the clone with the commit each has checked out.
-fn worktrees(clone: &Path) -> Result<Vec<(PathBuf, String)>, String> {
+/// One worktree of the clone: its folder, its commit, and whether it is on no branch.
+struct Known {
+    path: PathBuf,
+    head: String,
+    detached: bool,
+}
+
+/// The worktrees of the clone with the commit each has checked out.
+fn worktrees(clone: &Path) -> Result<Vec<Known>, String> {
     let text = git(clone, &["worktree", "list", "--porcelain"])?;
     let mut found = Vec::new();
-    let mut path: Option<PathBuf> = None;
-    for line in text.lines() {
-        if let Some(p) = line.strip_prefix("worktree ") {
-            path = Some(PathBuf::from(p));
-        } else if let Some(head) = line.strip_prefix("HEAD ")
-            && let Some(p) = path.take()
-        {
-            found.push((p, head.to_string()));
+    for block in text.split("\n\n") {
+        let (mut path, mut head, mut detached) = (None, String::new(), false);
+        for line in block.lines() {
+            if let Some(p) = line.strip_prefix("worktree ") {
+                path = Some(PathBuf::from(p));
+            } else if let Some(h) = line.strip_prefix("HEAD ") {
+                head = h.to_string();
+            } else if line == "detached" {
+                detached = true;
+            }
+        }
+        if let Some(path) = path {
+            found.push(Known { path, head, detached });
         }
     }
     Ok(found)
@@ -83,7 +95,9 @@ fn worktrees(clone: &Path) -> Result<Vec<(PathBuf, String)>, String> {
 /// The worktree is detached at `sha` (the commit the review is about, not the
 /// branch's moving tip), so the branch can stay checked out elsewhere. An
 /// existing worktree is reused only when it is clean, so a review never reads
-/// edits made in it.
+/// edits made in it. The planned place is one per branch: when a clean,
+/// detached worktree is there at an older commit, it moves to `sha` rather
+/// than a second one being added beside it.
 pub fn ensure(req: &Request) -> Result<ReviewWorktree, String> {
     if !valid_sha(req.sha) {
         return Err(format!("\"{}\" is not a full commit id", req.sha));
@@ -97,25 +111,38 @@ pub fn ensure(req: &Request) -> Result<ReviewWorktree, String> {
     // The planned place first, then any worktree already on the commit.
     let held = known
         .iter()
-        .find(|(p, head)| *head == sha && same_place(p, &want))
-        .or_else(|| known.iter().find(|(_, head)| *head == sha));
-    if let Some((path, _)) = held {
-        let dirty = git(path, &["status", "--porcelain"])?;
+        .find(|k| k.head == sha && same_place(&k.path, &want))
+        .or_else(|| known.iter().find(|k| k.head == sha));
+    if let Some(k) = held {
+        let dirty = git(&k.path, &["status", "--porcelain"])?;
         if dirty.is_empty() {
             return Ok(ReviewWorktree {
-                path: path.clone(),
+                path: k.path.clone(),
                 sha,
                 reused: true,
             });
         }
-        if same_place(path, &want) {
+        if same_place(&k.path, &want) {
             return Err(format!(
                 "{} holds uncommitted changes: not reviewing from it",
-                path.display()
+                k.path.display()
             ));
         }
     }
-    if want.exists() {
+    // The branch's review worktree at an older commit moves, when nothing
+    // in it would be lost: clean, and on no branch.
+    let older = known.iter().find(|k| same_place(&k.path, &want));
+    if let Some(k) = older {
+        if !k.detached {
+            return Err(format!("{} is on a branch: not moving it", want.display()));
+        }
+        if !git(&k.path, &["status", "--porcelain"])?.is_empty() {
+            return Err(format!(
+                "{} holds uncommitted changes: not moving it",
+                want.display()
+            ));
+        }
+    } else if want.exists() {
         return Err(format!(
             "{} already exists and is not a worktree at {}",
             want.display(),
@@ -129,6 +156,14 @@ pub fn ensure(req: &Request) -> Result<ReviewWorktree, String> {
             git(req.clone, &["fetch", "origin", &sha])
                 .map_err(|e| format!("commit {} is not on origin: {e}", &sha[..7]))?;
         }
+    }
+    if let Some(k) = older {
+        git(&k.path, &["checkout", "--detach", &sha])?;
+        return Ok(ReviewWorktree {
+            path: k.path.clone(),
+            sha,
+            reused: false,
+        });
     }
     let at = want.to_string_lossy().to_string();
     git(req.clone, &["worktree", "add", "--detach", &at, &sha])?;
@@ -252,6 +287,31 @@ mod tests {
         let sha_main = sh(&clone, &["rev-parse", "HEAD"]);
         let again = ensure(&Request { clone: &clone, branch: "main", sha: &sha_main, path: &taken }).unwrap();
         assert!(again.reused, "the clone itself holds main's commit, clean");
+    }
+
+    #[test]
+    fn a_newer_commit_moves_the_branch_review_worktree_instead_of_adding_one() {
+        let s = Scratch::new("move");
+        let (clone, origin, first) = repos(&s);
+        let at = s.0.join("review-x");
+        ensure(&Request { clone: &clone, branch: "feature/x", sha: &first, path: &at }).unwrap();
+        // the branch gains a commit on origin
+        let seed = s.0.join("seed");
+        std::fs::write(seed.join("c.txt"), "c\n").unwrap();
+        sh(&seed, &["add", "."]);
+        sh(&seed, &["commit", "-qm", "more"]);
+        sh(&seed, &["push", "-q", &origin.to_string_lossy(), "feature/x"]);
+        let second = sh(&seed, &["rev-parse", "HEAD"]);
+        let moved = ensure(&Request { clone: &clone, branch: "feature/x", sha: &second, path: &at }).unwrap();
+        assert!(!moved.reused);
+        assert!(same_place(&moved.path, &at));
+        assert_eq!(sh(&at, &["rev-parse", "HEAD"]), second);
+        assert_eq!(sh(&clone, &["worktree", "list"]).lines().count(), 2, "one review worktree");
+        // an edited one is left alone
+        std::fs::write(at.join("c.txt"), "edited\n").unwrap();
+        let err = ensure(&Request { clone: &clone, branch: "feature/x", sha: &first, path: &at }).unwrap_err();
+        assert!(err.contains("uncommitted"), "{err}");
+        assert_eq!(sh(&at, &["rev-parse", "HEAD"]), second);
     }
 
     #[test]

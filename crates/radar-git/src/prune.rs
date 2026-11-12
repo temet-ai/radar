@@ -19,6 +19,8 @@ pub enum Why {
     /// Its upstream was deleted on the remote (a merge request merged and
     /// its branch removed).
     Gone,
+    /// A worktree on no branch (a review's checkout of one commit).
+    Detached,
 }
 
 impl Why {
@@ -26,6 +28,7 @@ impl Why {
         match self {
             Why::Merged => "merged",
             Why::Gone => "upstream gone",
+            Why::Detached => "detached",
         }
     }
 }
@@ -48,6 +51,8 @@ impl Candidate {
     pub fn line(&self) -> String {
         let mut line = if self.tree.is_empty() {
             format!("branch {}", self.branch)
+        } else if self.branch.is_empty() {
+            format!("worktree {}", crate::local::tilde(&self.tree))
         } else {
             format!(
                 "worktree {} · {}",
@@ -78,14 +83,25 @@ fn why(d: &Detail, b: &Branch) -> Option<Why> {
 }
 
 /// What prune would remove from these clones: worktrees (never a clone
-/// itself) that are clean and on a merged or gone branch, with that branch,
-/// and branches that are merged or gone and checked out nowhere. The base
-/// branch, a branch checked out anywhere and a dirty worktree are kept.
+/// itself) that are clean and on a merged or gone branch, with that branch;
+/// clean detached worktrees (review checkouts), saying what commits only they
+/// hold; and branches that are merged or gone and checked out nowhere. The
+/// base branch, a branch checked out anywhere and a dirty worktree are kept.
 pub fn select<'a>(details: impl IntoIterator<Item = &'a Detail>) -> Vec<Candidate> {
     let mut out = Vec::new();
     for d in details {
         for t in d.trees.iter().skip(1) {
-            if t.status != StatusRead::Current || t.dirty > 0 || t.branch.is_empty() {
+            if t.status != StatusRead::Current || t.dirty > 0 {
+                continue;
+            }
+            if t.branch.is_empty() {
+                out.push(Candidate {
+                    clone: d.dir.clone(),
+                    tree: t.dir.clone(),
+                    branch: String::new(),
+                    why: Why::Detached,
+                    lost: t.lost,
+                });
                 continue;
             }
             let Some(b) = d.branches.iter().find(|b| b.name == t.branch) else {
@@ -121,7 +137,7 @@ pub fn select<'a>(details: impl IntoIterator<Item = &'a Detail>) -> Vec<Candidat
 
 fn lost(why: Why, b: &Branch) -> usize {
     match why {
-        Why::Merged => 0,
+        Why::Merged | Why::Detached => 0,
         Why::Gone => b.unpushed,
     }
 }
@@ -246,6 +262,9 @@ fn run_with(
                 status: StepStatus::Skipped,
             });
             hook_clones.insert(c.clone.clone());
+        }
+        if !c.tree.is_empty() && c.branch.is_empty() {
+            continue; // a detached worktree has no branch to delete
         }
         steps.push(StepResult {
             clone: c.clone.clone(),
@@ -531,6 +550,35 @@ mod tests {
         assert!(s.0.join("code/api-wt-done").exists());
         list.remove(0);
         assert_eq!(run(&list, "").outcome(), Outcome::Succeeded);
+    }
+
+    #[test]
+    fn clean_detached_worktrees_go_without_a_branch_step_and_say_what_only_they_hold() {
+        let s = Scratch::new("detached");
+        let clone = repos(&s);
+        let review = s.0.join("code/api-review");
+        let worked = s.0.join("code/api-worked");
+        for dir in [&review, &worked] {
+            sh(&clone, &["worktree", "add", "--detach", dir.to_str().unwrap(), "main"]);
+        }
+        commit(&worked, "only-here.txt");
+        let d = read(clone.to_str().unwrap());
+        let mut list: Vec<Candidate> = select([&d])
+            .into_iter()
+            .filter(|c| c.why == Why::Detached)
+            .collect();
+        list.sort_by(|a, b| a.tree.cmp(&b.tree));
+        let found: Vec<(&str, &str, usize)> = list
+            .iter()
+            .map(|c| (c.tree.rsplit('/').next().unwrap(), c.branch.as_str(), c.lost))
+            .collect();
+        assert_eq!(found, [("api-review", "", 0), ("api-worked", "", 1)]);
+        assert!(list[0].line().ends_with("api-review · detached"), "{}", list[0].line());
+        let result = run(&list, "");
+        assert_eq!(result.outcome(), Outcome::Succeeded);
+        assert_eq!(result.steps.len(), 2, "worktree steps only: {:?}", result.steps);
+        assert_eq!(result.said.unwrap(), "removed 2 worktrees and 0 branches");
+        assert!(!review.exists() && !worked.exists());
     }
 
     fn candidate(clone: &str, tree: &str, branch: &str) -> Candidate {

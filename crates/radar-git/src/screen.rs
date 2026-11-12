@@ -90,6 +90,8 @@ pub struct Tree {
     pub status: StatusRead,
     pub ahead: usize,
     pub behind: usize,
+    /// When detached: commits only it holds (on no branch and no remote).
+    pub lost: usize,
 }
 
 /// Everything read from one clone.
@@ -433,6 +435,16 @@ fn read_with(
             Err(_) => {
                 observed.worktrees.incomplete();
                 t.status = StatusRead::Unavailable;
+            }
+        }
+        if t.branch.is_empty() && !t.head.is_empty() {
+            let count = ["rev-list", "--count", "HEAD", "--not", "--branches", "--remotes"];
+            match git(Path::new(&t.dir), &count).ok().and_then(|n| n.parse().ok()) {
+                Some(n) => t.lost = n,
+                None => {
+                    observed.worktrees.incomplete();
+                    t.status = StatusRead::Unavailable;
+                }
             }
         }
     }

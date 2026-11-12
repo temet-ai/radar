@@ -254,10 +254,10 @@ fn trim_remote(r: &str) -> &str {
     r.trim_end_matches('/').trim_end_matches(".git")
 }
 
-/// Where a review worktree goes: the configured template, per branch and sha.
-fn review_path(p: &GitPlugin, clone: &str, branch: &str, sha: &str) -> String {
-    let short = &sha[..sha.len().min(7)];
-    act::worktree_path(p, clone, &format!("{branch}-{short}"))
+/// Where a review worktree goes: the configured template, one per branch
+/// (`api-fix-review`); a later commit of the branch moves it there.
+fn review_path(p: &GitPlugin, clone: &str, branch: &str) -> String {
+    act::worktree_path(p, clone, &format!("{branch}-review"))
 }
 
 /// Make, or reuse, the worktree. Creating one is journaled like radar-git's
@@ -269,7 +269,7 @@ pub(crate) fn ensure_worktree(
     let Some(clone) = clone_of_repository(p, &request.repository) else {
         return (Err(WorktreeError::UnknownRepository), vec![]);
     };
-    let path = review_path(p, &clone, &request.branch, &request.sha);
+    let path = review_path(p, &clone, &request.branch);
     let made = review_worktree::ensure(&Request {
         clone: Path::new(&clone),
         branch: &request.branch,
@@ -505,7 +505,7 @@ mod tests {
         let (made, fx) = ensure_worktree(&p, &req);
         let ready = made.unwrap();
         assert!(!ready.reused);
-        assert_eq!(ready.path, s.0.join(format!("x-{}", &sha[..7])));
+        assert_eq!(ready.path, s.0.join("x-review"));
         assert_eq!(git(&ready.path, &["rev-parse", "HEAD"]), sha);
         assert_eq!(git(Path::new(&clone), &["branch", "--show-current"]), "main");
         let kinds: Vec<String> = fx

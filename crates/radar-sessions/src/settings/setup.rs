@@ -334,7 +334,7 @@ mod tests {
     fn the_setup_card_leaves_out_the_new_session_defaults_and_the_cursor_stays_on_what_is_drawn() {
         let hidden = [
             "def:provider", "def:model", "def:work_dir", "def:roots", "def:skills", "def:project_config",
-            "def:allow", "def:deny", "def:local_only", "def:reviewer_commands", "rec:folder", "rec:reviews", "dock:notify",
+            "def:allow", "def:deny", "def:local_only", "def:reviewer_commands", "rec:folder", "rec:reviews", "rec:auto_review", "dock:notify",
         ];
         let targets = |v: &SectionView| match &v.body {
             Node::List { rows, .. } => rows.iter().filter(|r| !r.heading).map(|r| r.target.as_str().to_string()).collect::<Vec<_>>(),

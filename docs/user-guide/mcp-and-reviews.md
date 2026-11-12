@@ -90,18 +90,21 @@ comments, remote operational logs, and a standalone headless host are not yet in
 A manual review starts with `v` on a Slack message or thread that links an MR/PR. For
 automatic intake, first connect Slack, GitLab or GitHub, configure the local checkout, and
 choose a signed-in integrated provider in [Agents](agents.md#set-up-a-provider). Choose a
-watched channel as the review channel in Settings → Slack → Review, then set this option
-in the existing configuration:
+watched channel as the review channel in Settings → Slack → Review, then turn on
+**review on request** in Settings → Agents. In the configuration file that is:
 
 ```toml
 [slack.review]
 channel = "watch-reviews" # the alias of an existing watched channel
 # group = "S0123456789"  # optional Slack user-group ID
+
+[sessions]
 auto_review = true
 ```
 
 The channel value is radar's configured channel alias, not the Slack channel ID or URL.
-Automatic intake is off by default. The [Slack guide](slack.md#ask-for-review) covers
+Slack only finds the requests; the agents part decides whether they start, and Slack
+looks for them only while it is on. Automatic intake is off by default. The [Slack guide](slack.md#ask-for-review) covers
 composing a request yourself; this option handles incoming requests.
 
 When a group is configured, a request must mention that exact group and its thread must
@@ -154,7 +157,7 @@ for reviews that should finish by inspection instead of waiting for those comman
 
 | What you see | What to check |
 |---|---|
-| No automatic review | The review channel must be watched, `auto_review` enabled, and the request newer than first activation. Check the group mention and linked MR/PR, and resume radar if manually paused. |
+| No automatic review | The review channel must be watched, review on request (`[sessions] auto_review`) on, and the request newer than first activation. Check the group mention and linked MR/PR, and resume radar if manually paused. |
 | Missing checkout or commit | Configure the correct local repository and make the required commit available there. Radar does not clone a repository for the review. |
 | Provider unavailable or signed out | Check the selected provider in Settings → Agents. |
 | A session waiting for approval | Open its dock tab and inspect the pending command, or use inspection-only reviews for subsequent launches. |

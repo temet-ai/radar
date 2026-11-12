@@ -237,9 +237,6 @@ pub struct Channel {
 /// How review is asked for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Review {
-    /// Start local reviews for new requests in the configured review channel.
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub auto_review: bool,
     /// Whether asking for review shows the draft page first, where `p`
     /// posts after a yes. Off, an ask posts the moment it is chosen.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
@@ -388,7 +385,6 @@ impl Review {
 impl Default for Review {
     fn default() -> Self {
         Self {
-            auto_review: false,
             draft_first: false,
             channel: String::new(),
             group: String::new(),

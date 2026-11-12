@@ -2090,6 +2090,10 @@ impl Host {
                 } else {
                     self.plugins.len()
                 };
+                let intake = self.takes_automatic_reviews();
+                for p in &mut self.plugins {
+                    p.review_intake(intake);
+                }
                 for i in 0..ticking {
                     let fx = self.plugins[i].tick(now);
                     out.extend(self.route(i, fx, 0));
@@ -2881,6 +2885,10 @@ impl Host {
             self.notify_error("no agent dock here");
             return vec![];
         };
+        // A request found on its own goes only to a dock that takes them.
+        if request.automatic && !self.plugins[d].takes_automatic_reviews() {
+            return vec![];
+        }
         let mut changes = request.changes.clone();
         for link in &request.links {
             for p in &self.plugins {
@@ -2988,6 +2996,11 @@ impl Host {
     /// The part that supplies the agent dock, if any is loaded.
     pub fn dock_owner(&self) -> Option<usize> {
         self.plugins.iter().position(|p| p.dock().is_some())
+    }
+
+    /// Whether the dock owner starts reviews a part found on its own.
+    fn takes_automatic_reviews(&self) -> bool {
+        self.dock_owner().is_some_and(|d| self.plugins[d].takes_automatic_reviews())
     }
 
     /// The dock for the screens: the owner's content with the host's state

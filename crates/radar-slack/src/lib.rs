@@ -323,6 +323,9 @@ pub struct SlackPlugin {
     pub(crate) account_cache: cache::AccountCache,
     /// Transient: never restored or serialized as authority.
     pub(crate) session_owner: Option<cache::AccountOwner>,
+    /// The host's word, each tick: the agent dock takes the review requests
+    /// found in the review channel, so they are looked for.
+    pub(crate) review_intake: bool,
     /// The print of the token this session signed in with, saved beside
     /// its data (see `cache::token_print`).
     pub(crate) session_token: Option<String>,
@@ -1077,7 +1080,8 @@ impl Plugin for SlackPlugin {
         let fx = page::fetch_thread(self, channel, ts);
         (!fx.is_empty(), fx)
     }
-    fn background_work(&self) -> bool { self.cfg.review.auto_review && self.cfg.channels.iter().any(|c| c.alias == self.cfg.review.channel && c.watched) }
+    fn review_intake(&mut self, on: bool) { self.review_intake = on; }
+    fn background_work(&self) -> bool { self.review_intake &&self.cfg.channels.iter().any(|c| c.alias == self.cfg.review.channel && c.watched) }
     fn agent_scope(&self) -> String {
         self.session_owner.as_ref().map_or_else(String::new, |o| format!("{}/{}", o.team_id, o.user_id))
     }

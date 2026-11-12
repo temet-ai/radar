@@ -1989,6 +1989,7 @@ impl Plugin for SessionsPlugin {
     fn review_context(&mut self, run: u64, context: radar_core::context::Bundle) {
         self.review.set_context(run, context);
     }
+    fn takes_automatic_reviews(&self) -> bool { self.settings.cfg.auto_review }
     fn background_work(&self) -> bool { self.review.background_work() }
     fn context_calls(&mut self) -> Vec<radar_core::context::Call> {
         self.context_server.as_mut().map_or_else(Vec::new, |s| s.calls())

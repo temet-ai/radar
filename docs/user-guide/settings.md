@@ -148,8 +148,8 @@ when its JQL matches no tickets.
 
 [Connect Slack](connect.md#slack) explains the token and scopes. The
 [Slack guide](slack.md) covers channel and thread pages, replies and review asks.
-Automatic local review intake is enabled by the `auto_review` config setting;
-follow [Start reviews from Slack](mcp-and-reviews.md#start-reviews-from-slack) for
+Slack finds review requests in the review channel; whether they start a local review
+is **review on request** in [Agents](#agents); follow [Start reviews from Slack](mcp-and-reviews.md#start-reviews-from-slack) for
 the complete setup.
 
 ## Git
@@ -179,7 +179,8 @@ notes are described in [Workspaces](workspaces.md).
 
 **Tools and defaults** contains installed-provider status and sign-in actions,
 additional terminal commands, defaults for new sessions, permission rules,
-recipes, review output and desktop notifications. Select a row to see its
+recipes, review output, **review on request** (start a background review when
+Slack's review channel asks you for one) and desktop notifications. Select a row to see its
 specific actions; `p` on a provider opens its paths and folders, while `p` on a
 working or review folder opens repository overrides.
 

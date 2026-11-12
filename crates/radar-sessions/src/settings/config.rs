@@ -386,6 +386,11 @@ pub struct AgentsConfig {
     /// Empty: workspace notes, then `$XDG_STATE_HOME/radar/reviews`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reviews_dir: Option<String>,
+    /// Review the requests other parts find (a mention in Slack's review
+    /// channel) without being asked here, one at a time in the background.
+    /// Off unless asked for.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub auto_review: bool,
     /// A desktop notification when a session needs you (an approval, a
     /// question) or its turn ends while its tab is out of sight. Off unless
     /// asked for.

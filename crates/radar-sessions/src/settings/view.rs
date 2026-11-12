@@ -130,6 +130,7 @@ pub(super) fn section(s: &AgentsSettings, cx: &ViewCx<'_>) -> SectionView {
                 kv(r, &format!("recipe {name}"), v)
             }
             Row::ReviewsDir => kv(r, "reviews folder", s.cfg.reviews_dir.clone().unwrap_or_else(|| "radar's state folder".into())),
+            Row::AutoReview => kv(r, "review on request", yes(s.cfg.auto_review).into()),
             Row::Notify => {
                 rows.push(ListRow::heading("b:5", Text::new()));
                 rows.push(ListRow::heading("h:away", heading("while you are away")));
@@ -170,6 +171,7 @@ fn detail_title(s: &AgentsSettings) -> String {
         Row::RecipesDir => "recipes folder".into(),
         Row::Recipe(name) => format!("recipe {name}"),
         Row::ReviewsDir => "reviews folder".into(),
+        Row::AutoReview => "review on request".into(),
         Row::Roots => "permitted folders".into(),
         Row::Allow => "always allow".into(),
         Row::Deny => "always deny".into(),
@@ -262,6 +264,7 @@ fn detail(s: &AgentsSettings) -> Vec<Text> {
         Row::Deny => rules_detail("Requests radar refuses for you without asking. A deny wins over an allow.", &s.defaults().deny),
         Row::LocalOnly => words("Sessions run on this machine only: no remote or delegated runs. Copilot refuses /delegate, & and --remote and keeps custom agents local; Codex and Claude Code have no remote run to refuse."),
         Row::Reviewer => words("A reviewer session may ask to run commands that execute the change's code; each one is approved in the dock. Off: it reads and runs git diff, log and show only."),
+        Row::AutoReview => words("When a review request for you turns up (your group mentioned in Slack's review channel, with a linked merge request), a local review starts in the background, one at a time, and its notes are saved to the reviews folder. Nothing is posted. Off: a review starts only when you ask for one. Off by default."),
         Row::Notify => words("A desktop notification when a session needs you (an approval, a question) or its turn ends while the dock is hidden or shows another tab: notify-send on Linux, the notification centre on macOS. The status line's chip says the same in radar whether this is on or off. Off by default."),
     }
 }

@@ -13,7 +13,7 @@ pub struct Checkpoint {
 }
 
 pub(crate) fn poll(p: &mut SlackPlugin) -> Vec<Effect> {
-    if !p.cfg.review.auto_review || !p.authenticated() {
+    if !p.review_intake || !p.authenticated() {
         return vec![];
     }
     let Some(channel) = p
@@ -106,7 +106,7 @@ mod tests {
     #[test]
     fn new_requests_queue_once_across_refresh_and_restore_without_replaying_history() {
         let mut p = demo::sample();
-        p.cfg.review.auto_review = true;
+        p.review_intake = true;
         assert!(
             poll(&mut p)
                 .iter()
@@ -137,7 +137,7 @@ mod tests {
     #[test]
     fn other_channels_and_other_groups_do_not_trigger() {
         let mut p = demo::sample();
-        p.cfg.review.auto_review = true;
+        p.review_intake = true;
         poll(&mut p);
         let ts = format!("{}.000001", p.now + 1);
         let text = format!(

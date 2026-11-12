@@ -59,6 +59,8 @@ pub(crate) enum Row {
     RecipesDir,
     Recipe(String),
     ReviewsDir,
+    /// Review requests found elsewhere without being asked.
+    AutoReview,
     /// Desktop notifications while you are away from a session.
     Notify,
 }
@@ -81,13 +83,17 @@ impl Row {
             Row::RecipesDir => "rec:folder".into(),
             Row::Recipe(name) => format!("rec:{name}"),
             Row::ReviewsDir => "rec:reviews".into(),
+            Row::AutoReview => "rec:auto_review".into(),
             Row::Notify => "dock:notify".into(),
         }
     }
 
     /// The defaults rows, under "new sessions".
     pub(crate) fn is_default(&self) -> bool {
-        !matches!(self, Row::Cli(_) | Row::AddCli | Row::RecipesDir | Row::Recipe(_) | Row::ReviewsDir | Row::Notify)
+        !matches!(
+            self,
+            Row::Cli(_) | Row::AddCli | Row::RecipesDir | Row::Recipe(_) | Row::ReviewsDir | Row::AutoReview | Row::Notify
+        )
     }
 }
 
@@ -395,6 +401,7 @@ impl AgentsSettings {
         let dir = self.recipes_dir();
         rows.extend(crate::brief::Recipe::names(dir.as_deref()).into_iter().map(Row::Recipe));
         rows.push(Row::ReviewsDir);
+        rows.push(Row::AutoReview);
         rows.push(Row::Notify);
         rows
     }
@@ -662,6 +669,12 @@ impl AgentsSettings {
                 let d = self.editing();
                 d.local_only = !d.local_only;
                 vec![Effect::Notify(if d.local_only { "sessions run on this machine only".into() } else { "remote runs allowed".into() })]
+            }
+            Row::AutoReview => {
+                self.cfg.auto_review = !self.cfg.auto_review;
+                vec![Effect::Notify(
+                    if self.cfg.auto_review { "review requests found in Slack start a review here".into() } else { "reviews start only when you ask".into() },
+                )]
             }
             Row::Notify => {
                 self.cfg.notify = !self.cfg.notify;

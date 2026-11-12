@@ -40,6 +40,7 @@ bar: radar  :log: history <:settings: settings>  :mode_edit: edit {chrome:mode}
   recipe ask            v1 · built-in  {rec:ask}
   recipe review-mr      v1 · built-in  {rec:review-mr}
   reviews folder        radar's state folder  {rec:reviews}
+  review on request     no  {rec:auto_review}
   #  {b:5}
   # WHILE YOU ARE AWAY  {h:away}
   #  {b:6}

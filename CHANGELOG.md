@@ -8,6 +8,28 @@ comparison link at the end of each release's notes.
 Sections use these headings, leaving out any with nothing in them: **New**,
 **Changed**, **Fixed**, **Security**, **Upgrading** (anything to do by hand).
 
+## Unreleased
+
+### Changed
+
+- **Automatic reviews are an Agents setting.** Whether a review request found in
+  Slack's review channel starts a local review is now **review on request** in
+  Settings → Agents (`[sessions] auto_review`). Slack only finds the requests, and
+  looks for them only while that is on.
+
+### Fixed
+
+- **Review worktrees no longer pile up.** A merge request gets one review worktree
+  (`<topic>-review`), moved to each new commit, instead of one per commit. Prune
+  now offers clean worktrees that are on no branch and says what commits only
+  they hold.
+
+### Upgrading
+
+- `[slack.review] auto_review` is no longer read. To keep automatic reviews, set
+  `auto_review = true` under `[sessions]`, or turn on review on request in
+  Settings → Agents.
+
 ## 0.1.0-alpha.20 (2026-11-09)
 
 ### Fixed

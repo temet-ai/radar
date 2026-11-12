@@ -1042,6 +1042,15 @@ pub trait Plugin: Send {
     fn review_enqueue(&mut self, origin: Option<crate::agent_context::AgentContext>, change: crate::journal::SubjectKey) -> Outcome {
         self.review_start(origin, change)
     }
+    /// Whether the dock owner starts reviews no one asked for here: a
+    /// request a part found on its own (a Slack review channel). The dock
+    /// owner decides; a part only finds them.
+    fn takes_automatic_reviews(&self) -> bool {
+        false
+    }
+    /// The host says, each tick, whether automatic reviews are taken, so a
+    /// part that finds review requests looks for them only while they are.
+    fn review_intake(&mut self, _on: bool) {}
     /// What the running reviews wait for, by run; each is asked once.
     fn review_asks(&mut self) -> Vec<(u64, ReviewAsk)> {
         vec![]

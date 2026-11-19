@@ -8,10 +8,28 @@ comparison link at the end of each release's notes.
 Sections use these headings, leaving out any with nothing in them: **New**,
 **Changed**, **Fixed**, **Security**, **Upgrading** (anything to do by hand).
 
-## Unreleased
+## 0.1.0-alpha.21 (2026-11-19)
+
+### New
+
+- **Pick watched Slack channels from a list.** Once the token check passes, setup's
+  Slack step and Settings → Slack list the channels you are in, public and private,
+  to tick. A filter narrows a long list, and `r` asks Slack again. Without
+  `groups:read` the list has public channels only and says so. Pasting a link or an
+  id still works for channels you are not in.
+- **MCP search filters by state.** `state: "open"` keeps anything not merged,
+  closed or done; any other word matches that state exactly.
 
 ### Changed
 
+- **MCP context and read fetch what they have not read yet.** An open merge
+  request comes with its description, files and discussions, and a linked ticket
+  with its comments and development links. radar waits up to 10 s for those reads.
+- **MCP coverage says how old the cache is.** Each source has its state, when it
+  last synced and how long ago, and a stale source is listed under `missing`.
+  Jira says which JQL its lists hold.
+- **MCP context on a merge request is quieter.** Its repository is listed but not
+  walked, and `omitted_refs` names each item left out and why.
 - **Automatic reviews are an Agents setting.** Whether a review request found in
   Slack's review channel starts a local review is now **review on request** in
   Settings → Agents (`[sessions] auto_review`). Slack only finds the requests, and
@@ -19,6 +37,12 @@ Sections use these headings, leaving out any with nothing in them: **New**,
 
 ### Fixed
 
+- **MCP kind filters take the label results show.** `kind: "merge request"` works
+  as well as `merge-request`, and a kind with no items lists the kinds there are.
+- **radar starts from a folder that was removed.** It used to stop with a Node
+  `ENOENT … uv_cwd` error; it now moves to your home folder and says so.
+- **GitLab's sync log says what it counted:** open merge requests on a full read,
+  or the ones changed since the last sync.
 - **Review worktrees no longer pile up.** A merge request gets one review worktree
   (`<topic>-review`), moved to each new commit, instead of one per commit. Prune
   now offers clean worktrees that are on no branch and says what commits only

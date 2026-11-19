@@ -580,6 +580,47 @@ mod setup_steps {
         assert!(h.host().plugins[p].capturing(), "typing the channel to add");
     }
 
+    /// The channels the token is in are ticked by id; an unlisted id does nothing.
+    #[test]
+    fn slacks_step_ticks_the_channels_you_are_in_by_id() {
+        let mut h = all_parts(160, 40);
+        let at = part(&h, "slack");
+        let mut slack = radar_slack::SlackPlugin::new();
+        slack.demo();
+        radar_slack::test_support::list_joined(
+            &mut slack,
+            &[("C0GUILD01", "assassins-guild", false), ("C0DUTY001", "night-duty", true)],
+        );
+        h.host_mut().plugins[at] = Box::new(slack);
+        h.host_mut().open_setup(Some("slack")).unwrap();
+        let watched = |h: &Headless| -> Vec<(String, bool)> {
+            h.host().plugins[at].config().unwrap()["channel"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|c| (c["id"].as_str().unwrap().to_string(), c["watched"].as_bool().unwrap_or(true)))
+                .collect()
+        };
+        let before = watched(&h).len();
+        select(&mut h, "night-duty");
+        unlisted_does_nothing(&mut h, "slack.connection.unlisted_tick");
+        assert_eq!(watched(&h).len(), before, "an unlisted id adds nothing");
+        assert!(listed(&h, "slack.connection.toggle_watch"));
+        h.send(Intent::Invoke { action: "slack.connection.toggle_watch".into() });
+        let now = watched(&h);
+        assert_eq!(now.len(), before + 1);
+        assert_eq!(now.last().unwrap(), &("C0DUTY001".to_string(), true));
+        h.send(Intent::Invoke { action: "slack.connection.toggle_watch".into() });
+        assert_eq!(watched(&h).last().unwrap(), &("C0DUTY001".to_string(), false), "unticked, kept");
+        select(&mut h, "filter");
+        assert!(listed(&h, "slack.connection.filter"));
+        h.send(Intent::Invoke { action: "slack.connection.filter".into() });
+        assert!(h.host().plugins[at].capturing(), "typing the filter");
+        h.send(Intent::Key { chord: Chord::parse("esc").unwrap() });
+        select(&mut h, "channels you are in");
+        assert!(listed(&h, "slack.connection.list"));
+    }
+
     #[test]
     fn local_codes_step_looks_in_a_found_place_by_id() {
         let mut h = all_parts(160, 40);

@@ -104,6 +104,7 @@ impl SlackPlugin {
         self.read_context.additions.clear();
         self.read_context.channel_checks = None;
         self.checks.clear();
+        self.joined = Default::default();
         self.sync.reading = 0;
         self.sync.started = None;
         self.sync.last_ok = None;

@@ -242,9 +242,13 @@ fn recorded_auth_preserves_retry_and_timezone_reuse_without_profile_request() {
         Some((Check::Passed(_), _))
     ));
     assert!(
-        !effects
-            .iter()
-            .any(|effect| matches!(effect, Effect::Spawn(_) | Effect::SpawnAction { .. }))
+        effects.iter().all(|effect| match effect {
+            Effect::Spawn(_) => false,
+            // Only the list of the channels you are in, asked after a good check.
+            Effect::SpawnAction { action, .. } => action.kind.as_str() == "slack.settings.joined.load",
+            _ => true,
+        }),
+        "no profile request"
     );
     assert_eq!(recorded.requests().len(), 2);
     for request in recorded.requests() {

@@ -168,6 +168,12 @@ pub(crate) enum SlackMsg {
         result: Result<client::GroupsRead, String>,
         pick: bool,
     },
+    /// The channels the token is in, to tick (see `settings/picker.rs`).
+    Joined {
+        stamp: read_context::CheckStamp,
+        action: ActionDescriptor,
+        result: Result<client::JoinedRead, String>,
+    },
     /// Whether the Slack app runs here, asked before opening a message in
     /// it: its own link if so, else the web one.
     OpenIn { link: String, web: String, running: bool },
@@ -283,6 +289,8 @@ pub(crate) enum Target {
     Refresh,
     Days,
     ChannelAdd,
+    /// The words that narrow the list of the channels you are in.
+    JoinedFilter,
     Alias(usize),
     Purpose(usize),
     Template,
@@ -370,6 +378,8 @@ pub struct SlackPlugin {
     /// rows only Settings needs; `ws_rows` follows it.
     pub(crate) setup_card: std::cell::Cell<bool>,
     pub(crate) section_scroll: Scroll,
+    /// The channels you are in, listed for the picker; transient, never cached.
+    pub(crate) joined: settings::picker::Joined,
     pub(crate) edit: Option<(Target, TextInput)>,
     /// Checks against Slack, by key: `workspace`, `channel:<id>`.
     pub(crate) checks: BTreeMap<String, (Check, i64)>,
@@ -1291,6 +1301,15 @@ impl Plugin for SlackPlugin {
                     return fx;
                 }
                 fx.extend(settings::on_groups(self, result.map(|got| got.groups), pick));
+                fx
+            }
+            SlackMsg::Joined { stamp, action, result } => {
+                let mut fx = settings_history::joined(&action, &result);
+                if !self.complete_check("joined", stamp) {
+                    fx.push(read_context::skipped(Some(&action)));
+                    return fx;
+                }
+                fx.extend(settings::picker::on_joined(self, result));
                 fx
             }
             SlackMsg::Wrote { instance, what, result } => self.on_wrote(what, result, &instance),

@@ -136,7 +136,13 @@ page with it filled in. It asks for user scopes only. Install the app to your wo
 copy its user token (`xoxp-…`).
 
 1. Settings, Slack, connection: set the token as `env:NAME` or paste it.
-2. Settings, Slack, **channels**: the channels to watch. Paste a channel's link, a link to a
-   message in it, or its id.
+2. Settings, Slack, **channels** (and setup's Slack step): once the token checks out, radar
+   lists **your channels**, the public and private ones you are in. `space` or `⏎` ticks a
+   channel to watch it; a ticked channel is added to the registry as a team channel and read on
+   every refresh. Unticking keeps it in the registry, not read. The **filter** row narrows a
+   long list by name or purpose (`⏎` to type, `c` to clear), and `r` asks Slack again. Without
+   `groups:read` the list holds the public channels only, and the row says so.
+3. For a channel you are not in, paste its link, a link to a message in it, or its id under
+   **add a channel**.
 
 ![Settings, Slack connection: the token, what it may do, and how to make a token](images/settings.slack.connection.png)

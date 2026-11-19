@@ -26,6 +26,22 @@ pub fn offline_plugin(mut cfg: Settings, data: serde_json::Value) -> anyhow::Res
     Ok(p)
 }
 
+/// The picker as it is after a good check: these channels (id, name,
+/// private) are the ones the token is in. For tests that tick them through a host.
+pub fn list_joined(p: &mut SlackPlugin, channels: &[(&str, &str, bool)]) {
+    p.joined.channels = channels
+        .iter()
+        .map(|(id, name, private)| crate::client::ChannelInfo {
+            id: (*id).into(),
+            name: (*name).into(),
+            is_private: *private,
+            is_member: true,
+            ..Default::default()
+        })
+        .collect();
+    p.joined.state = crate::settings::picker::State::Ready;
+}
+
 /// A guard for scripted CLI reads. Check it even when the command is expected to
 /// fail: a swallowed optional read must not hide an unexpected provider call.
 #[derive(Clone)]

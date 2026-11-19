@@ -24,6 +24,9 @@ use crate::config::{self, CHANNEL_COLORS, Channel, Kind, Reader, Rule, default_s
 use crate::view;
 use crate::{Check, Checked, SlackMsg, SlackPlugin, Target, ask};
 
+pub(crate) mod picker;
+use picker::PickRow;
+
 // --- what each part of radar-slack needs -----------------------------------------------
 
 /// What radar-slack does, and the permissions (scopes) each needs. The app
@@ -105,12 +108,18 @@ pub(crate) enum WsRow {
     ChannelAdd,
     /// A channel in the registry.
     Channel(usize),
+    /// A row of the list of the channels you are in, to tick.
+    Pick(PickRow),
 }
 
 impl WsRow {
     /// Whether the cursor stops on it.
     pub(crate) const fn selectable(self) -> bool {
-        !matches!(self, Self::Gap | Self::ChannelsHeading)
+        match self {
+            Self::Gap | Self::ChannelsHeading => false,
+            Self::Pick(row) => row.selectable(),
+            _ => true,
+        }
     }
 }
 
@@ -131,6 +140,7 @@ pub(crate) fn ws_rows(p: &SlackPlugin) -> Vec<WsRow> {
     rows.extend((0..NEEDS.len()).map(WsRow::Need));
     rows.extend([WsRow::Gap, WsRow::ChannelsHeading, WsRow::ChannelAdd]);
     rows.extend((0..p.cfg.channels.len()).map(WsRow::Channel));
+    rows.extend(picker::rows(p).into_iter().map(WsRow::Pick));
     rows
 }
 
@@ -243,6 +253,17 @@ pub(crate) enum ChRow {
     Add,
     Channel(usize),
     Field(usize, ChField),
+    /// A row of the list of the channels you are in, to tick.
+    Pick(PickRow),
+}
+
+impl ChRow {
+    pub(crate) const fn selectable(self) -> bool {
+        match self {
+            Self::Pick(row) => row.selectable(),
+            _ => true,
+        }
+    }
 }
 
 pub(crate) fn ch_rows(p: &SlackPlugin) -> Vec<ChRow> {
@@ -255,6 +276,7 @@ pub(crate) fn ch_rows(p: &SlackPlugin) -> Vec<ChRow> {
                 .map(|f| ChRow::Field(i, f)),
         );
     }
+    rows.extend(picker::rows(p).into_iter().map(ChRow::Pick));
     rows
 }
 
@@ -581,6 +603,7 @@ fn ws_label(row: WsRow) -> &'static str {
         WsRow::Need(k) => NEEDS[k].0,
         WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd => "add a channel",
         WsRow::Channel(_) => "channel",
+        WsRow::Pick(_) => "your channels",
     }
 }
 
@@ -960,6 +983,10 @@ pub(crate) fn on_checked(
             if fresh {
                 fx.extend(p.read());
             }
+            // The channels you are in, to tick, once the token is good.
+            if p.joined.state != picker::State::Loading {
+                fx.extend(picker::load(p));
+            }
             fx
         }
         ("add", Ok(Checked::Channel(info))) => {
@@ -971,30 +998,8 @@ pub(crate) fn on_checked(
                     info.name
                 ))];
             }
-            let taken: Vec<&str> = p.cfg.channels.iter().map(|c| c.alias.as_str()).collect();
-            let alias = config::alias_for(&info.name, &taken);
-            let mut purpose = info.purpose.clone();
-            if purpose.chars().count() > 60 {
-                purpose = radar_core::ui::fit(&purpose, 60).trim_end().to_string();
-            }
-            let color = p.cfg.next_color();
-            p.cfg.channels.push(Channel {
-                alias: alias.clone(),
-                id: info.id.clone(),
-                name: info.name.clone(),
-                purpose,
-                kind: Kind::Team,
-                color,
-                watched: true,
-                reader: None,
-            });
-            let i = p.cfg.channels.len() - 1;
+            let (i, alias) = register(p, &info);
             p.checks.remove("add");
-            p.checks.insert(
-                format!("channel:{}", info.id),
-                (Check::Passed(channel_verdict(&info)), p.now),
-            );
-            p.data.channels.entry(info.id.clone()).or_default().info = Some(info.clone());
             p.section_rows[1] = row_of(p, ChRow::Channel(i));
             let mut fx = vec![Effect::Notify(if alias == info.name {
                 format!("added #{}", info.name)
@@ -1025,6 +1030,34 @@ pub(crate) fn on_checked(
             vec![crate::view::failed(&e.to_string())]
         }
     }
+}
+
+/// A channel into the registry: a team channel, watched, called by its name
+/// (or the nearest alias not taken). Its place, and the alias.
+fn register(p: &mut SlackPlugin, info: &crate::client::ChannelInfo) -> (usize, String) {
+    let taken: Vec<&str> = p.cfg.channels.iter().map(|c| c.alias.as_str()).collect();
+    let alias = config::alias_for(&info.name, &taken);
+    let mut purpose = info.purpose.clone();
+    if purpose.chars().count() > 60 {
+        purpose = radar_core::ui::fit(&purpose, 60).trim_end().to_string();
+    }
+    let color = p.cfg.next_color();
+    p.cfg.channels.push(Channel {
+        alias: alias.clone(),
+        id: info.id.clone(),
+        name: info.name.clone(),
+        purpose,
+        kind: Kind::Team,
+        color,
+        watched: true,
+        reader: None,
+    });
+    p.checks.insert(
+        format!("channel:{}", info.id),
+        (Check::Passed(channel_verdict(info)), p.now),
+    );
+    p.data.channels.entry(info.id.clone()).or_default().info = Some(info.clone());
+    (p.cfg.channels.len() - 1, alias)
 }
 
 fn channel_verdict(info: &crate::client::ChannelInfo) -> String {
@@ -1089,6 +1122,8 @@ fn validate(p: &SlackPlugin, target: &Target, text: &str) -> Result<String, Stri
             )),
             Some(why) => Err(why),
         },
+        Target::JoinedFilter if text.is_empty() => Ok("shows every channel".into()),
+        Target::JoinedFilter => Ok("narrows the list to the channels with these words in their name or purpose".into()),
         Target::Refresh => match text.trim_end_matches('s').parse::<u64>() {
             Ok(n) if n >= 30 => Ok(format!("every {}", time::ago(0, n as i64))),
             Ok(_) => Err("at least 30 seconds: Slack limits how often it is asked".into()),
@@ -1387,6 +1422,11 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                 row.right = check_mark_text(p, &format!("channel:{}", channel.id));
                 row
             }
+            WsRow::Pick(pick) => {
+                let (list, typing) = picker::list_row(p, pick, format!("row:{i}"));
+                if let Some(at) = typing { editing_at = Some((i, at)); }
+                list
+            }
             WsRow::Workspace | WsRow::SignedIn => {
                 let label = if row == WsRow::Workspace { "workspace" } else { connection::SIGNED_IN };
                 let value = match (row, &p.data.me) {
@@ -1431,6 +1471,8 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                 entries.push(Entry::child(i, list));
             }
             WsRow::Need(_) | WsRow::ChannelAdd | WsRow::Channel(_) => entries.push(Entry::child(i, list)),
+            WsRow::Pick(PickRow::Heading) => entries.push(Entry::root(i, list)),
+            WsRow::Pick(_) => entries.push(Entry::child(i, list)),
             _ => entries.push(Entry::root(i, list)),
         }
     }
@@ -1467,6 +1509,7 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                 v::kit::labelled("in Slack", 10, v::Text::plain(if channel.name.is_empty() { "—".into() } else { format!("#{}", channel.name) })),
                 v::kit::labelled("id", 10, v::Text::plain(channel.id.clone()))]);
         }
+        WsRow::Pick(pick) => detail.extend(picker::detail(p, pick)),
         row => {
             let mut d = match row {
                 WsRow::Workspace => connection::DetailText::new("The Slack workspace the token is for: a user token belongs to one. The check finds it."),
@@ -1495,7 +1538,7 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
     }
     // The sheet: the row's detail, then the help that row needs.
     let help = match ws_row(p) {
-        WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd | WsRow::Channel(_) => crate::setup::channels_help(),
+        WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd | WsRow::Channel(_) | WsRow::Pick(_) => crate::setup::channels_help(),
         WsRow::Api | WsRow::Refresh | WsRow::Days => vec![],
         _ => crate::setup::token_help(),
     };
@@ -1637,6 +1680,11 @@ pub fn channels_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
                 row.right = check_mark_text(p, &format!("channel:{}", channel.id));
                 row
             }
+            ChRow::Pick(pick) => {
+                let (list, typing) = picker::list_row(p, pick, format!("row:{i}"));
+                if let Some(at) = typing { editing = Some((i, at)); }
+                list
+            }
             ChRow::Field(k, field) => {
                 let target = match field { ChField::Alias => Some(Target::Alias(k)), ChField::Purpose => Some(Target::Purpose(k)), _ => None };
                 if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) { editing = Some((i, FIELD_LABEL_W as u16)); }
@@ -1647,7 +1695,7 @@ pub fn channels_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
             }
         };
         out.target = v::Target::new(format!("row:{i}"));
-        let entry = if matches!(row, ChRow::Field(..)) { Entry::child(i, out) } else { Entry::root(i, out) };
+        let entry = if matches!(row, ChRow::Field(..) | ChRow::Pick(PickRow::Status | PickRow::Filter | PickRow::Channel(_))) { Entry::child(i, out) } else { Entry::root(i, out) };
         match stripe { Some(look) => entry.stripe(look), None => entry }
     }).collect();
     let mut detail = Vec::new();
@@ -1671,6 +1719,7 @@ pub fn channels_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
             }
             config_text(&mut detail, "[[slack.channel]]");
         }
+        ChRow::Pick(pick) => detail.extend(picker::detail(p, pick)),
         ChRow::Field(k, field) => {
             typing_text(p, &mut detail);
             detail.push(v::Text::plain(field.about()));
@@ -1865,12 +1914,17 @@ pub fn detail_title(p: &SlackPlugin, section: &str) -> String {
                 .get(k)
                 .map_or_else(|| "found".into(), |o| found(&o.var).title()),
             WsRow::Channel(i) => format!("#{}", p.cfg.channels[i].alias),
+            WsRow::Pick(PickRow::Channel(k)) => p.joined.channels.get(k).map_or_else(|| "your channels".into(), |c| format!("#{}", c.name)),
+            WsRow::Pick(PickRow::Filter) => "filter".into(),
             row => ws_label(row).into(),
         },
         "channels" => match ch_row(p) {
             ChRow::Add => "add a channel".into(),
             ChRow::Channel(i) => format!("#{}", p.cfg.channels[i].alias),
             ChRow::Field(_, f) => f.label().into(),
+            ChRow::Pick(PickRow::Channel(k)) => p.joined.channels.get(k).map_or_else(|| "your channels".into(), |c| format!("#{}", c.name)),
+            ChRow::Pick(PickRow::Filter) => "filter".into(),
+            ChRow::Pick(_) => "your channels".into(),
         },
         "review" => rv_row(p).label().into(),
         "alerts" => match al_row(p) {
@@ -1923,6 +1977,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
     match section {
         "connection" => match ws_row(p) {
             WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd => None,
+            WsRow::Pick(row) => picker::menu(p, row),
             WsRow::Channel(i) => Some(channel_menu(p, i)),
             WsRow::Offer(k) => {
                 let q = found(&p.offers().get(k)?.var);
@@ -1988,6 +2043,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
         },
         "channels" => match ch_row(p) {
             ChRow::Add => None,
+            ChRow::Pick(row) => picker::menu(p, row),
             ChRow::Channel(i) => Some(channel_menu(p, i)),
             ChRow::Field(i, f) => {
                 let items = match f {
@@ -2274,6 +2330,7 @@ pub fn on_menu(p: &mut SlackPlugin, menu: &str, value: &str) -> Vec<Effect> {
             None => vec![],
         },
         ("ask-check", _) => vec![],
+        ("joined", value) => picker::on_menu(p, arg, value),
         ("offer", "use") => {
             let Some(o) = idx(arg).and_then(|k| p.offers().get(k).cloned()) else {
                 return vec![];
@@ -2709,6 +2766,22 @@ pub fn on_menu(p: &mut SlackPlugin, menu: &str, value: &str) -> Vec<Effect> {
 }
 
 pub fn bulk(p: &SlackPlugin, section: &str) -> Vec<MenuItem> {
+    let mut items = bulk_of(p, section);
+    if matches!(section, "connection" | "channels")
+        && p.authenticated()
+        && p.joined.state != picker::State::Loading
+    {
+        items.push(MenuItem::new(
+            'p',
+            "pick from your channels",
+            "list the channels you are in, to tick",
+            "joined-list",
+        ));
+    }
+    items
+}
+
+fn bulk_of(p: &SlackPlugin, section: &str) -> Vec<MenuItem> {
     match section {
         "connection" if !p.cfg.token.trim().is_empty() => vec![MenuItem::new(
             'c',
@@ -2758,6 +2831,7 @@ pub fn on_bulk(p: &mut SlackPlugin, value: &str) -> Vec<Effect> {
                 .flat_map(|id| check_channel(p, format!("channel:{id}"), Ok(id)))
                 .collect()
         }
+        "joined-list" => picker::load(p),
         "sl-reset-all" => {
             p.cfg.style = default_styles();
             vec![Effect::Notify("every word back to its default".into())]
@@ -2799,6 +2873,7 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: Chord) -> Outcome {
         let can = |row: usize| match section {
             "look" => !matches!(look_rows().get(row), Some(LookRow::Header(_))),
             "connection" => ws.get(row).is_none_or(|r| r.selectable()),
+            "channels" => ch_rows(p).get(row).is_none_or(|r| r.selectable()),
             _ => true,
         };
         p.section_rows[at] = select(row_count(p, section), p.section_rows[at], mv, can);
@@ -2824,8 +2899,8 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: Chord) -> Outcome {
         // ⏎ goes straight to changing the row (typing, or choosing from
         // what it can be) when that is what the row is for; a row with
         // several different things to do offers them.
-        let direct =
-            menu.items.len() == 1 || menu.items.first().is_some_and(|i| i.key == Some('e'));
+        let direct = menu.items.len() == 1
+            || menu.items.first().is_some_and(|i| matches!(i.key, Some('e' | ' ')));
         if direct && let Some(first) = menu.items.first() {
             let value = first.value.clone();
             return Outcome::Handled(on_menu(p, &menu.id, &value));
@@ -2894,6 +2969,7 @@ fn commit(p: &mut SlackPlugin, target: Target, value: String) -> Vec<Effect> {
             )]
         }
         Target::ChannelAdd => check_channel(p, "add".into(), config::channel_ref(&value)),
+        Target::JoinedFilter => picker::set_filter(p, value),
         Target::Alias(i) => {
             let old = std::mem::replace(&mut p.cfg.channels[i].alias, value.clone());
             for a in [&mut p.cfg.review.channel, &mut p.cfg.review.test_channel] {
@@ -3255,8 +3331,12 @@ mod tests {
             assert_eq!(p.data.me.as_ref().unwrap().tz_offset, offset.or(Some(3600)));
             assert!(p.checks.contains_key("channel:C1"));
             assert!(
-                !fx.iter()
-                    .any(|e| matches!(e, Effect::Spawn(_) | Effect::SpawnAction { .. }))
+                fx.iter().all(|e| match e {
+                    Effect::Spawn(_) => false,
+                    // The list of the channels you are in is asked after a good check.
+                    Effect::SpawnAction { action, .. } => action.kind.as_str() == "slack.settings.joined.load",
+                    _ => true,
+                })
             );
         }
     }

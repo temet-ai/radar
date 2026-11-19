@@ -95,7 +95,8 @@ pub(crate) fn token_help() -> Vec<Block> {
 pub(crate) fn channels_help() -> Vec<Block> {
     vec![
         Block::section(Some(Icon::Channel), "channel links", None, vec![
-            line("In Slack: right-click a channel, Copy, Copy link."),
+            line("The channels you are in are listed under your channels: tick the ones to watch."),
+            line("For one you are not in, right-click it in Slack, Copy, Copy link."),
             line("Paste it, a link to a message in it, its id or #name into add a channel."),
             line("Alias, kind and colour: Settings / Slack / channels."),
         ]),

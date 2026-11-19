@@ -17,6 +17,9 @@ pub(crate) use channels::{
 mod groups;
 pub(crate) use groups::{groups, groups_action, groups_cached, groups_unavailable};
 
+mod joined;
+pub(crate) use joined::{joined, joined_action, joined_unavailable};
+
 pub(crate) fn workspace_action() -> ActionDescriptor {
     ActionDescriptor::new(
         "slack.settings.check.workspace",

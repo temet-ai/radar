@@ -19,6 +19,9 @@ pub(crate) use pace::{Pace, Stop, all};
 #[cfg(test)]
 pub(crate) use pace::IN_FLIGHT;
 
+mod joined;
+pub(crate) use joined::JoinedRead;
+
 mod channels;
 pub(crate) use channels::{ChannelEnd, ChannelEvidence, ChannelKind, ChannelMembership};
 #[cfg(test)]

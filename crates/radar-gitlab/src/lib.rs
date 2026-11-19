@@ -688,9 +688,8 @@ impl GitlabPlugin {
                     };
                     match &result {
                         Ok(s) => log::info(format!(
-                            "gitlab {group}: {} merge requests{} in {:.1}s",
-                            s.mrs.len(),
-                            if s.repo { " (a repo)" } else { "" },
+                            "gitlab {group}: {} in {:.1}s",
+                            sync::read_summary(&want, s),
                             started.elapsed().as_secs_f32()
                         )),
                         Err(e) => log::error(format!("gitlab {group} failed: {e}")),

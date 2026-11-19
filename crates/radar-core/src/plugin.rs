@@ -1244,6 +1244,9 @@ pub trait Plugin: Send {
         self.palette_targets().into_iter().map(|t| t.subject).collect()
     }
     fn agent_identity(&self, _subject: &crate::journal::SubjectKey) -> Option<String> { None }
+    /// What the part's cache holds, in a line per source, for MCP coverage
+    /// (`tickets matching <jql>`); empty when the health sources say enough.
+    fn agent_coverage(&self) -> Vec<String> { vec![] }
     fn agent_document(&mut self, request: &crate::agent_context::AgentContextRequest) -> Option<crate::context::Document> {
         self.agent_context(request).map(crate::context::Document::from_context)
     }

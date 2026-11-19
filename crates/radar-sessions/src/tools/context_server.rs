@@ -194,9 +194,9 @@ pub fn discover(workspace: Option<&Path>) -> io::Result<(PathBuf, String)> {
 
 pub fn specs() -> Value {
     let descriptions = [
-        "Find cached work across radar's configured sources. Accepts exact URLs or text, optional kind/project/assignee filters. Returns scoped refs and a selection_ref; coverage says what was searched. Use context next.",
-        "Assemble linked work from roots (URLs or radar refs) or a search selection_ref: requirements, changes, discussions, checkouts, relationships and source gaps. Read full sections with read. Snapshots expire after an hour or cache eviction; cursors continue the captured snapshot.",
-        "Read full cached source sections for up to 32 refs together. Use snapshot_id to read the exact revision returned by context. Optional sections select named sections. Follow next_cursor for the rest; truncated provider caches are marked explicitly.",
+        "Find cached work across radar's configured sources. Accepts exact URLs or text, optional filters: kind (merge-request, ticket, ... or the label a result shows), state (open matches anything not merged, closed or done; any other word matches exactly), project, assignee. Returns scoped refs and a selection_ref; coverage names each source, when it last synced and what it holds. Use context next.",
+        "Assemble linked work from roots (URLs or radar refs) or a search selection_ref: requirements, changes, discussions, checkouts, relationships and source gaps. Sources not yet read (an open MR's discussion, a linked ticket) are fetched first, for up to 10 s. omitted_refs names what depth or capacity left out. Read full sections with read. Snapshots expire after an hour or cache eviction; cursors continue the captured snapshot.",
+        "Read full source sections for up to 32 refs together; sources not yet read are fetched first, for up to 10 s. Use snapshot_id to read the exact revision returned by context. Optional sections select named sections. Follow next_cursor for the rest; truncated provider caches are marked explicitly.",
         "Compare a prior snapshot_id with the current cached connected work. Returns changed and unavailable refs and a new snapshot. This reads current caches, not a guaranteed fresh remote view.",
     ];
     let mut specs = json!(TOOLS.iter().zip(descriptions).map(|(name, description)| json!({
@@ -204,7 +204,7 @@ pub fn specs() -> Value {
         "inputSchema":{"type":"object","additionalProperties":false,"properties":{
             "query":{"type":"string"},"roots":{"type":"array","items":{"type":"string"}},
             "selection_ref":{"type":"string"},"refs":{"type":"array","items":{"type":"string"},"maxItems":32},
-            "sections":{"type":"array","items":{"type":"string"}},"kind":{"type":"string"},"project":{"type":"string"},"assignee":{"type":"string"},
+            "sections":{"type":"array","items":{"type":"string"}},"kind":{"type":"string"},"state":{"type":"string"},"project":{"type":"string"},"assignee":{"type":"string"},
             "snapshot_id":{"type":"string"},"cursor":{"type":"string"},"max_bytes":{"type":"integer","minimum":1024,"maximum":262144},
             "depth":{"type":"integer","minimum":0,"maximum":4}
         }},"outputSchema":{"type":"object"},"annotations":{"readOnlyHint":true,"destructiveHint":false,"openWorldHint":false}

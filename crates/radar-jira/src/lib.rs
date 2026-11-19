@@ -1411,6 +1411,17 @@ impl Plugin for JiraPlugin {
         let fx = page::fetch(self, &site, &subject.id, true);
         (!fx.is_empty(), fx)
     }
+    fn agent_coverage(&self) -> Vec<String> {
+        self.cfg
+            .sites
+            .iter()
+            .map(|site| {
+                let asked: Vec<&str> = self.data.get(&site.name).map(|d| d.synced.keys().map(String::as_str).collect()).unwrap_or_default();
+                let lists = if asked.is_empty() { "no list read yet".to_string() } else { format!("lists hold tickets matching {}", asked.join(" | ")) };
+                format!("jira {}: {lists}; context and read fetch any other ticket of this site by key", site.name)
+            })
+            .collect()
+    }
     fn agent_identity(&self, subject: &radar_core::journal::SubjectKey) -> Option<String> {
         let site = self.cfg.sites.iter().find(|site| agent_context::key(site, &subject.id).as_ref() == Some(subject))?;
         self.data.get(&site.name)?.me.as_ref().map(|m| m.account_id.clone())

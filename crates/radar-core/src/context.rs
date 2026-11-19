@@ -17,6 +17,7 @@ pub fn arguments(tool: &str) -> &'static [&'static str] {
         "search" => &[
             "query",
             "kind",
+            "state",
             "project",
             "assignee",
             "cursor",
@@ -35,6 +36,30 @@ const MAX_STORE_BYTES: usize = 32 * 1024 * 1024;
 const TTL: i64 = 3600;
 /// Relations to what holds an item rather than what it is about.
 const CONTAINERS: &[&str] = &["repository"];
+/// How many dropped refs a page names; `omitted` still counts them all.
+const MAX_OMITTED_REFS: usize = 64;
+/// States that mean an item is finished, for the `state: "open"` filter.
+const ENDED: &[&str] = &[
+    "merged", "closed", "done", "resolved", "declined", "cancelled", "canceled", "rejected", "won't do", "passed",
+    "failed", "skipped",
+];
+
+/// A kind as a caller may spell it: `merge-request`, `merge request` and
+/// `Merge_Request` are one kind.
+fn kind_word(kind: &str) -> String {
+    kind.trim().to_lowercase().replace(['-', '_'], " ")
+}
+
+/// `open` matches every state that has not ended (GitLab's `opened`, Jira's
+/// `In Progress`); any other word matches that state exactly.
+fn state_matches(want: &str, value: &str) -> bool {
+    let norm = |s: &str| match s.trim().to_lowercase().as_str() {
+        "opened" => "open".to_string(),
+        w => w.to_string(),
+    };
+    let (want, value) = (norm(want), norm(value));
+    if want == "open" { !ENDED.contains(&value.as_str()) } else { value == want }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Section {
@@ -144,6 +169,7 @@ pub struct Query {
     #[serde(default)]
     pub sections: Vec<String>,
     pub kind: Option<String>,
+    pub state: Option<String>,
     pub project: Option<String>,
     pub assignee: Option<String>,
     pub snapshot_id: Option<String>,
@@ -169,7 +195,85 @@ struct Snapshot {
     edges: Vec<Edge>,
     missing: Vec<String>,
     omitted: usize,
+    /// Each ref left out, once, with why.
+    omitted_refs: BTreeMap<String, String>,
     bytes: usize,
+}
+impl Snapshot {
+    fn new(created: i64, depth: usize, roots: Vec<String>) -> Self {
+        Self {
+            created,
+            depth,
+            roots,
+            documents: vec![],
+            edges: vec![],
+            missing: vec![],
+            omitted: 0,
+            omitted_refs: BTreeMap::new(),
+            bytes: 0,
+        }
+    }
+    fn omit(&mut self, r: String, reason: impl Into<String>) {
+        if !self.omitted_refs.contains_key(&r) {
+            self.omitted += 1;
+            self.omitted_refs.insert(r, reason.into());
+        }
+    }
+}
+
+fn omitted_refs(s: &Snapshot) -> Vec<Value> {
+    s.omitted_refs
+        .iter()
+        .take(MAX_OMITTED_REFS)
+        .map(|(r, reason)| {
+            let relation = s.edges.iter().find(|e| &e.to == r).map(|e| e.relation.as_str());
+            json!({"ref":r,"relation":relation,"reason":reason})
+        })
+        .collect()
+}
+
+fn ago(secs: i64) -> String {
+    if secs < 120 {
+        format!("{secs}s")
+    } else if secs < 7200 {
+        format!("{}m", secs / 60)
+    } else if secs < 172_800 {
+        format!("{}h", secs / 3600)
+    } else {
+        format!("{}d", secs / 86_400)
+    }
+}
+
+/// Whether each source a part reads has synced, and how long ago, so a
+/// caller can tell a cache read this minute from one left from last week.
+fn coverage(plugins: &[Box<dyn Plugin>], now: i64) -> (Value, Vec<String>) {
+    let mut sources = vec![];
+    let mut scope = vec![];
+    let mut stale = vec![];
+    for p in plugins.iter().filter(|p| p.set_up() == Setup::Ready && !p.owns().is_empty()) {
+        scope.extend(p.agent_coverage());
+        let Some(health) = p.health() else { continue };
+        let every = health.every.max(60);
+        for s in &health.sources {
+            let age = s.at.map(|at| now.saturating_sub(at).max(0));
+            let old = age.is_none_or(|a| a > every * 3);
+            let state = match s.state {
+                crate::health::SourceState::Ok => "ok",
+                crate::health::SourceState::Waiting => "waiting",
+                crate::health::SourceState::Failing => "failing",
+                crate::health::SourceState::SignedOut => "signed out",
+            };
+            if old {
+                stale.push(match age {
+                    Some(a) => format!("{} {}: last synced {} ago", p.id(), s.name, ago(a)),
+                    None => format!("{} {}: not synced since radar started", p.id(), s.name),
+                });
+            }
+            sources.push(json!({"part":p.id(),"source":s.name,"state":state,"synced_at":s.at,"age_secs":age,
+                "stale":old,"problem":(!s.words.is_empty()).then_some(&s.words)}));
+        }
+    }
+    (json!({"basis":"cached","syncing":plugins.iter().any(|p| p.health().is_some_and(|h| h.syncing)),"sources":sources,"scope":scope}), stale)
 }
 
 #[derive(Default)]
@@ -258,23 +362,28 @@ fn document(
     subject: &Subject,
     key: SubjectKey,
 ) -> Document {
-    plugins[i]
-        .agent_document(&AgentContextRequest {
-            subject: key.clone(),
-        })
-        .unwrap_or_else(|| {
-            let mut d = Document::from_context(
-                AgentContext::new(&subject.kind, key, &subject.label).link(subject.url.clone()),
-            );
-            d.missing
-                .push("source content is not cached or this owner does not expose it yet".into());
-            d
-        })
+    held_document(plugins, i, key.clone()).unwrap_or_else(|| {
+        let mut d = bare(subject, key);
+        d.missing
+            .push("source content is not cached or this owner does not expose it yet".into());
+        d
+    })
+}
+
+fn held_document(plugins: &mut [Box<dyn Plugin>], i: usize, key: SubjectKey) -> Option<Document> {
+    plugins[i].agent_document(&AgentContextRequest { subject: key })
+}
+
+fn bare(subject: &Subject, key: SubjectKey) -> Document {
+    Document::from_context(AgentContext::new(&subject.kind, key, &subject.label).link(subject.url.clone()))
 }
 
 impl Service {
     pub fn clear(&mut self) {
         self.snapshots.clear();
+    }
+    pub fn forget(&mut self, id: &str) {
+        self.snapshots.remove(id);
     }
     pub fn brief(&self, id: &str) -> Bundle {
         match self.snapshots.get(id) {
@@ -340,20 +449,7 @@ impl Service {
         if tool == "changes" {
             return self.changes(plugins, &q, now, budget);
         }
-        let mut snapshot = Snapshot {
-            created: now,
-            depth: if tool == "search" {
-                0
-            } else {
-                q.depth.unwrap_or(2).min(4)
-            },
-            roots: vec![],
-            documents: vec![],
-            edges: vec![],
-            missing: vec![],
-            omitted: 0,
-            bytes: 0,
-        };
+        let mut snapshot = Snapshot::new(now, if tool == "search" { 0 } else { q.depth.unwrap_or(2).min(4) }, vec![]);
         if tool == "search" {
             let needle = q.query.to_lowercase();
             // Exact identities and URLs are useful even before a list is cached.
@@ -365,8 +461,28 @@ impl Service {
             {
                 subjects.insert(0, (s, k));
             }
+            let want_kind = q.kind.as_deref().map(kind_word);
+            let mut kinds: BTreeMap<String, String> = BTreeMap::new();
+            let mut kind_hits = 0;
             for (s, key) in subjects {
-                if q.kind.as_ref().is_some_and(|k| &key.kind != k) {
+                let Some((i, _)) = owner(plugins, &s) else {
+                    continue;
+                };
+                let d = document(plugins, i, &s, key.clone());
+                kinds.entry(key.kind.clone()).or_insert_with(|| d.context.kind.clone());
+                if let Some(want) = &want_kind {
+                    if *want != kind_word(&key.kind) && *want != kind_word(&d.context.kind) {
+                        continue;
+                    }
+                    kind_hits += 1;
+                }
+                if let Some(want) = &q.state
+                    && !d
+                        .context
+                        .fields
+                        .iter()
+                        .any(|f| matches!(f.name.as_str(), "state" | "status") && state_matches(want, &f.value))
+                {
                     continue;
                 }
                 if q.project
@@ -383,10 +499,6 @@ impl Service {
                     s.fields.values().cloned().collect::<Vec<_>>().join(" ")
                 )
                 .to_lowercase();
-                let Some((i, _)) = owner(plugins, &s) else {
-                    continue;
-                };
-                let d = document(plugins, i, &s, key.clone());
                 if !needle.is_empty()
                     && exact.as_ref() != Some(&key)
                     && !words.contains(&needle)
@@ -419,6 +531,15 @@ impl Service {
                     snapshot.roots.push(r);
                 }
             }
+            if let Some(k) = &q.kind
+                && kind_hits == 0
+            {
+                let here: Vec<_> = kinds.iter().map(|(kind, label)| format!("{kind} ({label})")).collect();
+                snapshot.missing.push(format!(
+                    "no cached item is of kind {k}; kinds here: {}",
+                    if here.is_empty() { "none".to_string() } else { here.join(", ") }
+                ));
+            }
             snapshot.missing.push("search covers cached subjects only; unqueried sources and older items are not counted".into());
         } else {
             let roots = if let Some(id) = &q.selection_ref {
@@ -433,10 +554,10 @@ impl Service {
                 return Err("too many roots; use a smaller selection".into());
             }
             let depth = q.depth.unwrap_or(2).min(4);
-            let mut queue: VecDeque<_> = roots.iter().map(|r| (r.clone(), 0usize)).collect();
+            let mut queue: VecDeque<_> = roots.iter().map(|r| (r.clone(), 0usize, false)).collect();
             snapshot.roots = roots;
             let mut seen = BTreeSet::new();
-            while let Some((r, level)) = queue.pop_front() {
+            while let Some((r, level, container)) = queue.pop_front() {
                 let (i, s, key) = match resolve(plugins, &r) {
                     Ok(v) => v,
                     Err(e) => {
@@ -451,7 +572,15 @@ impl Service {
                     continue;
                 }
                 if snapshot.documents.len() >= MAX_ITEMS {
-                    snapshot.omitted += 1;
+                    snapshot.omit(from, "snapshot capacity");
+                    continue;
+                }
+                // A container is listed but not walked: through an MR's
+                // repository lies every other MR and every message about them.
+                if container {
+                    let mut d = held_document(plugins, i, key.clone()).unwrap_or_else(|| bare(&s, key));
+                    d.missing.push("listed as what holds the item; what it holds is not walked (use it as a root to read it)".into());
+                    Self::add(&mut snapshot, d);
                     continue;
                 }
                 let d = document(plugins, i, &s, key);
@@ -482,9 +611,7 @@ impl Service {
                     if to == from {
                         continue;
                     }
-                    // A container is listed but not walked: through an MR's
-                    // repository lies every other MR and every message about them.
-                    let next = if CONTAINERS.contains(&edge.relation.as_str()) { depth } else { level + 1 };
+                    let holds = CONTAINERS.contains(&edge.relation.as_str());
                     if snapshot.edges.len() < 2048
                         && !snapshot.edges.iter().any(|e| {
                             e.from == from
@@ -501,11 +628,11 @@ impl Service {
                             evidence: edge.evidence,
                         });
                     }
-                    if level < depth && !seen.contains(&to) && !queue.iter().any(|(r, _)| r == &to)
+                    if level < depth && !seen.contains(&to) && !queue.iter().any(|(r, _, _)| r == &to)
                     {
-                        queue.push_back((to, next));
+                        queue.push_back((to, level + 1, holds));
                     } else if level >= depth && !seen.contains(&to) {
-                        snapshot.omitted += 1;
+                        snapshot.omit(to, format!("beyond depth {depth}; raise depth or use it as a root"));
                     }
                 }
                 Self::add(&mut snapshot, d);
@@ -539,13 +666,7 @@ impl Service {
         }
         let size = serde_json::to_vec(&d).map_or(0, |v| v.len());
         if s.documents.len() >= MAX_ITEMS || s.bytes + size > MAX_SNAPSHOT_BYTES {
-            s.omitted += 1;
-            if s.missing.len() < 32 {
-                s.missing.push(format!(
-                    "{} exceeds this snapshot's capacity; narrow the query",
-                    reference(&d.context.subject)
-                ));
-            }
+            s.omit(reference(&d.context.subject), "exceeds this snapshot's capacity; narrow the query");
             false
         } else {
             s.bytes += size;
@@ -622,9 +743,11 @@ impl Service {
             .iter()
             .filter(|e| refs.contains(e.from.as_str()))
             .collect();
+        let (coverage, stale) = coverage(plugins, s.created);
+        let missing: Vec<_> = s.missing.iter().cloned().chain(stale).collect();
         Ok(
             json!({"schema_version":1,"snapshot_id":id,"selection_ref":id,"as_of":s.created,"items":items,"relations":edges,
-            "known_items":s.documents.len(),"omitted":s.omitted,"coverage":"cached","missing":s.missing,
+            "known_items":s.documents.len(),"omitted":s.omitted,"omitted_refs":omitted_refs(s),"coverage":coverage,"missing":missing,
             "next_cursor":(end < s.documents.len()).then(|| format!("{tool}:{id}:{end}"))}),
         )
     }
@@ -656,16 +779,7 @@ impl Service {
         if q.refs.is_empty() || q.refs.len() > 32 {
             return Err("read needs 1 to 32 refs".into());
         }
-        let mut s = Snapshot {
-            created: now,
-            depth: 0,
-            roots: q.refs.clone(),
-            documents: vec![],
-            edges: vec![],
-            missing: vec![],
-            omitted: 0,
-            bytes: 0,
-        };
+        let mut s = Snapshot::new(now, 0, q.refs.clone());
         for r in &q.refs {
             let (i, subject, key) = resolve(plugins, r)?;
             let mut d = if let Some(id) = &q.snapshot_id {
@@ -700,6 +814,7 @@ impl Service {
         budget: usize,
     ) -> Result<Value, String> {
         let s = self.get(id)?;
+        let (coverage, stale) = coverage(plugins, s.created);
         let mut all = String::new();
         let mut sources = vec![];
         for d in &s.documents {
@@ -725,7 +840,7 @@ impl Service {
         }
         Ok(
             json!({"schema_version":1,"snapshot_id":id,"sources":sources,"text":&all[offset..end],"bytes":end-offset,
-            "total_bytes":all.len(),"omitted":s.omitted,"missing":s.missing,"next_cursor":(end < all.len()).then(|| format!("read:{id}:{end}"))}),
+            "total_bytes":all.len(),"omitted":s.omitted,"coverage":coverage,"missing":s.missing.iter().cloned().chain(stale).collect::<Vec<_>>(),"next_cursor":(end < all.len()).then(|| format!("read:{id}:{end}"))}),
         )
     }
     fn changes(

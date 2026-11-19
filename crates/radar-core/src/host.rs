@@ -590,8 +590,20 @@ impl std::fmt::Debug for HostEffect {
     }
 }
 
+/// An MCP call waiting for the reads of the sources it touches.
+struct HeldContext {
+    part: usize,
+    call: crate::context::Call,
+    subjects: Option<Vec<crate::journal::SubjectKey>>,
+    started: i64,
+}
+const CONTEXT_WAIT_SECS: i64 = 10;
+/// Sources one call may have read; a wide context names the rest as cached.
+const MAX_PREPARED: usize = 32;
+
 pub struct Host {
     context_service: crate::context::Service,
+    held_context: Vec<HeldContext>,
     review_context_started: std::collections::BTreeMap<u64, i64>,
     /// When each signed-out part's `env:` settings were last read again.
     env_reread: std::collections::BTreeMap<usize, i64>,
@@ -830,6 +842,7 @@ impl Host {
         }
         Ok(Self {
             context_service: crate::context::Service::default(),
+            held_context: Vec::new(),
             review_context_started: std::collections::BTreeMap::new(),
             env_reread: std::collections::BTreeMap::new(),
             wake,
@@ -2102,7 +2115,7 @@ impl Host {
                     out.extend(self.pump_reviews());
                     out.extend(self.reread_signed_out(now));
                 }
-                self.pump_context();
+                out.extend(self.pump_context());
                 out
             }
             // Paused: the wakes wait, and the tick after the pause takes them in.
@@ -2115,7 +2128,7 @@ impl Host {
                         out.extend(self.route(i, fx, 0));
                     }
                 }
-                self.pump_context();
+                out.extend(self.pump_context());
                 out
             }
             Event::Wake(_) => vec![],
@@ -2867,13 +2880,61 @@ impl Host {
     /// An intent: a key's goes where the key would (the host's own keys
     /// included); a menu's choice answers the open menu; the rest go to the
     /// focused part.
-    fn pump_context(&mut self) {
+    /// MCP calls. A `context` or `read` first has each source it touches read
+    /// through its owner, as a review's context is, and is answered once those
+    /// reads land or after [`CONTEXT_WAIT_SECS`], so an open MR or a linked
+    /// ticket arrives with its description and discussion, not as a list row.
+    fn pump_context(&mut self) -> Vec<HostEffect> {
+        let mut out = Vec::new();
+        let mut work = std::mem::take(&mut self.held_context);
         for i in 0..self.plugins.len() {
             for call in self.plugins[i].context_calls() {
-                let answer = self.context_service.execute(&mut self.plugins, &call.tool, call.arguments, self.now);
-                self.plugins[i].context_answer(call.id, answer);
+                work.push(HeldContext { part: i, call, subjects: None, started: self.now });
             }
         }
+        for mut held in work {
+            let args = &held.call.arguments;
+            let fresh = matches!(held.call.tool.as_str(), "context" | "read")
+                && args.get("cursor").is_none()
+                && args.get("snapshot_id").is_none();
+            if fresh && held.subjects.is_none() {
+                match self.context_service.execute(&mut self.plugins, &held.call.tool, args.clone(), self.now) {
+                    Ok(packet) => {
+                        let id = packet["snapshot_id"].as_str().unwrap_or_default().to_owned();
+                        let bundle = self.context_service.brief(&id);
+                        self.context_service.forget(&id);
+                        held.subjects = Some(bundle.contexts.into_iter().map(|c| c.subject).take(MAX_PREPARED).collect());
+                    }
+                    Err(e) => {
+                        self.plugins[held.part].context_answer(held.call.id, Err(e));
+                        continue;
+                    }
+                }
+            }
+            let mut pending = false;
+            for subject in held.subjects.iter().flatten() {
+                for i in 0..self.plugins.len() {
+                    let (loading, fx) = self.plugins[i].prepare_agent_context(subject);
+                    pending |= loading;
+                    out.extend(self.route(i, fx, 1));
+                }
+            }
+            if pending && self.now - held.started < CONTEXT_WAIT_SECS {
+                self.held_context.push(held);
+                continue;
+            }
+            let mut answer = self.context_service.execute(&mut self.plugins, &held.call.tool, held.call.arguments, self.now);
+            if pending
+                && let Ok(packet) = &mut answer
+                && let Some(missing) = packet["missing"].as_array_mut()
+            {
+                missing.push(serde_json::json!(format!(
+                    "some sources were still being read after {CONTEXT_WAIT_SECS}s; ask again to get them"
+                )));
+            }
+            self.plugins[held.part].context_answer(held.call.id, answer);
+        }
+        out
     }
 
     /// A part asked for a local review (`Effect::StartReview`): each link

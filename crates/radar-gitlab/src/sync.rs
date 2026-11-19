@@ -288,6 +288,40 @@ pub fn plan(p: &GitlabPlugin, full: bool) -> Vec<(String, Want)> {
         .collect()
 }
 
+/// What a sync read, for its log line. A full sync counts the open merge
+/// requests (and the merged or closed ones, when they were asked for); a
+/// sync of changes counts only the ones updated since it asked, which is not
+/// how many the tenancy has open.
+pub fn read_summary(want: &Want, got: &Synced) -> String {
+    fn n(count: usize, what: &str) -> String {
+        let s = if count == 1 { "" } else { "s" };
+        format!("{count} {what}{s}")
+    }
+    let mut out = match &want.changed_since {
+        Some(since) => format!("{} changed since {since}", n(got.mrs.len(), "merge request")),
+        None => {
+            let open = got
+                .mrs
+                .iter()
+                .filter(|m| m.state == MrState::Opened)
+                .count();
+            let mut out = n(open, "open merge request");
+            if want.ended_since.is_some() {
+                let ended = got.mrs.len() - open;
+                out.push_str(&format!(", {ended} merged or closed"));
+            }
+            out
+        }
+    };
+    if got.mrs_truncated {
+        out.push_str(", more not read");
+    }
+    if got.repo {
+        out.push_str(" (a repo)");
+    }
+    out
+}
+
 /// `held` with what a sync asked for (`want`) and brought back (`got`).
 /// `now` and `history_days` move the window of merged and closed ones.
 pub fn merge(
@@ -360,6 +394,40 @@ mod tests {
             repo: Some(false),
             ..Default::default()
         }
+    }
+
+    #[test]
+    fn the_log_line_says_whether_it_counts_open_or_changed_merge_requests() {
+        let full = Want::default();
+        let none = Synced::default();
+        assert_eq!(read_summary(&full, &none), "0 open merge requests");
+        let mut merged = mr(2, "vimes", "ankh-morpork/watch/yard");
+        merged.state = MrState::Merged;
+        let got = Synced {
+            mrs: vec![mr(1, "vimes", "ankh-morpork/watch/yard"), merged],
+            ..Default::default()
+        };
+        let with_ended = Want {
+            ended_since: Some("2026-09-22T00:00:00Z".into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            read_summary(&with_ended, &got),
+            "1 open merge request, 1 merged or closed"
+        );
+        assert_eq!(
+            read_summary(&incremental(), &got),
+            "2 merge requests changed since 2026-10-06T00:00:00Z"
+        );
+        let repo = Synced {
+            repo: true,
+            mrs_truncated: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            read_summary(&incremental(), &repo),
+            "0 merge requests changed since 2026-10-06T00:00:00Z, more not read (a repo)"
+        );
     }
 
     #[test]

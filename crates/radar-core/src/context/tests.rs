@@ -266,7 +266,101 @@ fn a_repository_is_listed_but_what_it_holds_is_not_walked() {
     let c = service.execute(&mut plugins, "context", json!({"roots":[root],"depth":4}), 100).unwrap();
     let titles: Vec<_> = c["items"].as_array().unwrap().iter().map(|i| i["title"].as_str().unwrap()).collect();
     assert_eq!(titles, ["WATCH-12", "watch-repo"]);
+    assert_eq!(c["omitted"], 0);
+    assert!(c["items"][1]["missing"][0].as_str().unwrap().contains("not walked"));
+}
+
+#[test]
+fn what_depth_leaves_out_is_named_once_with_why() {
+    let mut plugins: Vec<Box<dyn Plugin>> =
+        vec![Box::new(Graph(&[("WATCH-12", "linked", "watch-repo"), ("watch-repo", "linked", "WATCH-13"), ("watch-repo", "cites", "WATCH-13")]))];
+    let mut service = Service::default();
+    let c = service.execute(&mut plugins, "context", json!({"roots":[reference(&key("WATCH-12"))],"depth":1}), 100).unwrap();
     assert_eq!(c["omitted"], 1);
+    assert_eq!(c["omitted_refs"][0]["ref"], reference(&key("WATCH-13")));
+    assert!(c["omitted_refs"][0]["reason"].as_str().unwrap().contains("beyond depth 1"));
+}
+
+/// Items with a state, as a merge request list holds them.
+struct Stated;
+impl Plugin for Stated {
+    fn configure(&mut self, _: Option<&toml::Value>) -> anyhow::Result<()> {
+        Ok(())
+    }
+    fn config(&self) -> Option<toml::Value> {
+        None
+    }
+    fn id(&self) -> &'static str {
+        "stated-fixture"
+    }
+    fn owns(&self) -> Vec<Owned> {
+        vec![Owned::page("merge-request", "Merge requests")]
+    }
+    fn agent_subjects(&self) -> Vec<Subject> {
+        [("watch!1", "opened"), ("watch!2", "merged"), ("watch!3", "open")]
+            .into_iter()
+            .map(|(id, state)| Subject::new("merge-request", id, id).with("state", state))
+            .collect()
+    }
+    fn journal_subject(&self, s: &Subject) -> Option<SubjectSnapshot> {
+        self.agent_subjects().iter().any(|t| t.id == s.id).then(|| SubjectSnapshot::new(mr(&s.id), SubjectRole::Primary))
+    }
+    fn subject_from_journal(&self, k: &SubjectKey) -> Option<Subject> {
+        self.agent_subjects().into_iter().find(|s| mr(&s.id) == *k)
+    }
+    fn agent_document(&mut self, r: &AgentContextRequest) -> Option<Document> {
+        let s = self.subject_from_journal(&r.subject)?;
+        let state = s.field("state").unwrap_or_default().to_owned();
+        Some(Document::from_context(
+            AgentContext::new("merge request", r.subject.clone(), &s.label).field(ContextField::new("state", state)),
+        ))
+    }
+    fn health(&self) -> Option<crate::health::Health> {
+        Some(crate::health::Health {
+            mark: crate::health::Mark { nerd: "x", unicode: "x", emoji: "x" },
+            sources: vec![crate::health::Source::ok("ankh-morpork/watch", Some(100 - 6 * 86_400))],
+            syncing: false,
+            every: 60,
+        })
+    }
+}
+fn mr(id: &str) -> SubjectKey {
+    SubjectKey::new("sample", "https://watch.example.test", "merge-request", id).unwrap()
+}
+
+#[test]
+fn kind_takes_the_label_a_result_shows_and_a_kind_with_no_items_names_the_kinds() {
+    let mut plugins: Vec<Box<dyn Plugin>> = vec![Box::new(Stated)];
+    let mut service = Service::default();
+    for kind in ["merge-request", "merge request", "Merge Request"] {
+        let found = service.execute(&mut plugins, "search", json!({"kind":kind}), 100).unwrap();
+        assert_eq!(found["known_items"], 3, "{kind}");
+    }
+    let none = service.execute(&mut plugins, "search", json!({"kind":"issue"}), 100).unwrap();
+    assert_eq!(none["known_items"], 0);
+    assert!(none["missing"][0].as_str().unwrap().contains("kinds here: merge-request (merge request)"));
+}
+
+#[test]
+fn state_open_keeps_what_has_not_ended() {
+    let mut plugins: Vec<Box<dyn Plugin>> = vec![Box::new(Stated)];
+    let mut service = Service::default();
+    let open = service.execute(&mut plugins, "search", json!({"state":"open"}), 100).unwrap();
+    let titles: Vec<_> = open["items"].as_array().unwrap().iter().map(|i| i["title"].as_str().unwrap()).collect();
+    assert_eq!(titles, ["watch!1", "watch!3"]);
+    let merged = service.execute(&mut plugins, "search", json!({"state":"merged"}), 100).unwrap();
+    assert_eq!(merged["known_items"], 1);
+}
+
+#[test]
+fn coverage_says_how_old_each_source_is_and_a_stale_one_is_a_gap() {
+    let mut plugins: Vec<Box<dyn Plugin>> = vec![Box::new(Stated)];
+    let mut service = Service::default();
+    let found = service.execute(&mut plugins, "search", json!({}), 100).unwrap();
+    let source = &found["coverage"]["sources"][0];
+    assert_eq!(source["age_secs"], 6 * 86_400);
+    assert_eq!(source["stale"], true);
+    assert!(found["missing"].as_array().unwrap().iter().any(|m| m.as_str().unwrap().contains("last synced 6d ago")));
 }
 
 #[test]

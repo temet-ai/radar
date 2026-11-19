@@ -301,7 +301,21 @@ const THIRD_PARTY_NOTICES: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"
 
 /// `radar` with these plugins: the TUI, `radar config …`, or a plugin's commands.
 /// The TUI is drawn by Ink; where Ink cannot run, radar says why on stderr and exits 1.
+/// Started in a folder that has since been removed, radar moves to the home
+/// folder: Node (the Ink renderer, the Claude sidecar) cannot start without
+/// a working folder, and every child inherits radar's.
+fn leave_a_removed_folder() {
+    if std::env::current_dir().is_ok() {
+        return;
+    }
+    let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("/"));
+    if std::env::set_current_dir(&home).is_ok() {
+        eprintln!("radar: the folder it was started in no longer exists; working from {}", home.display());
+    }
+}
+
 pub async fn main(plugins: Vec<Box<dyn Plugin>>) -> Result<()> {
+    leave_a_removed_folder();
     let mut cli = clap::Command::new("radar")
         .about("A terminal workspace, built from the parts compiled into it")
         .version(env!("RADAR_BUILD"))
